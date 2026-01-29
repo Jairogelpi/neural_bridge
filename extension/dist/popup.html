@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Bridge - SCP Protocol</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            width: 400px;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+            color: #fff;
+        }
+
+        .header {
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .header .version {
+            font-size: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .content {
+            padding: 20px 24px;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 16px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 12px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .stat-value.success {
+            color: #10b981;
+        }
+
+        .stat-value.cost {
+            color: #fbbf24;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: #a5b4fc;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+
+        /* Host Badge */
+        .host-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+        }
+
+        .host-badge .dot {
+            width: 10px;
+            height: 10px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .host-badge span {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* Mode Toggle */
+        .mode-toggle {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .mode-toggle button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .mode-toggle button.active {
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            color: #fff;
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #a5b4fc;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        /* Fidelity Badge */
+        .fidelity-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 12px 0;
+        }
+
+        .fidelity-badge.crystal-clear {
+            background: linear-gradient(90deg, #10b981, #34d399);
+            color: #fff;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .fidelity-badge.high-fidelity {
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            color: #fff;
+        }
+
+        .fidelity-badge.semantic-noise {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+            color: #1a1a3e;
+        }
+
+        .fidelity-badge.fragmented {
+            background: linear-gradient(90deg, #ef4444, #f87171);
+            color: #fff;
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Crystal Preview */
+        .crystal-preview {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 14px;
+            max-height: 140px;
+            overflow: auto;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 11px;
+            color: #a5b4fc;
+        }
+
+        /* Result Card */
+        .result-card {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+
+        .result-card.fail {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .result-decision {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .result-decision.accept {
+            color: #10b981;
+        }
+
+        .result-decision.fail {
+            color: #ef4444;
+        }
+
+        .result-score {
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .result-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .result-detail {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .result-detail span:last-child {
+            color: #fff;
+            font-weight: 500;
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+        }
+
+        .settings-panel.active {
+            display: flex;
+        }
+
+        .settings-header {
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .settings-header h2 {
+            font-size: 18px;
+        }
+
+        .settings-content {
+            padding: 20px 24px;
+            flex: 1;
+            overflow: auto;
+        }
+
+        .setting-group {
+            margin-bottom: 20px;
+        }
+
+        .setting-label {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .setting-input {
+            width: 100%;
+            padding: 12px 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .setting-input:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+
+        .setting-hint {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 6px;
+        }
+
+        /* Pricing Cards */
+        .pricing-section {
+            margin-top: 24px;
+        }
+
+        .pricing-cards {
+            display: grid;
+            gap: 12px;
+        }
+
+        .pricing-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .pricing-card:hover {
+            border-color: #6366f1;
+        }
+
+        .pricing-card.selected {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: #6366f1;
+        }
+
+        .pricing-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .pricing-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .pricing-price {
+            font-weight: 700;
+            font-size: 16px;
+            color: #a5b4fc;
+        }
+
+        .pricing-features {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 16px 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .footer a {
+            color: #a5b4fc;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Main View -->
+    <div id="main-view">
+        <div class="header">
+            <div class="header-left">
+                <h1>🧠 Neural Bridge</h1>
+                <span class="version">SCP v1.0</span>
+            </div>
+            <div class="header-right">
+                <button class="icon-btn" id="btn-metrics" title="Metrics">📊</button>
+                <button class="icon-btn" id="btn-settings" title="Settings">⚙️</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Live Stats -->
+            <div class="stats-bar">
+                <div class="stat">
+                    <div class="stat-value" id="stat-transfers">0</div>
+                    <div class="stat-label">Transfers</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value success" id="stat-success">0%</div>
+                    <div class="stat-label">Success</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="stat-tokens">0</div>
+                    <div class="stat-label">Tokens</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value cost" id="stat-cost">$0</div>
+                    <div class="stat-label">Cost</div>
+                </div>
+            </div>
+
+            <!-- Host Badge -->
+            <div class="host-badge">
+                <span class="dot"></span>
+                <span>Connected to <strong id="current-host">Detecting...</strong></span>
+            </div>
+
+            <!-- Mode Toggle -->
+            <div class="mode-toggle">
+                <button id="mode-capture" class="active">📥 Capture</button>
+                <button id="mode-inject">📤 Transfer</button>
+                <button id="mode-mesh">🕸️ Mesh</button>
+            </div>
+
+            <!-- MESH MODE -->
+            <div id="mesh-mode" class="hidden">
+                <div class="section">
+                    <div class="section-title">Live Context Mesh</div>
+                    <div class="host-badge" id="mesh-status">
+                        <span class="dot" style="background: #a5b4fc; animation: pulse 1s infinite;"></span>
+                        <span>Broadcast Active</span>
+                    </div>
+                    <p style="font-size: 11px; color: #94a3b8; margin-bottom: 16px;">
+                        Automatically syncs context between all open LLM tabs in real-time.
+                    </p>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">📦 Checkpoints (Branching)</div>
+                    <div id="checkpoint-list"
+                        style="max-height: 200px; overflow: auto; display: flex; flex-direction: column; gap: 8px;">
+                        <!-- Checkpoints will be listed here -->
+                        <div style="font-size: 11px; color: #64748b; text-align: center; padding: 10px;">No checkpoints
+                            yet</div>
+                    </div>
+                    <button class="btn btn-secondary" id="btn-new-checkpoint"
+                        style="margin-top: 12px; font-size: 12px; padding: 8px;">
+                        <span>➕</span> New Checkpoint
+                    </button>
+                </div>
+            </div>
+
+            <!-- CAPTURE MODE -->
+            <div id="capture-mode">
+                <div class="section">
+                    <div class="section-title">Generate Crystal from Conversation</div>
+                    <button class="btn btn-primary" id="btn-capture">
+                        <span>⚡</span> Capture Context (Real AI)
+                    </button>
+                </div>
+
+                <div class="section hidden" id="crystal-section">
+                    <div class="section-title">Crystal Generated</div>
+                    <div class="crystal-preview" id="crystal-preview"></div>
+
+                    <div class="stats-bar" style="margin-bottom: 14px;">
+                        <div class="stat">
+                            <div class="stat-value" id="stat-entities">0</div>
+                            <div class="stat-label">Entities</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="stat-invariants">0</div>
+                            <div class="stat-label">Invariants</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="stat-quality">0%</div>
+                            <div class="stat-label">Quality</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value cost" id="stat-gen-cost">$0</div>
+                            <div class="stat-label">Cost</div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" id="btn-copy">
+                        <span>📋</span> Copy Crystal
+                    </button>
+                </div>
+            </div>
+
+            <!-- INJECT MODE -->
+            <div id="inject-mode" class="hidden">
+                <div class="section">
+                    <div class="section-title">Paste Crystal to Transfer</div>
+                    <button class="btn btn-secondary" id="btn-paste">
+                        <span>📋</span> Paste from Clipboard
+                    </button>
+                </div>
+
+                <div class="section hidden" id="transfer-section">
+                    <div class="section-title">Ready to Transfer</div>
+                    <div class="crystal-preview" id="inject-preview"></div>
+                    <button class="btn btn-primary" id="btn-transfer">
+                        <span>🚀</span> Transfer & Verify
+                    </button>
+                </div>
+
+                <div class="hidden" id="result-section">
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <span class="metric-label">SRI (Semantic Reliability)</span>
+                            <span class="metric-value font-mono" id="sri-value">0.00%</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">PAC Error Bound (ε)</span>
+                            <span class="metric-value font-mono text-sm" id="pac-bound-value">±0.00</span>
+                        </div>
+                    </div>
+                    <div id="fidelity-label" class="fidelity-badge fragmented">FRAGMENTED</div>
+                    <div class="result-card" id="result-card">
+                        <div class="result-header">
+                            <span class="result-decision" id="result-decision">ACCEPT</span>
+                            <span class="result-score" id="result-score">95%</span>
+                        </div>
+                        <div class="result-details">
+                            <div class="result-detail">
+                                <span>Invariants</span>
+                                <span id="result-invariants">4/5</span>
+                            </div>
+                            <div class="result-detail">
+                                <span>Confidence</span>
+                                <span id="result-confidence">[85%, 99%]</span>
+                            </div>
+                            <div class="result-detail">
+                                <span>Latency</span>
+                                <span id="result-latency">1.2s</span>
+                            </div>
+                            <div class="result-detail">
+                                <span>Cost</span>
+                                <span id="result-cost">$0.0023</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <span>Powered by OpenRouter</span>
+            <a href="#" id="open-dashboard">Full Dashboard →</a>
+        </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div class="settings-panel" id="settings-panel">
+        <div class="settings-header">
+            <h2>⚙️ Settings</h2>
+            <button class="icon-btn" id="btn-close-settings">✕</button>
+        </div>
+        <div class="settings-content">
+            <div class="setting-group">
+                <label class="setting-label">OpenRouter API Key</label>
+                <input type="password" class="setting-input" id="api-key-input" placeholder="sk-or-v1-...">
+                <div class="setting-hint">Get your key at <a href="https://openrouter.ai/keys" target="_blank"
+                        style="color: #a5b4fc;">openrouter.ai/keys</a></div>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">Compiler Model</label>
+                <select class="setting-input" id="compiler-model">
+                    <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet ($0.003/1K)</option>
+                    <option value="openai/gpt-4o">GPT-4o ($0.005/1K)</option>
+                    <option value="google/gemini-pro-1.5">Gemini Pro 1.5 ($0.00125/1K)</option>
+                </select>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">Infrastructure Token (Dashboard Sync)</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" class="setting-input" id="session-token-display" readonly
+                        placeholder="No session active" style="font-family: monospace; font-size: 10px; flex: 1;">
+                    <button class="btn btn-secondary" id="btn-bootstrap"
+                        style="padding: 0 12px; width: auto; font-size: 12px; height: 44px;">Login</button>
+                </div>
+                <div class="setting-hint">Paste this into the <a href="http://localhost:3001" target="_blank"
+                        style="color: #a5b4fc;">Dashboard</a> to sync metrics.</div>
+            </div>
+
+            <div class="pricing-section">
+                <div class="section-title">Plan</div>
+                <div class="pricing-cards">
+                    <div class="pricing-card selected" data-plan="free">
+                        <div class="pricing-card-header">
+                            <span class="pricing-name">Free Tier</span>
+                            <span class="pricing-price">$0/mo</span>
+                        </div>
+                        <div class="pricing-features">10 transfers/day, basic metrics</div>
+                    </div>
+                    <div class="pricing-card" data-plan="pro">
+                        <div class="pricing-card-header">
+                            <span class="pricing-name">Pro</span>
+                            <span class="pricing-price">$19/mo</span>
+                        </div>
+                        <div class="pricing-features">Unlimited transfers, priority models, dashboard</div>
+                    </div>
+                    <div class="pricing-card" data-plan="team">
+                        <div class="pricing-card-header">
+                            <span class="pricing-name">Team</span>
+                            <span class="pricing-price">$49/mo</span>
+                        </div>
+                        <div class="pricing-features">5 seats, shared crystals, analytics API</div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" id="btn-save-settings" style="margin-top: 20px;">
+                💾 Save Settings
+            </button>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>

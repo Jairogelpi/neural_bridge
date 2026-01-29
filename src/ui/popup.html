@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neural Bridge</title>
+  <link rel="stylesheet" href="./popup.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=Space+Mono&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+  <header>
+    <h1>Neural Bridge</h1>
+    <div class="subtitle">Knowledge Governance OS</div>
+  </header>
+
+  <div class="pulse-container glass-panel">
+    <div class="pulse-ring"></div>
+    <div class="pulse-core"></div>
+    <div class="pulse-label">Neural Bridge ACTIVE</div>
+  </div>
+
+  <div id="metrics" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+    <div class="glass-panel" style="margin-bottom: 0; padding: 12px;">
+      <div class="card-label">SRI FIDELITY</div>
+      <div id="fidelity" class="metric">--</div>
+    </div>
+    <div class="glass-panel" style="margin-bottom: 0; padding: 12px;">
+      <div class="card-label">KNOWLEDGE DOMAIN</div>
+      <div id="activeHost" class="metric" style="font-size: 14px; margin-top: 8px;">--</div>
+    </div>
+  </div>
+
+  <div id="app">
+    <div class="glass-panel status-section">
+      <div class="card-label">Governance State</div>
+      <pre id="state">Synchronizing artifacts...</pre>
+    </div>
+
+    <button id="btnRefresh" class="btn-primary" style="padding: 14px;">Mount Knowledge Crystal</button>
+  </div>
+
+  <script type="module" src="./popup.ts"></script>
+</body>
+
+</html>

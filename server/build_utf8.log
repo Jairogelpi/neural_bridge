@@ -1,0 +1,130 @@
+﻿#1 [internal] load local bake definitions
+#1 reading from stdin 390B 0.0s done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 30B
+#2 transferring dockerfile: 432B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/alpine:3.19
+#3 ...
+
+#4 [internal] load metadata for docker.io/library/golang:1.22-alpine
+#4 DONE 0.6s
+
+#3 [internal] load metadata for docker.io/library/alpine:3.19
+#3 DONE 0.6s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 2B done
+#5 DONE 0.0s
+
+#6 [internal] load build context
+#6 DONE 0.0s
+
+#7 [build 1/6] FROM docker.io/library/golang:1.22-alpine@sha256:1699c10032ca2582ec89a24a1312d986a3f094aed3d5c1147b19880afe40e052
+#7 resolve docker.io/library/golang:1.22-alpine@sha256:1699c10032ca2582ec89a24a1312d986a3f094aed3d5c1147b19880afe40e052 0.0s done
+#7 DONE 0.0s
+
+#8 [stage-1 1/4] FROM docker.io/library/alpine:3.19@sha256:6baf43584bcb78f2e5847d1de515f23499913ac9f12bdf834811a3145eb11ca1
+#8 resolve docker.io/library/alpine:3.19@sha256:6baf43584bcb78f2e5847d1de515f23499913ac9f12bdf834811a3145eb11ca1
+#8 resolve docker.io/library/alpine:3.19@sha256:6baf43584bcb78f2e5847d1de515f23499913ac9f12bdf834811a3145eb11ca1 0.0s done
+#8 DONE 0.0s
+
+#9 [stage-1 2/4] RUN apk add --no-cache ca-certificates
+#9 CACHED
+
+#6 [internal] load build context
+#6 transferring context: 4.90kB 0.0s done
+#6 DONE 0.0s
+
+#10 [build 2/6] RUN apk add --no-cache git
+#10 CACHED
+
+#11 [build 3/6] WORKDIR /app
+#11 CACHED
+
+#12 [build 4/6] COPY . .
+#12 DONE 0.0s
+
+#13 [build 5/6] RUN go mod tidy && go mod download
+#13 0.376 go: downloading github.com/jackc/pgx/v5 v5.6.0
+#13 0.376 go: downloading github.com/google/uuid v1.6.0
+#13 0.382 go: downloading github.com/redis/go-redis/v9 v9.6.1
+#13 0.384 go: downloading github.com/golang-jwt/jwt/v5 v5.2.1
+#13 0.617 verifying github.com/redis/go-redis/v9@v9.6.1: checksum mismatch
+#13 0.617 	downloaded: h1:HHDteefn6ZkTtY5fGUE8tj8uy85AHk6zP7CpzIAM0y4=
+#13 0.617 	go.sum:     h1:HHDteEodN8JWqN/RSXzP22lT7bm3ykM7c6E7NeI4K+0=
+#13 0.617 
+#13 0.617 SECURITY ERROR
+#13 0.617 This download does NOT match an earlier download recorded in go.sum.
+#13 0.617 The bits may have been replaced on the origin server, or an attacker may
+#13 0.617 have intercepted the download attempt.
+#13 0.617 
+#13 0.617 For more information, see 'go help module-auth'.
+#13 ERROR: process "/bin/sh -c go mod tidy && go mod download" did not complete successfully: exit code: 1
+------
+ > [build 5/6] RUN go mod tidy && go mod download:
+0.617 verifying github.com/redis/go-redis/v9@v9.6.1: checksum mismatch
+0.617 	downloaded: h1:HHDteefn6ZkTtY5fGUE8tj8uy85AHk6zP7CpzIAM0y4=
+0.617 	go.sum:     h1:HHDteEodN8JWqN/RSXzP22lT7bm3ykM7c6E7NeI4K+0=
+0.617 
+0.617 SECURITY ERROR
+0.617 This download does NOT match an earlier download recorded in go.sum.
+0.617 The bits may have been replaced on the origin server, or an attacker may
+0.617 have intercepted the download attempt.
+0.617 
+0.617 For more information, see 'go help module-auth'.
+------
+docker-compose : 
+Dockerfile:6
+En línea: 1 
+Carácter: 1
++ docker-compose 
+build api 2>&1 > 
+build.log; 
+Get-Content 
+build.log -Tai ...
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (Dockerf   
+ ile:6:String) []    
+, RemoteExceptio    n
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+
+--------------------
+
+   4 |     WORKDIR 
+/app
+
+   5 |     COPY . .
+
+   6 | >>> RUN go 
+mod tidy && go mod 
+download
+
+   7 |     RUN 
+CGO_ENABLED=0 
+GOOS=linux go build 
+-o /bin/api ./cmd/api
+
+   8 |     
+
+--------------------
+
+failed to solve: 
+process "/bin/sh -c 
+go mod tidy && go 
+mod download" did 
+not complete 
+successfully: exit 
+code: 1
+
+

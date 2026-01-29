@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+dashboard/node_modules/
+extension/node_modules/
+
+# Build outputs
+dist/
+*.tsbuildinfo
+
+# Environment files (IMPORTANT: contains API keys)
+.env
+.env.local
+.env.*.local
+
+# Debug/test outputs
+*.log
+test_output*.txt
+test_error*.txt
+final_demo_output.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary
+*.tmp
+*.temp

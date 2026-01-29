@@ -1,0 +1,21 @@
+﻿
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mC:/Users/jairo/Desktop/neural_bridge[39m
+
+[90mstdout[2m | src/verify_crystal_runtime.test.ts[2m > [22m[2mNeural Bridge: Grand Reality (100% Real)[2m > [22m[2mshould execute universal pipeline (Tech + Medical)
+[22m[39m
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+  NEURAL BRIDGE - The Infinite Reality Demo
+  100% Reality | Zero Mock | Universal Transparency
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+
+­ƒº¬ [1/4] TECH SCENARIO: Compiling High-Voltage Crystal...
+
+ [31mÔØ»[39m src/verify_crystal_runtime.test.ts [2m([22m[2m1 test[22m[2m | [22m[31m1 failed[39m[2m)[22m[90m 242[2mms[22m[39m
+[31m   [31m├ù[31m Neural Bridge: Grand Reality (100% Real)[2m > [22mshould execute universal pipeline (Tech + Medical)[90m 241[2mms[22m[31m[39m
+[31m     ÔåÆ LLM API error: 404 - {"error":{"message":"No endpoints found for google/gemini-flash-1.5-8b:free.","code":404},"user_id":"user_38ojCxOGPpX4dENt9NPEG61tVgT"}[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m   Start at [22m 01:22:20
+[2m   Duration [22m 796ms[2m (transform 132ms, setup 0ms, collect 167ms, tests 242ms, environment 0ms, prepare 107ms)[22m
+

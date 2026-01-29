@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres:16
+    profiles: ["localdb"]
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: neural_bridge
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  api:
+    build: .
+    env_file:
+      - .env
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    environment:
+      ENV: ${ENV:-dev}
+      PORT: ${PORT:-8080}
+      DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/neural_bridge?sslmode=disable}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      JWT_SIGNING_KEY: ${JWT_SIGNING_KEY:-dev-insecure-change-me}
+      JWT_TTL: ${JWT_TTL:-24h}
+      DEFAULT_MAX_CALLS: ${DEFAULT_MAX_CALLS:-2}
+      DEFAULT_TOKEN_BUDGET: ${DEFAULT_TOKEN_BUDGET:-2000}
+      DEFAULT_MAX_TOKENS_PER_CALL: ${DEFAULT_MAX_TOKENS_PER_CALL:-1200}
+      DEFAULT_STORE_TRANSCRIPT: ${DEFAULT_STORE_TRANSCRIPT:-false}
+      DEFAULT_TRANSCRIPT_TTL_HOURS: ${DEFAULT_TRANSCRIPT_TTL_HOURS:-24}
+    depends_on:
+      - redis
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:

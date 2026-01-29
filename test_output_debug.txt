@@ -1,0 +1,42 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mC:/Users/jairo/Desktop/neural_bridge[39m
+
+[90mstdout[2m | src/verify_crystal_runtime.test.ts[2m > [22m[2mNeural Bridge: Grand Reality (100% Real)[2m > [22m[2mshould execute universal pipeline (Tech + Medical)
+[22m[39m
+═══════════════════════════════════════════════════════
+  NEURAL BRIDGE - The Infinite Reality Demo
+  100% Reality | Zero Mock | Universal Transparency
+═══════════════════════════════════════════════════════
+
+🧪 [1/4] TECH SCENARIO: Compiling High-Voltage Crystal...
+
+[90mstderr[2m | src/verify_crystal_runtime.test.ts[2m > [22m[2mNeural Bridge: Grand Reality (100% Real)[2m > [22m[2mshould execute universal pipeline (Tech + Medical)
+[22m[39m
+❌ REALITY FAILURE: LLM API error: 404 - {"error":{"message":"No endpoints found for google/gemini-flash-1.5.","code":404},"user_id":"user_38ojCxOGPpX4dENt9NPEG61tVgT"}
+
+ [31m❯[39m src/verify_crystal_runtime.test.ts [2m([22m[2m1 test[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 335[2mms[22m[39m
+[31m   [31m×[31m Neural Bridge: Grand Reality (100% Real)[2m > [22mshould execute universal pipeline (Tech + Medical)[33m 335[2mms[22m[31m[39m
+[31m     → LLM API error: 404 - {"error":{"message":"No endpoints found for google/gemini-flash-1.5.","code":404},"user_id":"user_38ojCxOGPpX4dENt9NPEG61tVgT"}[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/verify_crystal_runtime.test.ts[2m > [22mNeural Bridge: Grand Reality (100% Real)[2m > [22mshould execute universal pipeline (Tech + Medical)
+[31m[1mError[22m: LLM API error: 404 - {"error":{"message":"No endpoints found for google/gemini-flash-1.5.","code":404},"user_id":"user_38ojCxOGPpX4dENt9NPEG61tVgT"}[39m
+[36m [2m❯[22m callLLM src/services/llm.ts:[2m70:15[22m[39m
+    [90m 68| [39m    [35mif[39m ([33m![39mresponse[33m.[39mok) {
+    [90m 69| [39m        [35mconst[39m error [33m=[39m [35mawait[39m response[33m.[39m[34mtext[39m()[33m;[39m
+    [90m 70| [39m        [35mthrow[39m [35mnew[39m [33mError[39m([32m`LLM API error: [39m[36m${[39mresponse[33m.[39mstatus[36m}[39m[32m - [39m[36m${[39merror[36m}[39m[32m`[39m…
+    [90m   | [39m              [31m^[39m
+    [90m 71| [39m    }
+    [90m 72| [39m
+[90m [2m❯[22m Object.generateCrystal src/services/llm.ts:[2m157:22[22m[39m
+[90m [2m❯[22m Module.runGrandRealityDemo src/verify_crystal_runtime_logic.ts:[2m21:42[22m[39m
+[90m [2m❯[22m src/verify_crystal_runtime.test.ts:[2m6:35[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m   Start at [22m 01:05:18
+[2m   Duration [22m 816ms[2m (transform 139ms, setup 0ms, collect 150ms, tests 335ms, environment 0ms, prepare 147ms)[22m
+
