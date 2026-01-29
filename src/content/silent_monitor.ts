@@ -44,6 +44,14 @@ export function initSilentMonitor() {
     runDetection();
 }
 
+// Listen for config updates from Popup
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (msg.type === "NB_UPDATE_CONFIG" && agent) {
+        agent.setConfig(msg.config);
+        console.log("[NeuralBridge] Config updated:", msg.config);
+    }
+});
+
 // Global initialization
 if (document.readyState === 'complete') {
     initSilentMonitor();

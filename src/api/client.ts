@@ -145,3 +145,33 @@ export async function generateInvariants(params: {
     });
 }
 
+export async function registerAuthor(params: {
+    name: string;
+    handle: string;
+    extensionVersion: string;
+}): Promise<{ author_id: string; status: string }> {
+    const token = await ensureSession(params.extensionVersion);
+    // In a real implementation, we would generate a keypair here and send the public key.
+    // For MVP, we send a placeholder public key.
+    const publicKey = "pending_browser_generation"; 
+    
+    return await fetchJSON<{ author_id: string; status: string }>(`${API_BASE_URL}/v1/authors`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ name: params.name, handle: params.handle, public_key: publicKey }),
+        timeoutMs: 15_000,
+    });
+}
+
+export async function getAuthor(params: {
+    authorId: string;
+    extensionVersion: string;
+}): Promise<{ id: string; name: string; reputation: number; tier: string }> {
+    const token = await ensureSession(params.extensionVersion);
+    return await fetchJSON<any>(`${API_BASE_URL}/v1/authors?id=${params.authorId}`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+        timeoutMs: 10_000,
+    });
+}
+

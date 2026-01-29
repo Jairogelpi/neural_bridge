@@ -1,0 +1,151 @@
+/* 
+ * NEURAL BRIDGE DESIGN SYSTEM v1.0
+ * Identity: "Crystalline Trust"
+ * 
+ * A unified visual language for the post-truth era.
+ * Combines high-tech precision with organic fluidity.
+ */
+
+:root {
+  /* --- PALETTE --- */
+  --bg-deep: #050508;
+  --bg-surface: #0a0a0f;
+  --bg-glass: rgba(20, 20, 25, 0.7);
+  
+  --primary-glow: #00F0FF;
+  --primary-dim: rgba(0, 240, 255, 0.1);
+  
+  --accent-violet: #7000FF;
+  --accent-violet-dim: rgba(112, 0, 255, 0.1);
+  
+  --status-success: #00FF94;
+  --status-warning: #FFD600;
+  --status-error: #FF2E54;
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #8F90A6;
+  --text-tertiary: #58596A;
+
+  /* --- TYPOGRAPHY --- */
+  --font-ui: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Space Mono', monospace;
+
+  /* --- EFFECTS --- */
+  --glass-blur: blur(16px);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  
+  --glow-sm: 0 0 10px rgba(0, 240, 255, 0.3);
+  --glow-md: 0 0 20px rgba(0, 240, 255, 0.4);
+  
+  --transition-fast: 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  --transition-bounce: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* --- UTILITIES --- */
+
+body {
+  background-color: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+.nb-glass-panel {
+  background: var(--bg-glass);
+  backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: 16px;
+}
+
+.nb-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.nb-gradient-text {
+  background: linear-gradient(135deg, #fff 0%, #b0b0b0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* --- COMPONENTS --- */
+
+.nb-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.nb-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.nb-btn:active {
+  transform: translateY(0);
+}
+
+.nb-btn-primary {
+  background: var(--primary-glow);
+  color: #000;
+  border: none;
+  font-weight: 700;
+  box-shadow: var(--glow-sm);
+}
+
+.nb-btn-primary:hover {
+  background: #33F3FF;
+  box-shadow: var(--glow-md);
+  color: #000;
+}
+
+.nb-switch {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 99px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.nb-switch::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  transition: var(--transition-bounce);
+}
+
+.nb-switch.active {
+  background: var(--primary-dim);
+  border: 1px solid var(--primary-glow);
+}
+
+.nb-switch.active::after {
+  transform: translateX(18px);
+  background: var(--primary-glow);
+  box-shadow: 0 0 10px var(--primary-glow);
+}

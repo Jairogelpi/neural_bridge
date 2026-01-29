@@ -151,13 +151,20 @@ export async function executeCrystal(params: {
         // ===============================================
 
         if (config.enable_adversarials !== false) {
-            const adversarials = AntiGaming.generateAdaptiveAdversarials({
+            // 2a. Standard Adaptive Adversarials
+            const adaptiveAdversarials = AntiGaming.generateAdaptiveAdversarials({
                 crystal,
                 domain: config.domain,
                 count: 2
             });
 
-            adversarial_families_tested = adversarials.length;
+            // 2b. Advanced Chained Logic Adversarials (New)
+            const chainedAdversarials = AntiGaming.generateChainedAdversarials({
+                crystal
+            });
+
+            const allAdversarials = [...adaptiveAdversarials, ...chainedAdversarials];
+            adversarial_families_tested = allAdversarials.length;
 
             const model = SCPService.getOptimalModel({
                 domain: config.domain,
@@ -165,7 +172,7 @@ export async function executeCrystal(params: {
             });
 
             // TURBO: Run all adversarial verifications in PARALLEL
-            const adversarialPromises = adversarials
+            const adversarialPromises = allAdversarials
                 .filter(family => family.templates[0])
                 .map(async (family) => {
                     const testQuestion = family.templates[0]!;
@@ -185,20 +192,73 @@ export async function executeCrystal(params: {
             for (const { family, verification } of adversarialResults) {
                 total_cost += verification.cost || 0;
 
-                if (verification.score >= 0.7) {
+                // Stricter passing criteria for chained logic
+                const threshold = family.concept === 'TRANSITIVE_LOGIC' ? 0.8 : 0.7;
+
+                if (verification.score >= threshold) {
                     adversarial_passed++;
+                } else {
+                    issues.push(`Adversarial Check Failed: ${family.concept} (${verification.reasoning})`);
                 }
 
                 execution_log.push({
                     timestamp: new Date().toISOString(),
                     action: 'verify_adversarial_family',
-                    result: { family_id: family.family_id, score: verification.score, reasoning: verification.reasoning }
+                    result: { 
+                        family_id: family.family_id, 
+                        type: family.concept === 'TRANSITIVE_LOGIC' ? 'CHAINED' : 'ADAPTIVE',
+                        score: verification.score, 
+                        reasoning: verification.reasoning 
+                    }
                 });
             }
 
             adversarial_pass_rate = adversarial_families_tested > 0
                 ? adversarial_passed / adversarial_families_tested
                 : 1.0;
+        }
+
+        // ===============================================
+        // STEP 2.5: Metamorphic Testing (Consistency Check)
+        // ===============================================
+        // Ensure that rephrasing the question doesn't break the verification.
+        
+        if (config.enable_adversarials !== false) { // Grouped with advanced checks
+             const metamorphicTest = AntiGaming.generateMetamorphicTests({
+                 original_question: question,
+                 expected_answer: answer
+             });
+
+             // Take one transformation to test
+             const transformation = metamorphicTest.transformations[0];
+             if (transformation) {
+                 const model = SCPService.getOptimalModel({ domain: config.domain, task: 'verify' });
+                 
+                 // Verify if the answer still holds for the transformed question
+                 const metaVerification = await SCPService.verifyArbitrary({
+                     crystal,
+                     question: transformation.transformed_question,
+                     answer: answer, // Does the original answer still satisfy the transformed question?
+                     targetModel: model,
+                     useCache: true
+                 });
+                 
+                 total_cost += metaVerification.cost || 0;
+                 
+                 execution_log.push({
+                     timestamp: new Date().toISOString(),
+                     action: 'verify_metamorphic',
+                     result: {
+                         type: transformation.type,
+                         transformed_question: transformation.transformed_question,
+                         consistency_score: metaVerification.score
+                     }
+                 });
+
+                 if (metaVerification.score < 0.6) {
+                     issues.push(`Metamorphic Instability: Rephrasing question as "${transformation.transformed_question}" dropped confidence to ${metaVerification.score.toFixed(2)}`);
+                 }
+             }
         }
 
         // ===============================================

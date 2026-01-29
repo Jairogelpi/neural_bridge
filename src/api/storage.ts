@@ -15,7 +15,7 @@ function uuid(): string {
         : `id_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
 
-async function getStorage(keys: string | string[]): Promise<Record<string, any>> {
+export async function getStorage(keys: string | string[]): Promise<Record<string, any>> {
     if (typeof chrome !== 'undefined' && chrome.storage?.local) {
         return await chrome.storage.local.get(keys);
     }
@@ -27,7 +27,7 @@ async function getStorage(keys: string | string[]): Promise<Record<string, any>>
     return res;
 }
 
-async function setStorage(data: Record<string, any>): Promise<void> {
+export async function setStorage(data: Record<string, any>): Promise<void> {
     if (typeof chrome !== 'undefined' && chrome.storage?.local) {
         return await chrome.storage.local.set(data);
     }

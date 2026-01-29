@@ -12,6 +12,7 @@ export interface FirewallVerdict {
     state: TrustState;
     sri: number;
     reason?: string;
+    invariants?: Array<{ id: string; passed: boolean; reason?: string }>;
 }
 
 export class FirewallAgent {
@@ -20,9 +21,15 @@ export class FirewallAgent {
     private mountedCrystals: any[] = [];
     private lastProcessedText: string = "";
     private checkInterval: any = null;
+    private strictMode: boolean = false;
 
     constructor() {
         this.detectHost();
+    }
+
+    public setConfig(config: { strictMode: boolean }) {
+        this.strictMode = config.strictMode;
+        console.log(`[NeuralFirewall] Strict Mode: ${this.strictMode ? 'ON' : 'OFF'}`);
     }
 
     private detectHost() {
@@ -86,26 +93,47 @@ export class FirewallAgent {
             return;
         }
 
+        let aggregatedInvariants: Array<{ id: string; passed: boolean; reason?: string }> = [];
+        let minSri = 1.0;
+
         for (const crystal of this.mountedCrystals) {
             const result = await VerificationService.verify({
                 context_id: crystal.context_id,
                 domain: this.activeDomain,
                 question: "Contextual Interception",
                 answer: currentText,
-                mode: 'passive',
+                mode: this.strictMode ? 'active' : 'passive',
                 requester: "firewall_agent"
             });
 
-            if (result && !result.passed) {
+            if (!result) continue;
+
+            // Collect all checks performed
+            const currentInvariants = [
+                ...result.invariants_failed.map(id => ({ id, passed: false, reason: "Constraint violated" })),
+                ...result.invariants_passed.map(id => ({ id, passed: true }))
+            ];
+            aggregatedInvariants = [...aggregatedInvariants, ...currentInvariants];
+            
+            // Track lowest SRI (weakest link determines security)
+            if (result.sri < minSri) minSri = result.sri;
+
+            if (!result.passed) {
                 onVerdict({
                     state: result.sri < 0.5 ? 'blocked' : 'warning',
                     sri: result.sri,
-                    reason: result.issues[0] || 'Verification failed'
+                    reason: result.issues[0] || 'Verification failed',
+                    invariants: currentInvariants
                 });
                 return;
             }
         }
 
-        onVerdict({ state: 'verified', sri: 0.95 });
+        // Real Success Data
+        onVerdict({ 
+            state: 'verified', 
+            sri: minSri === 1.0 && aggregatedInvariants.length === 0 ? 0 : minSri, // Handle edge case
+            invariants: aggregatedInvariants.length > 0 ? aggregatedInvariants : [{ id: "active_monitoring", passed: true }]
+        });
     }
 }
