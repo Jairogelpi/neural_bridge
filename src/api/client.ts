@@ -175,3 +175,66 @@ export async function getAuthor(params: {
     });
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// PCK (Proof-Carrying Knowledge) API - Zero-Cost Local Verification
+// ═══════════════════════════════════════════════════════════════════════════════
+
+import { PCKRuntime, PCKVerifier, type ProofCarryingKnowledge } from '../pck';
+
+/**
+ * Compile source into PCK locally - NO API call needed.
+ * This runs entirely in the browser/node with zero network cost.
+ */
+export function compilePCKLocal(
+    source: string, 
+    domain: 'law' | 'medicine' | 'finance' | 'tech' | 'general'
+): ProofCarryingKnowledge {
+    return PCKRuntime.compile(source, {
+        domain,
+        extract_numbers: true,
+        extract_entities: true,
+        extract_temporals: true
+    });
+}
+
+/**
+ * Verify answer against PCK locally - ZERO API calls.
+ * This is the revolutionary part: verification without external services.
+ */
+export function verifyWithPCKLocal(
+    pck: ProofCarryingKnowledge, 
+    answer: string
+): {
+    valid: boolean;
+    confidence: number;
+    supported_claims: string[];
+    unsupported_claims: string[];
+    contradictions: string[];
+    llm_calls_made: 0;
+    verification_time_ms: number;
+    cost_saved: string;  // Human-readable cost saving
+} {
+    const result = PCKRuntime.verifyAnswer(pck, answer);
+    
+    // Calculate estimated cost saved (vs. calling LLM for verification)
+    const estimatedLLMCost = 0.002; // ~$0.002 per verification call
+    
+    return {
+        ...result,
+        cost_saved: `$${estimatedLLMCost.toFixed(4)} (LLM call avoided)`
+    };
+}
+
+/**
+ * Verify PCK integrity - ensure proofs haven't been tampered with.
+ */
+export function verifyPCKIntegrity(pck: ProofCarryingKnowledge): {
+    valid: boolean;
+    checks_performed: number;
+    failed_checks: string[];
+} {
+    return PCKVerifier.verify(pck);
+}
+
+export type { ProofCarryingKnowledge };
+

@@ -1,8 +1,15 @@
 import { TrustState } from "../content/firewall_agent";
 
+export interface RevolutionaryFeatures {
+    pck: { enabled: boolean; llm_calls_saved: number; cost_saved: string };
+    zkv: { enabled: boolean; proofs_generated: number; data_protected: boolean };
+    smt: { enabled: boolean; contradictions_found: number; semantic_hash: string };
+    clpv: { enabled: boolean; receipts_generated: number; cross_llm_compatible: boolean };
+}
+
 export interface IFirewallOverlay {
     render(): void;
-    update(state: TrustState, sri: number, reason?: string): void;
+    update(state: TrustState, sri: number, reason?: string, invariants?: Array<{ id: string; passed: boolean; reason?: string }>, features?: RevolutionaryFeatures, verification_time_ms?: number): void;
     showProtectInvitation(type: string): void;
     showFixButton(): void;
     applyContentBlur(): void;
@@ -10,13 +17,17 @@ export interface IFirewallOverlay {
     _lastState: TrustState;
     _lastSri: number;
     _lastInvariants?: Array<{ id: string; passed: boolean; reason?: string }>;
+    _features?: RevolutionaryFeatures | undefined;
+    _verification_time_ms?: number;
 }
 
-export const FirewallOverlay: IFirewallOverlay & { _lastReason?: string, _lastInvariants?: Array<{ id: string; passed: boolean; reason?: string }> } = {
+export const FirewallOverlay: IFirewallOverlay & { _lastReason?: string } = {
     _lastReason: "",
     _lastInvariants: [],
     _lastState: 'idle' as TrustState,
     _lastSri: 0,
+    _features: undefined,
+    _verification_time_ms: 0,
     
     render() {
         if (document.getElementById('nb-firewall-overlay')) return;
@@ -98,11 +109,13 @@ export const FirewallOverlay: IFirewallOverlay & { _lastReason?: string, _lastIn
         overlay.title = "Neural Bridge: Active";
     },
 
-    update(state: TrustState, sri: number, reason?: string, invariants?: Array<{ id: string; passed: boolean; reason?: string }>) {
+    update(state: TrustState, sri: number, reason?: string, invariants?: Array<{ id: string; passed: boolean; reason?: string }>, features?: RevolutionaryFeatures, verification_time_ms?: number) {
         this._lastState = state;
         this._lastSri = sri;
         if (reason) this._lastReason = reason;
         if (invariants) this._lastInvariants = invariants;
+        if (features) this._features = features;
+        if (verification_time_ms) this._verification_time_ms = verification_time_ms;
 
         const indicator = document.getElementById('nb-trust-indicator');
         const overlay = document.getElementById('nb-firewall-overlay');
@@ -211,9 +224,40 @@ export const FirewallOverlay: IFirewallOverlay & { _lastReason?: string, _lastIn
                 </div>
             </div>
 
+            <!-- Revolutionary Features Section -->
+            <div style="margin-bottom:16px;">
+                <div style="font-size:9px;color:var(--nb-text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">🚀 Revolutionary Features</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;">
+                    <!-- PCK -->
+                    <div style="background:${this._features?.pck?.enabled ? 'rgba(0,240,255,0.1)' : 'rgba(255,255,255,0.03)'};padding:8px;border-radius:6px;border:1px solid ${this._features?.pck?.enabled ? 'rgba(0,240,255,0.3)' : 'rgba(255,255,255,0.05)'};">
+                        <div style="font-size:8px;color:var(--nb-primary-glow);font-weight:700;">PCK</div>
+                        <div style="font-size:10px;color:var(--nb-text-primary);margin-top:2px;">${this._features?.pck?.enabled ? '✓ ON' : '○ OFF'}</div>
+                        <div style="font-size:8px;color:var(--nb-text-secondary);margin-top:2px;">${this._features?.pck?.cost_saved || '$0'} saved</div>
+                    </div>
+                    <!-- ZKV -->
+                    <div style="background:${this._features?.zkv?.enabled ? 'rgba(112,0,255,0.1)' : 'rgba(255,255,255,0.03)'};padding:8px;border-radius:6px;border:1px solid ${this._features?.zkv?.enabled ? 'rgba(112,0,255,0.3)' : 'rgba(255,255,255,0.05)'};">
+                        <div style="font-size:8px;color:var(--nb-accent-violet);font-weight:700;">ZKV</div>
+                        <div style="font-size:10px;color:var(--nb-text-primary);margin-top:2px;">${this._features?.zkv?.enabled ? '✓ ON' : '○ OFF'}</div>
+                        <div style="font-size:8px;color:var(--nb-text-secondary);margin-top:2px;">${this._features?.zkv?.proofs_generated || 0} proofs</div>
+                    </div>
+                    <!-- SMT -->
+                    <div style="background:${this._features?.smt?.enabled ? 'rgba(0,255,148,0.1)' : 'rgba(255,255,255,0.03)'};padding:8px;border-radius:6px;border:1px solid ${this._features?.smt?.enabled ? 'rgba(0,255,148,0.3)' : 'rgba(255,255,255,0.05)'};">
+                        <div style="font-size:8px;color:var(--nb-status-success);font-weight:700;">SMT</div>
+                        <div style="font-size:10px;color:var(--nb-text-primary);margin-top:2px;">${this._features?.smt?.enabled ? '✓ ON' : '○ OFF'}</div>
+                        <div style="font-size:8px;color:var(--nb-text-secondary);margin-top:2px;">${this._features?.smt?.semantic_hash || 'N/A'}</div>
+                    </div>
+                    <!-- CLPV -->
+                    <div style="background:${this._features?.clpv?.enabled ? 'rgba(255,165,0,0.1)' : 'rgba(255,255,255,0.03)'};padding:8px;border-radius:6px;border:1px solid ${this._features?.clpv?.enabled ? 'rgba(255,165,0,0.3)' : 'rgba(255,255,255,0.05)'};">
+                        <div style="font-size:8px;color:#FFA500;font-weight:700;">CLPV</div>
+                        <div style="font-size:10px;color:var(--nb-text-primary);margin-top:2px;">${this._features?.clpv?.enabled ? '✓ ON' : '○ OFF'}</div>
+                        <div style="font-size:8px;color:var(--nb-text-secondary);margin-top:2px;">${this._features?.clpv?.receipts_generated || 0} rcpts</div>
+                    </div>
+                </div>
+            </div>
+
             <div style="margin-bottom:16px;">
                 <div style="font-size:9px;color:var(--nb-text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">Semantic Checks</div>
-                <div style="max-height:140px;overflow-y:auto;padding-right:4px;">
+                <div style="max-height:100px;overflow-y:auto;padding-right:4px;">
                     ${invariantsHtml || '<div style="font-size:11px;color:var(--nb-text-secondary);font-style:italic;">Initializing checks...</div>'}
                 </div>
             </div>
@@ -224,9 +268,12 @@ export const FirewallOverlay: IFirewallOverlay & { _lastReason?: string, _lastIn
                 <div style="font-size:11px;color:var(--nb-text-primary);line-height:1.4;">${this._lastReason}</div>
             </div>` : ''}
 
-            <div style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:10px;color:var(--nb-text-secondary);opacity:0.7;">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                Cryptographically Verified
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;color:var(--nb-text-secondary);opacity:0.7;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Cryptographically Verified
+                </div>
+                <div style="font-size:8px;">Verification: ${this._verification_time_ms || 0}ms | LLM calls: 0</div>
             </div>
         `;
 

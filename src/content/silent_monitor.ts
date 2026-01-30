@@ -32,7 +32,14 @@ export function initSilentMonitor() {
         agent = new FirewallAgent();
         FirewallOverlay.render();
         agent.startSilentMonitoring((verdict) => {
-            FirewallOverlay.update(verdict.state, verdict.sri, verdict.reason);
+            FirewallOverlay.update(
+                verdict.state, 
+                verdict.sri, 
+                verdict.reason,
+                verdict.invariants,
+                verdict.features,
+                verdict.verification_time_ms
+            );
         });
     }
 

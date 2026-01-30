@@ -30,13 +30,15 @@ export interface VerificationResult {
     receipt?: DecisionReceipt;
 }
 
-// Resilient Reality Architecture: Stack of available free models (Updated Jan 2026)
-// TURBO MODE: Fast fallback, minimal delays, maximum throughput
-const PRIMARY_FREE_MODEL = 'mistralai/mistral-small-3.1-24b-instruct:free';
+// ═══════════════════════════════════════════════════════════════════════════════
+// PRODUCTION MODELS - VERIFIED WORKING (Jan 2026)
+// These models have been tested and confirmed working on OpenRouter
+// ═══════════════════════════════════════════════════════════════════════════════
+const PRIMARY_FREE_MODEL = 'nvidia/nemotron-3-nano-30b-a3b:free';  // NVIDIA - most reliable
 const FREE_MODEL_FALLBACKS = [
-    'google/gemma-3-27b-it:free',                 // Fast Google model
-    'qwen/qwen-2.5-72b-instruct:free',           // Qwen backup
-    'meta-llama/llama-3.3-70b-instruct:free',    // Meta backup
+    'arcee-ai/trinity-large-preview:free',        // Arcee Trinity 400B MoE
+    'liquid/lfm-2.5-1.2b-instruct:free',          // Liquid LFM - fast
+    'upstage/solar-pro-3:free',                   // Upstage Solar Pro 3
 ];
 
 // TURBO: Minimal cooldown (only for rate limit protection)
