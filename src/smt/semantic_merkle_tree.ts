@@ -24,7 +24,7 @@ import crypto from 'crypto';
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export interface SemanticFeature {
-    type: 'entity' | 'number' | 'claim' | 'relationship' | 'temporal' | 'negation';
+    type: 'entity' | 'number' | 'claim' | 'relationship' | 'temporal' | 'negation' | 'location' | 'composition';
     canonical: string;        // Normalized form
     original: string;         // Original text
     confidence: number;       // 0.0 - 1.0
@@ -133,6 +133,15 @@ export class SemanticExtractor {
         
         // 6. Extract negations
         features.push(...this.extractNegations(text));
+        
+        // 7. Extract locations
+        features.push(...this.extractLocations(text));
+        
+        // 8. Extract compositions
+        features.push(...this.extractCompositions(text));
+
+        // 9. Extract definitions
+        features.push(...this.extractDefinitions(text));
         
         return features;
     }
@@ -369,6 +378,125 @@ export class SemanticExtractor {
             .replace(/\s+/g, '_')
             .trim()
             .substring(0, 50);
+    }
+
+    /**
+     * Extract location and spatial information
+     */
+    private static extractLocations(text: string): SemanticFeature[] {
+        const features: SemanticFeature[] = [];
+        
+        // Street addresses
+        const addressPattern = /(\d+\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\s+(?:Street|St|Avenue|Ave|Drive|Dr|Road|Rd|Boulevard|Blvd|Lane|Ln|Way|Court|Ct))(?:,\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]*)?))?/g;
+        let match;
+        while ((match = addressPattern.exec(text)) !== null) {
+            features.push({
+                type: 'location',
+                canonical: `LOC:ADDRESS:${this.normalizeText(match[1] || '')}`,
+                original: match[0],
+                confidence: 0.9,
+                position: match.index
+            });
+        }
+        
+        // Spatial relationships (inside, within, at, near)
+        const spatialPatterns = [
+            { pattern: /(?:the\s+)?(\w+(?:\s+\w+)?)\s+(?:is|are)\s+(?:inside|within|in)\s+(?:the\s+)?(\w+(?:\s+\w+)?)/gi, type: 'CONTAINMENT' },
+            { pattern: /(?:the\s+)?(\w+(?:\s+\w+)?)\s+(?:is|are)\s+(?:near|close\s+to|adjacent\s+to)\s+(?:the\s+)?(\w+(?:\s+\w+)?)/gi, type: 'PROXIMITY' },
+            { pattern: /(?:the\s+)?(\w+(?:\s+\w+)?)\s+(?:is|are)\s+(?:at|located\s+at)\s+(?:the\s+)?(\w+(?:\s+\w+)?)/gi, type: 'AT_LOCATION' }
+        ];
+        
+        for (const {pattern, type} of spatialPatterns) {
+            while ((match = pattern.exec(text)) !== null) {
+                if (match[1] && match[2]) {
+                    features.push({
+                        type: 'relationship',
+                        canonical: `REL:${type}:${this.normalizeText(match[1])}:${this.normalizeText(match[2])}`,
+                        original: match[0],
+                        confidence: 0.85,
+                        position: match.index
+                    });
+                }
+            }
+        }
+        
+        return features;
+    }
+
+    /**
+     * Extract composition and part-whole relationships
+     */
+    private static extractCompositions(text: string): SemanticFeature[] {
+        const features: SemanticFeature[] = [];
+        
+        // Part-whole relationships
+        const partWholePatterns = [
+            { pattern: /(?:the\s+)?(\w+)\s+(?:has|contains|includes)\s+(\d+\s+)?(?:parts?|components?|elements?)\s+(?:named|called|:)?\s*(\w+)/gi, type: 'PART_WHOLE' },
+            { pattern: /(?:the\s+)?(\w+)\s+(?:consists?\s+of|comprises?)\s+(.+?)(?:\.|,|$)/gi, type: 'CONSISTS_OF' }
+        ];
+        
+        let match;
+        for (const {pattern, type} of partWholePatterns) {
+            while ((match = pattern.exec(text)) !== null) {
+                const whole = match[1] || '';
+                const part = (match[3] || match[2] || '').trim();
+                if (whole && part) {
+                    features.push({
+                        type: 'composition',
+                        canonical: `COMP:${type}:${this.normalizeText(whole)}:${this.normalizeText(part)}`,
+                        original: match[0],
+                        confidence: 0.85,
+                        position: match.index
+                    });
+                }
+            }
+        }
+        
+        // Material composition
+        const materialPattern = /(?:the\s+)?(\w+)\s+(?:is|are)\s+(?:made\s+(?:of|from)|composed\s+of|built\s+(?:from|with))\s+(\w+(?:\s+(?:and|,)\s+\w+)*)/gi;
+        while ((match = materialPattern.exec(text)) !== null) {
+            if (match[1] && match[2]) {
+                features.push({
+                    type: 'composition',
+                    canonical: `COMP:MADE_OF:${this.normalizeText(match[1])}:${this.normalizeText(match[2])}`,
+                    original: match[0],
+                    confidence: 0.9,
+                    position: match.index
+                });
+            }
+        }
+        
+        return features;
+    }
+
+    /**
+     * Extract explicit definitions from text
+     */
+    private static extractDefinitions(text: string): SemanticFeature[] {
+        const features: SemanticFeature[] = [];
+        
+        const defPatterns = [
+            { pattern: /(?:a\s+)?(\w+(?:\s+\w+)*)\s+(?:is|are)\s+defined\s+as\s+(.+?)(?:\.|$)/gi, type: 'EXPLICIT_DEF' },
+            { pattern: /(?:the\s+)?(\w+(?:\s+\w+)*)\s+(?:refers?\s+to|means)\s+(.+?)(?:\.|$)/gi, type: 'MEANS' },
+            { pattern: /"(\w+(?:\s+\w+)*)"\s+(?:is|are)\s+(.+?)(?:\.|$)/gi, type: 'QUOTED_DEF' }
+        ];
+        
+        for (const {pattern, type} of defPatterns) {
+            let match;
+            while ((match = pattern.exec(text)) !== null) {
+                if (match[1] && match[2]) {
+                    features.push({
+                        type: 'claim',
+                        canonical: `DEF:${type}:${this.normalizeText(match[1])}:${this.normalizeText(match[2])}`,
+                        original: match[0],
+                        confidence: 0.95,
+                        position: match.index
+                    });
+                }
+            }
+        }
+        
+        return features;
     }
 }
 

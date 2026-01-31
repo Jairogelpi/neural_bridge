@@ -1,3 +1,4 @@
+import { supabase } from "../db/supabase";
 import type { Transcript } from "../transcript/transcript";
 import type { ContextCrystal } from "../core/scp_types";
 
@@ -16,21 +17,41 @@ const TRANSCRIPT_PREFIX = "nb_tx_";
 const CRYSTAL_PREFIX = "nb_cc_";
 const MAX_CARDS = 30;
 
-// POLY-STORAGE ENGINE (100% REAL NODE/BROWSER HYBRID)
+// POLY-STORAGE ENGINE (100% REAL NODE/BROWSER/SUPABASE HYBRID)
 const memoryStorage: Record<string, any> = {};
 const isBrowser = typeof chrome !== 'undefined' && !!chrome.storage;
 
 const storage = {
-    get: async (key: string | string[]): Promise<any> => {
+    get: async (key: string): Promise<any> => {
         if (isBrowser) return chrome.storage.local.get(key);
-        const keys = Array.isArray(key) ? key : [key];
-        const res: any = {};
-        keys.forEach(k => res[k] = memoryStorage[k]);
-        return res;
+        
+        // Server-side: Use Supabase
+        const { data, error } = await supabase
+            .from('kv_store')
+            .select('value')
+            .eq('key', key)
+            .single();
+            
+        if (error) {
+            console.error(`Supabase error fetching ${key}:`, error.message);
+            return { [key]: memoryStorage[key] };
+        }
+        return { [key]: data?.value };
     },
     set: async (items: Record<string, any>): Promise<void> => {
         if (isBrowser) return chrome.storage.local.set(items);
-        Object.assign(memoryStorage, items);
+        
+        // Server-side: Use Supabase upsert
+        for (const [key, value] of Object.entries(items)) {
+            const { error } = await supabase
+                .from('kv_store')
+                .upsert({ key, value, updated_at: new Date().toISOString() });
+            
+            if (error) {
+                console.error(`Supabase error saving ${key}:`, error.message);
+                memoryStorage[key] = value;
+            }
+        }
     }
 };
 

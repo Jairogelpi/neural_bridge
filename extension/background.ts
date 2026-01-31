@@ -75,7 +75,8 @@ async function apiCall(params: { method: string; path: string; body?: unknown })
         const { apiToken } = await chrome.storage.local.get(['apiToken']) as StorageData;
 
         const headers: Record<string, string> = {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Idempotency-Key': generateUUID()
         };
 
         if (apiToken) {

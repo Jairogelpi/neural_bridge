@@ -83,26 +83,27 @@
 /* Floating Action Button */
 #neural-bridge-fab {
     position: fixed !important;
-    bottom: 20px !important;
-    right: 20px !important;
-    width: 56px !important;
-    height: 56px !important;
+    bottom: 32px !important;
+    right: 32px !important;
+    width: 72px !important;
+    height: 72px !important;
     background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
-    border-radius: 28px !important;
+    border-radius: 36px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    font-size: 24px !important;
+    font-size: 32px !important;
     cursor: pointer !important;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4) !important;
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.5) !important;
     z-index: 999999 !important;
-    transition: transform 0.2s, box-shadow 0.2s !important;
-    border: none !important;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
 }
 
 #neural-bridge-fab:hover {
-    transform: scale(1.1) !important;
-    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5) !important;
+    transform: scale(1.15) translateY(-5px) !important;
+    box-shadow: 0 15px 40px rgba(99, 102, 241, 0.7) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
 }
 
 /* Toast Notifications */

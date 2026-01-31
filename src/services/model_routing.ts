@@ -10,7 +10,7 @@ export interface ModelRequirements {
 }
 
 export interface CrystalComplexity {
-    domain: 'medicine' | 'law' | 'tech' | 'general';
+    domain: string;
     risk_level: 'critical' | 'high' | 'medium' | 'low';
     invariant_count: number;
     counterfactual_count: number;
@@ -158,7 +158,7 @@ export function validateModelForCrystal(params: {
 }
 
 // Helper functions
-function detectDomain(crystal: any): 'medicine' | 'law' | 'tech' | 'general' {
+function detectDomain(crystal: any): string {
     const text = JSON.stringify(crystal).toLowerCase();
 
     if (text.includes('patient') || text.includes('drug') || text.includes('treatment')) {

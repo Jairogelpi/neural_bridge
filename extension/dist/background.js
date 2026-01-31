@@ -44,7 +44,8 @@ async function apiCall(params) {
   try {
     const { apiToken } = await chrome.storage.local.get(["apiToken"]);
     const headers = {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      "Idempotency-Key": generateUUID()
     };
     if (apiToken) {
       headers["Authorization"] = `Bearer ${apiToken}`;

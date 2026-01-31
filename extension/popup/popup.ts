@@ -17,7 +17,7 @@ interface Crystal {
 export { };
 
 // Build-time injected key (set VITE_OPENROUTER_API_KEY in extension/.env before build)
-const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY as string | undefined;
+const OPENROUTER_API_KEY = (import.meta as any).env.VITE_OPENROUTER_API_KEY as string | undefined;
 
 const hostBadge = document.getElementById('current-host')!;
 const modeCapture = document.getElementById('mode-capture')!;
@@ -154,9 +154,13 @@ async function loadMetrics() {
     const total = metrics.length;
     const tokens = metrics.reduce((sum: number, m: any) => sum + (m.total_tokens || 0), 0);
     const cost = metrics.reduce((sum: number, m: any) => sum + (m.total_cost_usd || 0), 0);
+    
+    // Calculate real success rate
+    const successful = metrics.filter((m: any) => m.transfer?.success).length;
+    const successRate = total > 0 ? Math.round((successful / total) * 100) : 0;
 
     statTransfers.textContent = String(total);
-    statSuccess.textContent = total > 0 ? '95%' : '0%';
+    statSuccess.textContent = `${successRate}%`;
     statTokens.textContent = (tokens / 1000).toFixed(1) + 'K';
     statCost.textContent = `$${cost.toFixed(2)}`;
 }
@@ -178,13 +182,9 @@ async function handleBootstrap() {
     if (res.success) {
         await updateSessionToken();
     } else {
-        // Fallback: Generate local demo token when backend is unavailable
-        const demoToken = 'demo_' + Date.now() + '_' + Math.random().toString(36).substring(7);
-        await chrome.storage.local.set({ apiToken: demoToken });
-        tokenDisplay.value = demoToken;
-        btnBootstrap.textContent = 'Demo Mode';
-        btnBootstrap.disabled = true;
-        console.log('[Neural Bridge] Using demo mode (backend unavailable)');
+        btnBootstrap.textContent = 'Connection Failed';
+        btnBootstrap.disabled = false;
+        alert('Failed to connect to Neural Bridge Server. Please ensure the local server is running (npm run server).');
     }
 }
 

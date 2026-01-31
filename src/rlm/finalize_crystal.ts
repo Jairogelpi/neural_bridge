@@ -21,17 +21,20 @@ export async function finalizeCrystal(params: {
 
     const constraints: Constraint[] = asArray<any>(draft.constraints).slice(0, 20).map((c, i) => ({
         id: `c${i + 1}`,
-        strength: c.strength === "hard" ? "hard" : "soft",
+        strength: (c.strength === "hard" ? "hard" : "soft") as "hard" | "soft",
         text: String(c.text ?? "").trim(),
         priority: typeof c.priority === "number" ? c.priority : (c.strength === "hard" ? 1 : 3),
         tags: asArray<string>(c.tags).slice(0, 8)
     })).filter(c => c.text.length > 0);
 
-    const entities: Entity[] = asArray<any>(draft.entities).slice(0, 30).map((e) => ({
-        name: String(e.name ?? "").trim(),
-        type: String(e.type ?? "other"),
-        notes: e.notes ? String(e.notes).slice(0, 200) : undefined
-    })).filter(e => e.name.length > 0);
+    const entities: Entity[] = asArray<any>(draft.entities).slice(0, 30).map((e) => {
+        const entity: Entity = {
+            name: String(e.name ?? "").trim(),
+            type: String(e.type ?? "other"),
+        };
+        if (e.notes) entity.notes = String(e.notes).slice(0, 200);
+        return entity;
+    }).filter(e => e.name.length > 0);
 
     // Evidence: LLM gives refs/hints; we attach fingerprints over hint (or transcript excerpt if ref matches)
     const evidenceDraft = asArray<any>(draft.evidence).slice(0, 12);

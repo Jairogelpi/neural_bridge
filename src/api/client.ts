@@ -145,15 +145,18 @@ export async function generateInvariants(params: {
     });
 }
 
+import { Attestation } from "../services/attestation";
+
 export async function registerAuthor(params: {
     name: string;
     handle: string;
     extensionVersion: string;
 }): Promise<{ author_id: string; status: string }> {
     const token = await ensureSession(params.extensionVersion);
-    // In a real implementation, we would generate a keypair here and send the public key.
-    // For MVP, we send a placeholder public key.
-    const publicKey = "pending_browser_generation"; 
+    
+    // Generate real cryptographic identity
+    const keyPair = await Attestation.generateKeyPair();
+    const publicKey = await Attestation.exportPublicKey(keyPair.publicKey);
     
     return await fetchJSON<{ author_id: string; status: string }>(`${API_BASE_URL}/v1/authors`, {
         method: "POST",
@@ -187,7 +190,7 @@ import { PCKRuntime, PCKVerifier, type ProofCarryingKnowledge } from '../pck';
  */
 export function compilePCKLocal(
     source: string, 
-    domain: 'law' | 'medicine' | 'finance' | 'tech' | 'general'
+    domain: string
 ): ProofCarryingKnowledge {
     return PCKRuntime.compile(source, {
         domain,

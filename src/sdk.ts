@@ -22,7 +22,7 @@ import { SMTRuntime, type SemanticMerkleTree, type SemanticComparisonResult } fr
 import { CLPVRuntime, type PortableReceipt, type CrossVerificationResult } from './clpv';
 
 // Export Core Types
-export type { Crystal, CrystalExecutionResult } from './services/crystal_runtime';
+export type { CrystalExecutionResult } from './services/crystal_runtime';
 export type { VerificationResult } from './services/llm';
 export type { DecisionReceipt } from './services/decision_receipts';
 export type { ProofCarryingKnowledge } from './pck';
@@ -176,7 +176,7 @@ export class NeuralBridge {
      * // Later, verify any answer with ZERO cost:
      * const result = nb.verifyWithPCK(pck, llmAnswer);
      */
-    compilePCK(source: string, domain: 'law' | 'medicine' | 'finance' | 'tech' | 'general' = 'general'): ProofCarryingKnowledge {
+    compilePCK(source: string, domain: string = 'general'): ProofCarryingKnowledge {
         return PCKRuntime.compile(source, {
             domain,
             extract_numbers: true,
@@ -231,7 +231,7 @@ export class NeuralBridge {
     createZKProof(params: {
         source: string;
         answer: string;
-        domain: 'law' | 'medicine' | 'finance' | 'tech' | 'general';
+        domain: string;
         constraints?: Array<{ type: string; value: any }>;
     }): ZKProof {
         return ZKVRuntime.createProof(params);
@@ -253,7 +253,7 @@ export class NeuralBridge {
     proveAndVerifyZK(params: {
         source: string;
         answer: string;
-        domain: 'law' | 'medicine' | 'finance' | 'tech' | 'general';
+        domain: string;
         constraints?: Array<{ type: string; value: any }>;
     }): {
         proof: ZKProof;

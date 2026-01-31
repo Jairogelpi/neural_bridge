@@ -1,4 +1,4 @@
-export type KnowledgeDomain = 'medicine' | 'law' | 'tech' | 'finance' | 'education' | 'creative' | 'corporate' | 'general';
+export type KnowledgeDomain = string;
 
 export interface DomainScore {
     domain: KnowledgeDomain;
@@ -12,7 +12,8 @@ export const DomainHeuristics = {
     detect(text: string): DomainScore {
         const t = text.toLowerCase();
 
-        const keywords = {
+        // Common domains for heuristic detection
+        const keywords: Record<string, string[]> = {
             medicine: ['patient', 'prescribe', 'drug', 'clinical', 'diagnosis', 'treatment', 'hospital', 'therapy', 'pharmacological', 'paciente', 'dosis', 'médico'],
             law: ['contract', 'legal', 'litigation', 'attorney', 'clause', 'regulation', 'compliance', 'jurisdiction', 'agreement', 'contrato', 'cláusula', 'ley', 'derecho'],
             tech: ['code', 'api', 'server', 'database', 'frontend', 'backend', 'algorithm', 'deployment', 'interface', 'variable', 'código', 'servidor', 'datos'],
@@ -22,21 +23,15 @@ export const DomainHeuristics = {
             corporate: ['strategy', 'logistics', 'operations', 'hr', 'management', 'roadmap', 'stakeholder', 'quarterly', 'estrategia', 'logística', 'gestión']
         };
 
-        const scores: Record<KnowledgeDomain, number> = {
-            medicine: 0,
-            law: 0,
-            tech: 0,
-            finance: 0,
-            education: 0,
-            creative: 0,
-            corporate: 0,
-            general: 0.1 // Base confidence
-        };
+        const scores: Record<string, number> = {};
+        // Initialize scores
+        Object.keys(keywords).forEach(d => scores[d] = 0);
+        scores['general'] = 0.1; // Base confidence
 
         for (const [domain, words] of Object.entries(keywords)) {
             words.forEach(word => {
                 if (t.includes(word)) {
-                    scores[domain as KnowledgeDomain] += 1;
+                    scores[domain] = (scores[domain] || 0) + 1;
                 }
             });
         }
@@ -48,7 +43,7 @@ export const DomainHeuristics = {
         for (const [domain, score] of Object.entries(scores)) {
             if (score > maxScore) {
                 maxScore = score;
-                bestDomain = domain as KnowledgeDomain;
+                bestDomain = domain;
             }
         }
 
@@ -66,7 +61,25 @@ export const DomainHeuristics = {
      */
     async verifyDomainWithLLM(text: string, currentDomain: KnowledgeDomain): Promise<KnowledgeDomain> {
         // High-integrity fallback for critical decisions
-        return currentDomain; // Placeholder for future LLM call implementation
+        try {
+            const { SCPService } = await import('./llm');
+            const prompt = `Analyze the following text and classify its knowledge domain.
+            
+            TEXT: "${text.substring(0, 500)}..."
+            
+            Return ONLY the domain name in lowercase (e.g., medicine, law, quantum_physics, ancient_history, etc).`;
+
+            const response = await SCPService.callLLM(prompt, 'liquid/lfm-2.5-1.2b-instruct:free');
+            const detected = response.content.toLowerCase().trim().replace(/[^a-z0-9_]/g, '');
+            
+            if (detected && detected.length > 2) {
+                return detected as KnowledgeDomain;
+            }
+            return currentDomain;
+        } catch (e) {
+            console.warn('Failed to verify domain with LLM, falling back to heuristic', e);
+            return currentDomain;
+        }
     },
 
     /**

@@ -167,6 +167,30 @@ async function resilientCallLLM(
 }
 
 /**
+ * Detect domain autonomously using a real LLM call
+ */
+export async function detectDomainAutonomously(text: string): Promise<string> {
+    const systemPrompt = `You are a Domain Classifier for Neural Bridge.
+Analyze the conversation and identify the specific knowledge domain (e.g., medicine, law, tech, finance, education, etc.).
+Be precise. If it is a mix, choose the most critical one.`;
+
+    const prompt = `Conversation sample:
+"${text.substring(0, 1000)}"
+
+Identify the domain. Return ONLY the domain name in lowercase (e.g. "medicine"). No explanation.`;
+
+    try {
+        const response = await resilientCallLLM(prompt, PRIMARY_FREE_MODEL, systemPrompt);
+        const domain = response.content.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        return domain || 'general';
+    } catch (e) {
+        console.warn('⚠️ Autonomous domain detection failed, falling back to heuristics:', e);
+        const { DomainHeuristics } = await import('./domain_heuristics');
+        return DomainHeuristics.detect(text).domain;
+    }
+}
+
+/**
  * Generate Crystal using real LLM and official types.
  * No more local duplicate interface or fake hashing.
  */
@@ -214,10 +238,10 @@ ${conversationText}
 
 Return ONLY valid JSON, no markdown or explanation.`;
 
-    // HARMONY OPTIMIZATION: Detect domain candidate before full compilation to save cost
-    const { DomainHeuristics } = await import('./domain_heuristics');
-    const detected = DomainHeuristics.detect(conversationText);
-    const model = getOptimalModel({ domain: detected.domain, task: 'compile' });
+    // AUTONOMOUS DOMAIN DETECTION (Real LLM)
+    const domain = await detectDomainAutonomously(conversationText);
+    
+    const model = getOptimalModel({ domain, task: 'compile' });
 
     const response = await resilientCallLLM(prompt, model, systemPrompt);
 
@@ -246,7 +270,7 @@ Return ONLY valid JSON, no markdown or explanation.`;
             name: parsed.author?.name || sourceModel,
             reputation: 0.5
         },
-        domain: parsed.domain || 'general',
+        domain: domain,
         source: {
             platform: 'neural-bridge-compiler',
             url: 'https://neural-bridge.ai/compile',
@@ -641,5 +665,6 @@ export const SCPService = {
     verifyArbitrary,
     verifyBatch,
     callLLM,
-    getOptimalModel
+    getOptimalModel,
+    resilientCallLLM
 };

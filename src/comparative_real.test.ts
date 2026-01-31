@@ -260,7 +260,7 @@ describe('╚══════════════════════�
             console.log(`  Latencia: ${neuralBridgeResult.latency_ms}ms`);
             console.log(`  Contradicciones: ${neuralBridgeResult.contradictions.length}`);
             if (neuralBridgeResult.contradictions.length > 0) {
-                console.log(`  ⚠️ "${neuralBridgeResult.contradictions[0].substring(0, 60)}..."`);
+                console.log(`  ⚠️ "${neuralBridgeResult.contradictions[0]!.substring(0, 60)}..."`);
             }
             
             expect(neuralBridgeResult.is_correct).toBe(false);

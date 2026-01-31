@@ -352,11 +352,11 @@ export class PortableReceiptGenerator {
         
         // Simple Merkle root
         const level1 = [
-            this.hash(leaves[0] + leaves[1]),
-            this.hash(leaves[2] + leaves[3])
+            this.hash((leaves[0] ?? '') + (leaves[1] ?? '')),
+            this.hash((leaves[2] ?? '') + (leaves[3] ?? ''))
         ];
         
-        return this.hash(level1[0] + level1[1]);
+        return this.hash((level1[0] ?? '') + (level1[1] ?? ''));
     }
     
     private detectLanguage(text: string): string {
@@ -562,11 +562,12 @@ export class CLPVRuntime {
             ? LLMDetector.detect(params.answer, { model: params.llm })
             : params.llm;
             
-        return this.generator.generate({
+        const generateParams: { question: string; answer: string; source_llm?: LLMIdentifier } = {
             question: params.question,
             answer: params.answer,
-            source_llm: llm
-        });
+        };
+        if (llm) generateParams.source_llm = llm;
+        return this.generator.generate(generateParams);
     }
     
     /**
@@ -604,7 +605,7 @@ export class CLPVRuntime {
     static isPortableTo(receipt: PortableReceipt, targetLLM: string): boolean {
         const lower = targetLLM.toLowerCase();
         return receipt.portability.verification_models.some(m => 
-            lower.includes(m.split('-')[0])
+            lower.includes(m.split('-')[0] ?? '')
         );
     }
 }

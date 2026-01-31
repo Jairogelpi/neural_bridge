@@ -9,9 +9,18 @@ export interface RevolutionaryFeatures {
 
 export interface IFirewallOverlay {
     render(): void;
-    update(state: TrustState, sri: number, reason?: string, invariants?: Array<{ id: string; passed: boolean; reason?: string }>, features?: RevolutionaryFeatures, verification_time_ms?: number): void;
+    update(
+        state: TrustState, 
+        sri: number, 
+        reason?: string, 
+        invariants?: Array<{ id: string; passed: boolean; reason?: string }>, 
+        features?: RevolutionaryFeatures, 
+        verification_time_ms?: number,
+        healing?: { needed: boolean; corrected_text: string; reason: string }
+    ): void;
     showProtectInvitation(type: string): void;
     showFixButton(): void;
+    showRealityRepair(correctedText: string, reason: string): void;
     applyContentBlur(): void;
     toggleReceipt(): void;
     _lastState: TrustState;
@@ -19,6 +28,7 @@ export interface IFirewallOverlay {
     _lastInvariants?: Array<{ id: string; passed: boolean; reason?: string }>;
     _features?: RevolutionaryFeatures | undefined;
     _verification_time_ms?: number;
+    _healing?: { needed: boolean; corrected_text: string; reason: string } | undefined;
 }
 
 export const FirewallOverlay: IFirewallOverlay & { _lastReason?: string } = {
@@ -26,8 +36,9 @@ export const FirewallOverlay: IFirewallOverlay & { _lastReason?: string } = {
     _lastInvariants: [],
     _lastState: 'idle' as TrustState,
     _lastSri: 0,
-    _features: undefined,
+    _features: undefined as RevolutionaryFeatures | undefined,
     _verification_time_ms: 0,
+    _healing: undefined as { needed: boolean; corrected_text: string; reason: string } | undefined,
     
     render() {
         if (document.getElementById('nb-firewall-overlay')) return;
@@ -65,20 +76,20 @@ export const FirewallOverlay: IFirewallOverlay & { _lastReason?: string } = {
         overlay.id = 'nb-firewall-overlay';
         overlay.style.cssText = `
             position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 48px;
-            height: 48px;
+            bottom: 32px;
+            right: 32px;
+            width: 64px;
+            height: 64px;
             border-radius: 50%;
             background: var(--nb-bg-glass);
-            border: var(--nb-glass-border);
+            border: 2px solid var(--nb-primary-glow);
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 2147483647; /* Max Z-Index */
+            z-index: 2147483647;
             cursor: pointer;
-            transition: transform var(--nb-transition);
-            box-shadow: var(--nb-glass-shadow);
+            transition: all var(--nb-transition);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.3), var(--nb-glass-shadow);
             backdrop-filter: blur(12px);
         `;
         
@@ -89,11 +100,11 @@ export const FirewallOverlay: IFirewallOverlay & { _lastReason?: string } = {
         const indicator = document.createElement('div');
         indicator.id = 'nb-trust-indicator';
         indicator.style.cssText = `
-            width: 12px;
-            height: 12px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
             background: var(--nb-text-secondary);
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
             transition: all var(--nb-transition);
         `;
 
@@ -106,16 +117,18 @@ export const FirewallOverlay: IFirewallOverlay & { _lastReason?: string } = {
         };
 
         document.body.appendChild(overlay);
+
         overlay.title = "Neural Bridge: Active";
     },
 
-    update(state: TrustState, sri: number, reason?: string, invariants?: Array<{ id: string; passed: boolean; reason?: string }>, features?: RevolutionaryFeatures, verification_time_ms?: number) {
+    update(state: TrustState, sri: number, reason?: string, invariants?: Array<{ id: string; passed: boolean; reason?: string }>, features?: RevolutionaryFeatures, verification_time_ms?: number, healing?: { needed: boolean; corrected_text: string; reason: string }) {
         this._lastState = state;
         this._lastSri = sri;
         if (reason) this._lastReason = reason;
         if (invariants) this._lastInvariants = invariants;
         if (features) this._features = features;
         if (verification_time_ms) this._verification_time_ms = verification_time_ms;
+        if (healing) this._healing = healing;
 
         const indicator = document.getElementById('nb-trust-indicator');
         const overlay = document.getElementById('nb-firewall-overlay');
@@ -151,15 +164,85 @@ export const FirewallOverlay: IFirewallOverlay & { _lastReason?: string } = {
             case 'blocked':
                 color = 'var(--nb-status-error)';
                 glow = 'var(--nb-status-error)';
-                label = "Blocked";
+                label = "Reality Conflict";
                 this.applyContentBlur();
-                this.showFixButton();
+                
+                // If healing is available, show the Reality Repair UI
+                if (healing && healing.needed) {
+                    this.showRealityRepair(healing.corrected_text, healing.reason);
+                } else {
+                    this.showFixButton();
+                }
                 break;
         }
 
         indicator.style.background = color;
         indicator.style.boxShadow = `0 0 15px ${glow}`;
         overlay.title = `Neural Bridge: ${label}`;
+    },
+
+    showRealityRepair(correctedText: string, reason: string) {
+        if (document.getElementById('nb-reality-repair')) return;
+
+        const btn = document.createElement('div');
+        btn.id = 'nb-reality-repair';
+        btn.innerHTML = `
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                <span style="font-size:16px;">🔮</span>
+                <span style="font-weight:800;letter-spacing:0.5px;">TRUTH VAULT ACTIVATED</span>
+            </div>
+            <div style="font-size:10px;opacity:0.9;margin-bottom:8px;">${reason}</div>
+            <div style="background:rgba(0,0,0,0.2);padding:4px 8px;border-radius:4px;font-size:10px;font-family:monospace;margin-bottom:8px;border-left:2px solid #fff;">
+                RESTORE: "${correctedText.substring(0, 40)}..."
+            </div>
+            <div style="font-size:10px;font-weight:700;text-align:right;color:#fff;text-decoration:underline;">CLICK TO HEAL REALITY</div>
+        `;
+        btn.style.cssText = `
+            position: fixed;
+            bottom: 84px;
+            right: 24px;
+            background: linear-gradient(135deg, #7000FF, #FF0055);
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            cursor: pointer;
+            z-index: 100002;
+            box-shadow: 0 8px 32px rgba(112, 0, 255, 0.5);
+            border: 1px solid rgba(255,255,255,0.2);
+            animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            max-width: 280px;
+        `;
+
+        btn.onclick = () => {
+            const containers = document.querySelectorAll('[data-message-author-role="assistant"], .markdown');
+            const lastContainer = containers[containers.length - 1] as HTMLElement;
+            
+            if (lastContainer) {
+                // Apply the healing
+                lastContainer.innerText = correctedText;
+                lastContainer.style.filter = "none";
+                lastContainer.style.background = "linear-gradient(90deg, rgba(112,0,255,0.05), rgba(255,0,85,0.05))";
+                lastContainer.style.borderLeft = "3px solid #7000FF";
+                lastContainer.style.paddingLeft = "12px";
+                lastContainer.style.pointerEvents = "auto";
+                
+                // Add a badge
+                const badge = document.createElement('div');
+                badge.innerHTML = "💎 <b>REALITY RESTORED</b> BY NEURAL BRIDGE";
+                badge.style.cssText = "font-size:10px;color:#7000FF;margin-top:8px;font-family:sans-serif;opacity:0.8;";
+                lastContainer.appendChild(badge);
+            }
+
+            btn.style.transform = "scale(0.9)";
+            btn.style.opacity = "0";
+            setTimeout(() => btn.remove(), 300);
+            
+            this.update('verified', 1.0, undefined, undefined, this._features);
+        };
+
+        document.body.appendChild(btn);
     },
 
     toggleReceipt() {

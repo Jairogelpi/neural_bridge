@@ -13,7 +13,7 @@ import crypto from 'crypto';
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export interface CompileOptions {
-    domain: 'law' | 'medicine' | 'finance' | 'tech' | 'general';
+    domain: string;
     extract_numbers?: boolean;
     extract_entities?: boolean;
     extract_temporals?: boolean;
@@ -184,6 +184,7 @@ export class PCKRuntime {
         
         let match;
         while ((match = pattern.exec(text)) !== null) {
+            if (!match[1]) continue;
             const numStr = match[1].replace(/,/g, '');
             const value = parseFloat(numStr);
             if (isNaN(value)) continue;
@@ -226,7 +227,7 @@ export class PCKRuntime {
             general: []
         };
         
-        const domainPatterns = patterns[domain] || patterns.general;
+        const domainPatterns = patterns[domain] ?? patterns.general ?? [];
         
         for (const { pattern, type } of domainPatterns) {
             let match;

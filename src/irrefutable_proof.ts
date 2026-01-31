@@ -33,13 +33,14 @@ const proofs: ProofResult[] = [];
 const startTime = Date.now();
 
 function addProof(claim: string, passed: boolean, evidence: string, hash?: string) {
-    proofs.push({
+    const proof: ProofResult = {
         claim,
         passed,
         evidence,
         timestamp: new Date().toISOString(),
-        hash
-    });
+    };
+    if (hash) proof.hash = hash;
+    proofs.push(proof);
     const status = passed ? '✅' : '❌';
     console.log(`${status} PROOF: ${claim}`);
     console.log(`   └─ Evidence: ${evidence}`);

@@ -252,7 +252,7 @@ export async function runComparativeProof() {
     let ties = 0;
 
     for (let i = 0; i < TEST_SCENARIOS.length; i++) {
-        const scenario = TEST_SCENARIOS[i];
+        const scenario = TEST_SCENARIOS[i]!;
         console.log('═'.repeat(90));
         console.log(`\n📋 SCENARIO ${i + 1}/${TEST_SCENARIOS.length}: ${scenario.name}`);
         console.log(`   Domain: ${scenario.domain.toUpperCase()}`);

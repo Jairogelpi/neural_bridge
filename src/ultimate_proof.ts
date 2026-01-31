@@ -238,7 +238,7 @@ function generateRandomScenarios(count: number, seed: number): GeneratedScenario
         return rng / 0x7fffffff;
     };
     
-    const pick = <T>(arr: T[]): T => arr[Math.floor(random() * arr.length)];
+    const pick = <T>(arr: T[]): T => arr[Math.floor(random() * arr.length)] as T;
     
     for (let i = 0; i < count; i++) {
         const template = pick(SCENARIO_TEMPLATES);
@@ -441,7 +441,7 @@ export async function runUltimateProof(scenarioCount: number = 50) {
     let ties = 0;
     
     for (let i = 0; i < scenarios.length; i++) {
-        const scenario = scenarios[i];
+        const scenario = scenarios[i]!;
         const progress = `[${(i + 1).toString().padStart(2)}/${scenarioCount}]`;
         
         process.stdout.write(`${progress} ${scenario.id} (${scenario.domain.padEnd(8)})... `);
@@ -521,9 +521,9 @@ export async function runUltimateProof(scenarioCount: number = 50) {
         if (!domainResults[r.domain]) {
             domainResults[r.domain] = { trad: 0, nb: 0, total: 0 };
         }
-        domainResults[r.domain].total++;
-        if (r.traditional_detected) domainResults[r.domain].trad++;
-        if (r.neural_bridge_detected) domainResults[r.domain].nb++;
+        domainResults[r.domain]!.total++;
+        if (r.traditional_detected) domainResults[r.domain]!.trad++;
+        if (r.neural_bridge_detected) domainResults[r.domain]!.nb++;
     });
     
     // Generate proof hash

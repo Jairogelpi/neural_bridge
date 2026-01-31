@@ -9,6 +9,7 @@ import { PCKRuntime, type ProofCarryingKnowledge } from "../pck";
 import { ZKVRuntime, type ZKProof } from "../zkv";
 import { SMTRuntime, type SemanticMerkleTree } from "../smt";
 import { CLPVRuntime, type PortableReceipt } from "../clpv";
+import { truthVault } from "../features/truth_vault";
 
 export type TrustState = 'idle' | 'scanning' | 'verified' | 'warning' | 'blocked';
 
@@ -25,6 +26,15 @@ export interface FirewallVerdict {
         smt: { enabled: boolean; contradictions_found: number; semantic_hash: string };
         clpv: { enabled: boolean; receipts_generated: number; cross_llm_compatible: boolean };
     };
+
+    // Self-Healing Reality
+    healing?: {
+        needed: boolean;
+        corrected_text: string;
+        source_truth_id: string;
+        reason: string;
+    } | undefined;
+
     verification_time_ms?: number;
     
     // Legacy fields for backwards compatibility
@@ -146,8 +156,8 @@ export class FirewallAgent {
         }
 
         // ═══════════════════════════════════════════════════════════════════════
-        // REVOLUTIONARY VERIFICATION PIPELINE (PCK + ZKV + SMT)
-        // All three features working together for maximum protection
+        // REVOLUTIONARY VERIFICATION PIPELINE (PCK + ZKV + SMT + CLPV + VAULT)
+        // All five features working together for maximum protection
         // ═══════════════════════════════════════════════════════════════════════
         
         const startTime = Date.now();
@@ -184,20 +194,51 @@ export class FirewallAgent {
             this.lastPortableReceipt = this.generatePortableReceipt(currentText);
             this.totalPortableReceipts++;
         }
+
+        // 5. TRUTH VAULT: Holographic Memory & Reality Check
+        // Checks if current text contradicts previously verified truths from ANY session
+        const realityCheck = truthVault.checkReality(currentText);
+        let healing = undefined;
+
+        if (realityCheck.is_conflict) {
+            console.log(`[NeuralFirewall] 🛑 REALITY CONFLICT DETECTED: ${realityCheck.contradiction_reason}`);
+            contradictionsFound++; // Treat as contradiction
+            
+            healing = {
+                needed: true,
+                corrected_text: truthVault.healReality(currentText, realityCheck),
+                source_truth_id: realityCheck.conflicting_entry?.id || 'unknown',
+                reason: realityCheck.contradiction_reason || 'Contradicts verified truth'
+            };
+        } else if ((pckResult?.valid ?? true) && contradictionsFound === 0 && this.activeDomain !== 'general' && currentText.length > 50) {
+            // AUTO-SAVE: If text is valid and substantial, crystallize it into the vault
+            // This builds the user's sovereign memory automatically
+            if (this.lastSMT) {
+                truthVault.saveTruth({
+                    content: currentText,
+                    domain: this.activeDomain,
+                    smt: this.lastSMT,
+                    pck: pckResult?.valid ? this.mountedPCKs.get(this.activeDomain) : undefined,
+                    score: pckResult?.confidence || 0.9
+                }).catch(e => console.error("Failed to crystallize truth:", e));
+            }
+        }
         
         const verificationTime = Date.now() - startTime;
         
         // Determine final state
         const hasContradictions = (pckResult?.contradictions?.length || 0) > 0 || contradictionsFound > 0;
         const isValid = pckResult?.valid ?? true;
-        const finalState: TrustState = hasContradictions ? 'warning' : isValid ? 'verified' : 'idle';
+        
+        // If healing is needed, we flag as warning/blocked but offer the fix
+        const finalState: TrustState = hasContradictions ? 'blocked' : (isValid ? 'verified' : 'idle');
         const finalSri = pckResult?.confidence ?? 0;
         
         onVerdict({
             state: finalState,
             sri: finalSri,
             reason: hasContradictions ? 
-                (pckResult?.contradictions?.[0] || 'Semantic contradiction detected') : undefined,
+                (healing?.reason || pckResult?.contradictions?.[0] || 'Semantic contradiction detected') : undefined,
             invariants: pckResult?.supported_claims?.map(c => ({ 
                 id: c.substring(0, 30), 
                 passed: true 
@@ -226,6 +267,7 @@ export class FirewallAgent {
                     cross_llm_compatible: true
                 }
             },
+            healing,
             verification_time_ms: verificationTime,
             
             // Legacy fields

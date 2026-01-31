@@ -361,7 +361,6 @@ export const CrystalSchemaV01 = {
         },
         "domain": {
             "type": "string",
-            "enum": ["medicine", "law", "tech", "finance", "science", "general"],
             "description": "Domain classification"
         },
         "source": {

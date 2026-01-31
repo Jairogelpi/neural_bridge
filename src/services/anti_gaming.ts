@@ -24,7 +24,7 @@ export interface MetamorphicTest {
  */
 export function generateAdaptiveAdversarials(params: {
     crystal: any;
-    domain: 'medicine' | 'law' | 'tech' | 'finance' | 'general';
+    domain: string;
     count?: number;
 }): AdversarialFamily[] {
     const { crystal, count = 3 } = params;
@@ -185,7 +185,7 @@ export function generateMetamorphicTests(params: {
  */
 export function generateCounterfactualTest(params: {
     crystal: any;
-    domain: 'medicine' | 'law' | 'tech' | 'finance' | 'general';
+    domain: string;
 }): {
     id: string;
     question: string;

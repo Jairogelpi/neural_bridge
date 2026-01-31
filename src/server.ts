@@ -15,6 +15,7 @@
  * Docker: docker run -p 3000:3000 neural-bridge
  */
 
+import 'dotenv/config';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import crypto from 'crypto';
@@ -23,12 +24,144 @@ import { PCKRuntime } from './pck';
 import { ZKVRuntime } from './zkv';
 import { SMTRuntime } from './smt';
 import { CLPVRuntime } from './clpv';
+import { SCPService } from './services/llm';
+import { saveCrystal } from './content/storage';
+import { TruthVault } from './services/truth_vault';
+import { ZKVerifier } from './services/zkv_advanced';
+import { ReputationSystem } from './services/reputation';
+import { ConsensusEngine } from './services/consensus';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SCP EXTENSION ENDPOINTS (Real LLM Backend)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+app.post('/v1/compile', async (req: Request, res: Response) => {
+    try {
+        const { transcript, source_model } = req.body;
+        const text = transcript?.messages?.[0]?.content || '';
+
+        if (!text) {
+             res.status(400).json({ error: 'Missing transcript content' });
+             return;
+        }
+
+        const startTime = Date.now();
+        // CALL REAL LLM SERVICE
+        const { crystal, llmResponse } = await SCPService.generateCrystal(
+            text, 
+            source_model || 'browser_extension'
+        );
+
+        // PERSIST TO SUPABASE
+        await saveCrystal(crystal as any);
+
+        // SELF-HEALING: Scan for contradictions in the Truth Vault
+        const contradictions = await TruthVault.scanForContradictions(crystal);
+        if (contradictions.length > 0) {
+            await TruthVault.heal(contradictions);
+            console.log(`[TRUTH VAULT] Healed ${contradictions.length} contradictions for crystal ${crystal.context_id}`);
+            
+            // Penalize reputation if critical contradiction found
+            if (contradictions.some(c => c.severity === 'critical')) {
+                await ReputationSystem.penalize(crystal.author.id, 'Critical contradiction detected in Truth Vault');
+            }
+        } else {
+            // Reward reputation for clean, high-quality knowledge
+            await ReputationSystem.rewardQuality(crystal as any);
+        }
+
+        // ENHANCED PRIVACY: Generate ZKP Receipt for the Crystal
+        const zkpReceipt = await ZKVerifier.generateZKPReceipt(crystal.intent.primary);
+
+        // CONSENSUS: Verify critical intent stability across multiple models
+        const consensus = await ConsensusEngine.verify(crystal.intent.primary, text);
+        console.log(`[CONSENSUS] Stability for ${crystal.context_id}: ${consensus.final_decision} (${(consensus.consensus_score * 100).toFixed(1)}%)`);
+
+        const elapsed = Date.now() - startTime;
+
+        res.json({
+            success: true,
+            context_crystal: crystal,
+            invariants: crystal.verification.semantic_invariants,
+            zkp_proof: zkpReceipt,
+            consensus: {
+                status: consensus.final_decision,
+                score: consensus.consensus_score
+            },
+            cost: {
+                cost_usd_est: llmResponse.cost,
+                input_tokens: llmResponse.tokens.prompt,
+                output_tokens: llmResponse.tokens.completion,
+                latency_ms: elapsed
+            }
+        });
+    } catch (error: any) {
+        console.error('Compile Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/v1/verify', async (req: Request, res: Response) => {
+    try {
+        const { context_id, invariants, llm_response, threshold } = req.body;
+
+        // Reconstruct partial crystal for verification context
+        const crystalStub: any = {
+            context_id,
+            domain: 'general', // Default, or pass from client
+            verification: {
+                semantic_invariants: invariants
+            },
+            constraints: []
+        };
+
+        const startTime = Date.now();
+        // CALL REAL VERIFICATION
+        // We use verifyBatch for efficiency if available, or verifyArbitrary loop
+        // Here we map the extension's request to verifyBatch
+        const batchResult = await SCPService.verifyBatch({
+            crystal: crystalStub,
+            invariants: invariants,
+            answer: llm_response
+        });
+        
+        // Calculate aggregate score
+        const totalScore = batchResult.results.reduce((acc, r) => acc + r.score, 0);
+        const avgScore = batchResult.results.length > 0 ? totalScore / batchResult.results.length : 0;
+        const decision = avgScore >= (threshold || 0.8) ? 'ACCEPT' : 'FAIL';
+
+        res.json({
+            success: true,
+            decision,
+            score: avgScore,
+            results: batchResult.results,
+            tokens_used: 0, // Approx
+            cost: batchResult.cost
+        });
+
+    } catch (error: any) {
+        console.error('Verify Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/v1/telemetry/verify_result', (req: Request, res: Response) => {
+    console.log('[TELEMETRY]', JSON.stringify(req.body, null, 2));
+    res.json({ success: true });
+});
+
+app.post('/v1/session/bootstrap', (req: Request, res: Response) => {
+    res.json({ 
+        success: true, 
+        session_token: `sess_${crypto.randomBytes(16).toString('hex')}` 
+    });
+});
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // HEALTH & INFO ENDPOINTS
@@ -82,16 +215,10 @@ app.get('/health', (_req: Request, res: Response) => {
 
 app.post('/api/pck/compile', (req: Request, res: Response) => {
     try {
-        const { source, domain } = req.body;
+        const { source, domain = 'general' } = req.body;
         
-        if (!source || !domain) {
-            res.status(400).json({ error: 'Missing required fields: source, domain' });
-            return;
-        }
-        
-        const validDomains = ['law', 'medicine', 'finance', 'tech', 'general'];
-        if (!validDomains.includes(domain)) {
-            res.status(400).json({ error: `Invalid domain. Must be one of: ${validDomains.join(', ')}` });
+        if (!source) {
+            res.status(400).json({ error: 'Missing required field: source' });
             return;
         }
         
@@ -121,10 +248,10 @@ app.post('/api/pck/compile', (req: Request, res: Response) => {
 
 app.post('/api/pck/verify', (req: Request, res: Response) => {
     try {
-        const { source, domain, answer } = req.body;
+        const { source, domain = 'general', answer } = req.body;
         
-        if (!source || !domain || !answer) {
-            res.status(400).json({ error: 'Missing required fields: source, domain, answer' });
+        if (!source || !answer) {
+            res.status(400).json({ error: 'Missing required fields: source, answer' });
             return;
         }
         

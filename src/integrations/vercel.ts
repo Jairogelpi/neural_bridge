@@ -1,3 +1,4 @@
+// @ts-ignore - Vercel AI SDK types (optional peer dependency)
 import { CoreMessage, generateText, streamText } from "ai";
 import { NeuralBridge } from "../sdk";
 import { Crystal } from "../types/crystal_format";

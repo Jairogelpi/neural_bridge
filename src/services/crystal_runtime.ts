@@ -9,7 +9,7 @@ import type { Invariant, VerifyResult } from '../content/verifier/verifier';
 import { verifyAnswers } from '../content/verifier/verifier';
 
 export interface CrystalRuntimeConfig {
-    domain: 'medicine' | 'law' | 'tech' | 'finance' | 'general';
+    domain: string;
     sri_threshold?: number;
     sign_receipt?: boolean;
     enable_adversarials?: boolean;
@@ -309,8 +309,8 @@ export async function executeCrystal(params: {
     // ===============================================
 
     // Map domain to risk factor
-    const riskMap = { 'medicine': 0.9, 'law': 0.8, 'tech': 0.6, 'finance': 0.7, 'general': 0.3 };
-    const risk_factor = riskMap[config.domain as keyof typeof riskMap] || 0.3;
+    const riskMap: Record<string, number> = { 'medicine': 0.9, 'law': 0.8, 'tech': 0.6, 'finance': 0.7, 'general': 0.3 };
+    const risk_factor = riskMap[config.domain] || 0.3;
 
     const sri_metrics = ScientificMetrics.calculateSRI({
         raw_score: verification_result.score,

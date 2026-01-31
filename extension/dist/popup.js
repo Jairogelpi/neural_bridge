@@ -107,8 +107,10 @@ async function loadMetrics() {
   const total = metrics.length;
   const tokens = metrics.reduce((sum, m) => sum + (m.total_tokens || 0), 0);
   const cost = metrics.reduce((sum, m) => sum + (m.total_cost_usd || 0), 0);
+  const successful = metrics.filter((m) => m.transfer?.success).length;
+  const successRate = total > 0 ? Math.round(successful / total * 100) : 0;
   statTransfers.textContent = String(total);
-  statSuccess.textContent = total > 0 ? "95%" : "0%";
+  statSuccess.textContent = `${successRate}%`;
   statTokens.textContent = (tokens / 1e3).toFixed(1) + "K";
   statCost.textContent = `$${cost.toFixed(2)}`;
 }
@@ -127,12 +129,9 @@ async function handleBootstrap() {
   if (res.success) {
     await updateSessionToken();
   } else {
-    const demoToken = "demo_" + Date.now() + "_" + Math.random().toString(36).substring(7);
-    await chrome.storage.local.set({ apiToken: demoToken });
-    tokenDisplay.value = demoToken;
-    btnBootstrap.textContent = "Demo Mode";
-    btnBootstrap.disabled = true;
-    console.log("[Neural Bridge] Using demo mode (backend unavailable)");
+    btnBootstrap.textContent = "Connection Failed";
+    btnBootstrap.disabled = false;
+    alert("Failed to connect to Neural Bridge Server. Please ensure the local server is running (npm run server).");
   }
 }
 init();

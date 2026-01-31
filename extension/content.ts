@@ -11,6 +11,7 @@ interface Crystal {
     source_model: string;
     content: any;
     invariants: any[];
+    constraints: any[];
     metadata: {
         tokens_used: number;
         generation_cost: number;
@@ -122,80 +123,8 @@ async function captureContextReal(): Promise<any> {
                     compile_policy: { 
                         mode: 'accuracy', 
                         token_budget: 4096,
-                        invariants: [
-                            {
-                                id: "inv_001",
-                                kind: "fact",
-                                prompt: "What is the primary topic of the conversation?",
-                                expected_value: "Topic",
-                                weight: 0.8,
-                                strict: true
-                            },
-                            {
-                                id: "inv_002",
-                                kind: "constraint",
-                                prompt: "What is the relationship between entities A and B?",
-                                expected_value: "Relationship",
-                                weight: 0.7,
-                                strict: true
-                            },
-                            {
-                                id: "inv_003",
-                                kind: "boundary",
-                                prompt: "What is the scope of the conversation?",
-                                expected_value: "Scope",
-                                weight: 0.6,
-                                strict: true
-                            },
-                            {
-                                id: "inv_004",
-                                kind: "state",
-                                prompt: "What is the current state of the task?",
-                                expected_value: "State",
-                                weight: 0.5,
-                                strict: true
-                            },
-                            {
-                                id: "inv_005",
-                                kind: "objective",
-                                prompt: "What is the primary goal of the user?",
-                                expected_value: "Goal",
-                                weight: 0.4,
-                                strict: true
-                            },
-                            {
-                                id: "inv_006",
-                                kind: "preference",
-                                prompt: "What is the user's preference?",
-                                expected_value: "Preference",
-                                weight: 0.3,
-                                strict: true
-                            },
-                            {
-                                id: "inv_007",
-                                kind: "mathematical_truth",
-                                prompt: "What is the mathematical definition of concept X?",
-                                expected_value: "Definition",
-                                weight: 0.2,
-                                strict: true
-                            },
-                            {
-                                id: "inv_neg_001",
-                                kind: "negative_control",
-                                prompt: "What is the relationship between entities C and D?",
-                                expected_value: "I don't know / Not mentioned",
-                                weight: 0.5,
-                                strict: true
-                            },
-                            {
-                                id: "inv_neg_002",
-                                kind: "negative_control",
-                                prompt: "What is the scope of the conversation regarding topic Y?",
-                                expected_value: "I don't know / Not mentioned",
-                                weight: 0.5,
-                                strict: true
-                            }
-                        ]
+                        // Invariants are now generated dynamically by the backend (Real LLM)
+                        generate_invariants: true
                     }
                 }
             }
@@ -276,6 +205,7 @@ async function verifyTransferReal(crystal: Crystal): Promise<any> {
                 body: {
                     context_id: crystal.context_id,
                     invariants: levelInvariants,
+                    constraints: crystal.constraints,
                     llm_response: hostResponse,
                     threshold: 0.85,
                     ladder_step: level
@@ -446,8 +376,8 @@ function hideOverlay() { document.getElementById('nb-overlay')?.remove(); }
 
 function injectFloatingButton() {
     const b = document.createElement('div');
+    b.id = 'neural-bridge-fab';
     b.innerHTML = '🧠';
-    b.style.cssText = 'position:fixed;bottom:24px;right:24px;width:60px;height:60px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:999999;font-size:26px;box-shadow:0 8px 32px rgba(99,102,241,0.4);';
     b.onclick = () => {
         try {
             chrome.runtime.sendMessage({ action: 'OPEN_POPUP' });
