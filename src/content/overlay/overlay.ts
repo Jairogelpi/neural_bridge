@@ -23,107 +23,142 @@ export function mountOverlay(handlers: OverlayHandlers) {
   const style = document.createElement("style");
   style.textContent = `
     :host { all: initial; }
-    .nb-btn {
+    .nb-btn-trigger {
       all: unset;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: #111;
+      font-family: 'Outfit', sans-serif;
+      background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
       color: #fff;
-      padding: 10px 12px;
-      border-radius: 999px;
+      padding: 12px 20px;
+      border-radius: 14px;
       cursor: pointer;
-      box-shadow: 0 8px 24px rgba(0,0,0,.25);
+      box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
       user-select: none;
       font-size: 14px;
+      font-weight: 700;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .nb-btn-trigger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px rgba(99, 102, 241, 0.4);
     }
     .nb-panel {
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      font-family: 'Outfit', 'Inter', sans-serif;
       position: fixed;
       right: 16px;
-      bottom: 72px;
-      width: 380px;
-      max-height: 520px;
-      background: #fff;
-      color: #111;
-      border-radius: 16px;
-      box-shadow: 0 12px 40px rgba(0,0,0,.25);
+      bottom: 80px;
+      width: 400px;
+      max-height: 580px;
+      background: rgba(10, 10, 20, 0.9);
+      backdrop-filter: blur(24px);
+      color: #fff;
+      border-radius: 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
       overflow: hidden;
-      border: 1px solid rgba(0,0,0,.08);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      animation: pop-up 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes pop-up {
+      from { opacity: 0; transform: translateY(20px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
     }
     .nb-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 12px;
-      background: #f7f7f7;
-      border-bottom: 1px solid rgba(0,0,0,.08);
-      font-weight: 600;
-      font-size: 14px;
+      padding: 20px 24px;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-weight: 700;
+      letter-spacing: -0.02em;
     }
-    .nb-header button {
+    .nb-close-btn {
       all: unset;
       cursor: pointer;
-      padding: 6px 10px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       border-radius: 10px;
-      background: #111;
-      color: #fff;
-      font-size: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      color: #94A3B8;
+      transition: all 0.2s;
     }
-    .nb-body { padding: 12px; overflow: auto; max-height: 460px; }
-    .nb-row { display: flex; gap: 8px; margin-bottom: 10px; }
-    .nb-row button {
+    .nb-close-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+    .nb-body { padding: 24px; overflow-y: auto; flex: 1; }
+    .nb-actions-bar { display: flex; gap: 12px; margin-bottom: 24px; }
+    .nb-action-btn {
       all: unset;
       cursor: pointer;
-      padding: 8px 10px;
+      padding: 12px 16px;
       border-radius: 12px;
-      background: #111;
+      background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
       color: #fff;
       font-size: 13px;
+      font-weight: 700;
       flex: 1;
       text-align: center;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
     }
-    .nb-row button.secondary { background: #eaeaea; color: #111; }
+    .nb-action-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .nb-action-btn.secondary { 
+      background: rgba(255, 255, 255, 0.05); 
+      color: #fff; 
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: none;
+    }
     .nb-card {
-      border: 1px solid rgba(0,0,0,.10);
-      border-radius: 14px;
-      padding: 10px;
-      margin-bottom: 10px;
-      display: grid;
-      gap: 6px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: border-color 0.2s;
     }
-    .nb-card .meta { font-size: 11px; color: #555; display:flex; gap: 8px; flex-wrap: wrap; }
-    .nb-card .title { font-size: 13px; font-weight: 600; }
-    .nb-card .preview { font-size: 12px; color: #222; line-height: 1.35; }
-    .nb-card .actions { display:flex; gap: 6px; flex-wrap: wrap; }
-    .nb-card .actions button {
+    .nb-card:hover { border-color: rgba(255, 255, 255, 0.1); }
+    .nb-card .meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #64748b; display:flex; gap: 10px; margin-bottom: 10px; text-transform: uppercase; }
+    .nb-card .title { font-size: 15px; font-weight: 700; margin-bottom: 8px; color: #f8fafc; }
+    .nb-card .preview { font-size: 12px; color: #94a3b8; line-height: 1.6; margin-bottom: 16px; }
+    .nb-card .card-actions { display:flex; gap: 8px; }
+    .nb-small-btn {
       all: unset;
       cursor: pointer;
-      padding: 6px 10px;
-      border-radius: 10px;
-      background: #111;
-      color: #fff;
-      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      color: #cbd5e1;
+      font-size: 11px;
+      font-weight: 600;
+      transition: all 0.2s;
     }
-    .nb-card .actions button.secondary { background: #eaeaea; color: #111; }
+    .nb-small-btn:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+    .nb-small-btn.primary { background: rgba(99, 102, 241, 0.1); color: #818cf8; }
     .nb-badge {
       display:inline-flex;
-      align-items:center;
-      gap: 6px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      font-size: 11px;
-      background: #e8f5e9;
-      color: #1b5e20;
-      border: 1px solid rgba(27,94,32,.15);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 9px;
+      font-weight: 800;
+      background: rgba(16, 185, 129, 0.1);
+      color: #10B981;
+      border: 1px solid rgba(16, 185, 129, 0.2);
     }
   `;
   shadow.appendChild(style);
 
   const btn = document.createElement("button");
-  btn.className = "nb-btn";
-  btn.textContent = "Bridge";
+  btn.className = "nb-btn-trigger";
+  btn.innerHTML = `<span>NB</span> Bridge`;
   shadow.appendChild(btn);
 
   const panel = document.createElement("div");
@@ -133,13 +168,13 @@ export function mountOverlay(handlers: OverlayHandlers) {
 
   panel.innerHTML = `
     <div class="nb-header">
-      <div>Neural Bridge</div>
-      <button id="nb-close">Close</button>
+      <div style="background: linear-gradient(135deg, #fff 0%, #94a3b8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Neural Bridge</div>
+      <button class="nb-close-btn" id="nb-close">✕</button>
     </div>
     <div class="nb-body">
-      <div class="nb-row">
-        <button id="nb-capture">Capture</button>
-        <button id="nb-refresh" class="secondary">Refresh</button>
+      <div class="nb-actions-bar">
+        <button class="nb-action-btn" id="nb-capture">Capture</button>
+        <button class="nb-action-btn secondary" id="nb-refresh">Refresh</button>
       </div>
       <div id="nb-list"></div>
     </div>
@@ -185,7 +220,7 @@ export function mountOverlay(handlers: OverlayHandlers) {
   function renderList(cards: Array<any>, activeId?: string) {
     listEl.innerHTML = "";
     if (!cards.length) {
-      listEl.innerHTML = `<div style="font-size:12px;color:#555;">No captures yet. Click Capture.</div>`;
+      listEl.innerHTML = `<div style="font-size:12px;color:#64748b;text-align:center;padding:20px;">No captures detected. Sync to start.</div>`;
       return;
     }
 
@@ -197,15 +232,15 @@ export function mountOverlay(handlers: OverlayHandlers) {
       div.innerHTML = `
         <div class="meta">
           <span>${c.platform}</span>
-          <span>${new Date(c.created_at).toLocaleString()}</span>
+          <span>${new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
           ${isActive ? `<span class="nb-badge">Active</span>` : ""}
         </div>
-        <div class="title">${escapeHtml(c.title ?? "Capture")}</div>
-        <div class="preview">${escapeHtml(c.preview ?? "").slice(0, 220)}</div>
-        <div class="actions">
-          <button data-act="active" data-id="${c.id}">Set Active</button>
-          <button data-act="copy-tx" data-id="${c.id}" class="secondary">TX</button>
-          <button data-act="copy-cc" data-id="${c.id}" class="secondary">CC</button>
+        <div class="title">${escapeHtml(c.title ?? "Neural Capture")}</div>
+        <div class="preview">${escapeHtml(c.preview ?? "").slice(0, 180)}...</div>
+        <div class="card-actions">
+          <button class="nb-small-btn primary" data-act="active" data-id="${c.id}">Focus</button>
+          <button class="nb-small-btn" data-act="copy-tx" data-id="${c.id}">TX</button>
+          <button class="nb-small-btn" data-act="copy-cc" data-id="${c.id}">CC</button>
         </div>
       `;
       listEl.appendChild(div);
@@ -216,19 +251,24 @@ export function mountOverlay(handlers: OverlayHandlers) {
         const btn = e.currentTarget as HTMLButtonElement;
         const id = btn.getAttribute("data-id")!;
         const act = btn.getAttribute("data-act")!;
-        if (act === "active") {
-          await handlers.onSetActive(id);
-          await handlers.onRefresh();
-        }
-        if (act === "copy-tx") {
-          await handlers.onCopyTranscript(id);
-          btn.textContent = "Done";
-          setTimeout(() => (btn.textContent = "TX"), 900);
-        }
-        if (act === "copy-cc") {
-          await handlers.onCopyCrystal(id);
-          btn.textContent = "Done";
-          setTimeout(() => (btn.textContent = "CC"), 900);
+        const originalText = btn.textContent;
+
+        btn.textContent = "Syncing...";
+        try {
+          if (act === "active") {
+            await handlers.onSetActive(id);
+            await handlers.onRefresh();
+          }
+          if (act === "copy-tx") {
+            await handlers.onCopyTranscript(id);
+            btn.textContent = "Copied!";
+          }
+          if (act === "copy-cc") {
+            await handlers.onCopyCrystal(id);
+            btn.textContent = "Copied!";
+          }
+        } finally {
+          setTimeout(() => (btn.textContent = originalText), 1500);
         }
       });
     });

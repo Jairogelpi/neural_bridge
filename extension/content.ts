@@ -49,9 +49,23 @@ async function init() {
     injectStyles();
 }
 
+// Helper for safe runtime messages
+async function sendToBackground(message: any): Promise<any> {
+    return new Promise((resolve) => {
+        chrome.runtime.sendMessage(message, (response) => {
+            if (chrome.runtime.lastError) {
+                console.warn('[Neural Bridge] Background connection error:', chrome.runtime.lastError.message);
+                resolve({ success: false, error: chrome.runtime.lastError.message });
+            } else {
+                resolve(response || { success: false, error: 'No response' });
+            }
+        });
+    });
+}
+
 async function refreshPricing() {
     try {
-        const res = await chrome.runtime.sendMessage({ action: 'OPENROUTER_MODELS' });
+        const res = await sendToBackground({ action: 'OPENROUTER_MODELS' });
         if (res.success && res.data) {
             const { data } = res.data;
             const newPricing: Record<string, any> = {};
@@ -80,7 +94,7 @@ async function callLLM(prompt: string, model: string, systemPrompt?: string) {
     if (!apiKey) throw new Error('API key missing');
     const messages = systemPrompt ? [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }] : [{ role: 'user', content: prompt }];
     
-    const res = await chrome.runtime.sendMessage({
+    const res = await sendToBackground({
         action: 'OPENROUTER_CALL',
         data: {
             apiKey,
@@ -112,8 +126,8 @@ async function captureContextReal(): Promise<any> {
         updateOverlay('running', 'Compiling Semantic Crystal (RLM v1.0)...');
         updateConsole('Executing multi-modal entity extraction...', '#6366f1');
         
-        // Use BACKEND for real compilation (which handles DB, Ledger, and Invariant Generation)
-        const compileRes = await chrome.runtime.sendMessage({
+        // Use BACKEND for real compilation
+        const compileRes = await sendToBackground({
             action: 'API_CALL',
             data: {
                 method: 'POST',
@@ -123,7 +137,6 @@ async function captureContextReal(): Promise<any> {
                     compile_policy: { 
                         mode: 'accuracy', 
                         token_budget: 4096,
-                        // Invariants are now generated dynamically by the backend (Real LLM)
                         generate_invariants: true
                     }
                 }
@@ -197,7 +210,7 @@ async function verifyTransferReal(crystal: Crystal): Promise<any> {
         
         // 3. Backend Verification
         updateOverlay('running', `Verifying Ladder Level ${level}...`);
-        const verifyRes = await chrome.runtime.sendMessage({
+        const verifyRes = await sendToBackground({
             action: 'API_CALL',
             data: {
                 method: 'POST',
@@ -377,12 +390,15 @@ function hideOverlay() { document.getElementById('nb-overlay')?.remove(); }
 function injectFloatingButton() {
     const b = document.createElement('div');
     b.id = 'neural-bridge-fab';
-    b.innerHTML = '🧠';
-    b.onclick = () => {
+    b.innerHTML = '<span style="font-size: 48px;">🧠</span>';
+    b.title = "Capture Context";
+    b.onclick = async () => {
+        // Trigger capture directly instead of trying to open popup
         try {
-            chrome.runtime.sendMessage({ action: 'OPEN_POPUP' });
+            await captureContextReal();
         } catch (e) {
-            console.error('[Neural Bridge] Extension context invalidated, please refresh page.', e);
+            console.error('[Neural Bridge] Capture failed:', e);
+            updateOverlay('error', 'Capture failed. Check console.');
         }
     };
     document.body.appendChild(b);
@@ -404,7 +420,7 @@ function detectHost(): string {
 
 async function reportTelemetry(data: any) {
     try {
-        const res = await chrome.runtime.sendMessage({
+        const res = await sendToBackground({
             action: 'API_CALL',
             data: {
                 method: 'POST',

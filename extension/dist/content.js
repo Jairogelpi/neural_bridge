@@ -3,7 +3,7 @@ let pricingData = {};
 async function init() {
   hostName = detectHost();
   const res = await chrome.storage.local.get(["openrouter_api_key", "nb_pricing_cache", "apiToken"]);
-  res.openrouter_api_key || "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";
+  res.openrouter_api_key || undefined                                        || "";
   pricingData = res.nb_pricing_cache || {};
   if (!res.apiToken) {
     console.log("[Neural Bridge] No session token found, bootstrapping...");
@@ -17,9 +17,21 @@ async function init() {
   injectFloatingButton();
   injectStyles();
 }
+async function sendToBackground(message) {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage(message, (response) => {
+      if (chrome.runtime.lastError) {
+        console.warn("[Neural Bridge] Background connection error:", chrome.runtime.lastError.message);
+        resolve({ success: false, error: chrome.runtime.lastError.message });
+      } else {
+        resolve(response || { success: false, error: "No response" });
+      }
+    });
+  });
+}
 async function refreshPricing() {
   try {
-    const res = await chrome.runtime.sendMessage({ action: "OPENROUTER_MODELS" });
+    const res = await sendToBackground({ action: "OPENROUTER_MODELS" });
     if (res.success && res.data) {
       const { data } = res.data;
       const newPricing = {};
@@ -62,7 +74,7 @@ async function captureContextReal() {
     updateConsole(`Context Length: ${text.length} characters detected.`, "#94a3b8");
     updateOverlay("running", "Compiling Semantic Crystal (RLM v1.0)...");
     updateConsole("Executing multi-modal entity extraction...", "#6366f1");
-    const compileRes = await chrome.runtime.sendMessage({
+    const compileRes = await sendToBackground({
       action: "API_CALL",
       data: {
         method: "POST",
@@ -72,7 +84,6 @@ async function captureContextReal() {
           compile_policy: {
             mode: "accuracy",
             token_budget: 4096,
-            // Invariants are now generated dynamically by the backend (Real LLM)
             generate_invariants: true
           }
         }
@@ -129,7 +140,7 @@ ${questions}`;
     await sendMessage(challenge);
     const hostResponse = await waitForResponse();
     updateOverlay("running", `Verifying Ladder Level ${level}...`);
-    const verifyRes = await chrome.runtime.sendMessage({
+    const verifyRes = await sendToBackground({
       action: "API_CALL",
       data: {
         method: "POST",
@@ -285,12 +296,14 @@ function hideOverlay() {
 function injectFloatingButton() {
   const b = document.createElement("div");
   b.id = "neural-bridge-fab";
-  b.innerHTML = "🧠";
-  b.onclick = () => {
+  b.innerHTML = '<span style="font-size: 48px;">🧠</span>';
+  b.title = "Capture Context";
+  b.onclick = async () => {
     try {
-      chrome.runtime.sendMessage({ action: "OPEN_POPUP" });
+      await captureContextReal();
     } catch (e) {
-      console.error("[Neural Bridge] Extension context invalidated, please refresh page.", e);
+      console.error("[Neural Bridge] Capture failed:", e);
+      updateOverlay("error", "Capture failed. Check console.");
     }
   };
   document.body.appendChild(b);
@@ -309,7 +322,7 @@ function detectHost() {
 }
 async function reportTelemetry(data) {
   try {
-    const res = await chrome.runtime.sendMessage({
+    const res = await sendToBackground({
       action: "API_CALL",
       data: {
         method: "POST",

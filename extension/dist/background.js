@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8080";
+const API_BASE = "http://localhost:3000";
 chrome.runtime.onInstalled.addListener(() => {
   console.log("[Neural Bridge] Extension installed");
   chrome.storage.local.get(["installId"], (result) => {

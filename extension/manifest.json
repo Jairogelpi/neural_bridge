@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Neural Bridge - SCP Protocol",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Verified context transfer between LLMs using Semantic Context Protocol",
     "permissions": [
         "storage",
@@ -9,6 +9,8 @@
         "scripting"
     ],
     "host_permissions": [
+        "http://localhost:3000/*",
+        "http://127.0.0.1:3000/*",
         "https://chat.openai.com/*",
         "https://chatgpt.com/*",
         "https://gemini.google.com/*",

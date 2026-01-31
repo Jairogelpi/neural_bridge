@@ -10,11 +10,11 @@ export interface RevolutionaryFeatures {
 export interface IFirewallOverlay {
     render(): void;
     update(
-        state: TrustState, 
-        sri: number, 
-        reason?: string, 
-        invariants?: Array<{ id: string; passed: boolean; reason?: string }>, 
-        features?: RevolutionaryFeatures, 
+        state: TrustState,
+        sri: number,
+        reason?: string,
+        invariants?: Array<{ id: string; passed: boolean; reason?: string }>,
+        features?: RevolutionaryFeatures,
         verification_time_ms?: number,
         healing?: { needed: boolean; corrected_text: string; reason: string }
     ): void;
@@ -39,7 +39,7 @@ export const FirewallOverlay: IFirewallOverlay & { _lastReason?: string } = {
     _features: undefined as RevolutionaryFeatures | undefined,
     _verification_time_ms: 0,
     _healing: undefined as { needed: boolean; corrected_text: string; reason: string } | undefined,
-    
+
     render() {
         if (document.getElementById('nb-firewall-overlay')) return;
 
@@ -48,22 +48,22 @@ export const FirewallOverlay: IFirewallOverlay & { _lastReason?: string } = {
         style.id = 'nb-design-system';
         style.textContent = `
             :root {
-                --nb-bg-deep: #050508;
-                --nb-bg-surface: #0a0a0f;
-                --nb-bg-glass: rgba(20, 20, 25, 0.85);
-                --nb-primary-glow: #00F0FF;
-                --nb-primary-dim: rgba(0, 240, 255, 0.1);
-                --nb-accent-violet: #7000FF;
-                --nb-status-success: #00FF94;
-                --nb-status-warning: #FFD600;
-                --nb-status-error: #FF2E54;
-                --nb-text-primary: #FFFFFF;
-                --nb-text-secondary: #8F90A6;
-                --nb-font-ui: 'Inter', system-ui, sans-serif;
-                --nb-font-mono: 'JetBrains Mono', 'Space Mono', monospace;
+                --nb-bg-deep: #020205;
+                --nb-bg-surface: #0a0a14;
+                --nb-bg-glass: rgba(10, 10, 20, 0.9);
+                --nb-primary-glow: #6366f1;
+                --nb-primary-dim: rgba(99, 102, 241, 0.1);
+                --nb-accent-violet: #8b5cf6;
+                --nb-status-success: #10b981;
+                --nb-status-warning: #f59e0b;
+                --nb-status-error: #ef4444;
+                --nb-text-primary: #f8fafc;
+                --nb-text-secondary: #94a3b8;
+                --nb-font-ui: 'Outfit', 'Inter', system-ui, sans-serif;
+                --nb-font-mono: 'JetBrains Mono', monospace;
                 --nb-glass-border: 1px solid rgba(255, 255, 255, 0.08);
-                --nb-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-                --nb-transition: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+                --nb-glass-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+                --nb-transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             }
             #nb-firewall-overlay, #nb-receipt-panel, #nb-protect-chip {
                 font-family: var(--nb-font-ui);
@@ -92,7 +92,7 @@ export const FirewallOverlay: IFirewallOverlay & { _lastReason?: string } = {
             box-shadow: 0 0 20px rgba(0, 240, 255, 0.3), var(--nb-glass-shadow);
             backdrop-filter: blur(12px);
         `;
-        
+
         // Hover effect
         overlay.onmouseenter = () => overlay.style.transform = 'scale(1.1)';
         overlay.onmouseleave = () => overlay.style.transform = 'scale(1)';
@@ -109,7 +109,7 @@ export const FirewallOverlay: IFirewallOverlay & { _lastReason?: string } = {
         `;
 
         overlay.appendChild(indicator);
-        
+
         // Interaction: Click to see Proof
         overlay.onclick = (e) => {
             e.stopPropagation();
@@ -166,7 +166,7 @@ export const FirewallOverlay: IFirewallOverlay & { _lastReason?: string } = {
                 glow = 'var(--nb-status-error)';
                 label = "Reality Conflict";
                 this.applyContentBlur();
-                
+
                 // If healing is available, show the Reality Repair UI
                 if (healing && healing.needed) {
                     this.showRealityRepair(healing.corrected_text, healing.reason);
@@ -218,7 +218,7 @@ export const FirewallOverlay: IFirewallOverlay & { _lastReason?: string } = {
         btn.onclick = () => {
             const containers = document.querySelectorAll('[data-message-author-role="assistant"], .markdown');
             const lastContainer = containers[containers.length - 1] as HTMLElement;
-            
+
             if (lastContainer) {
                 // Apply the healing
                 lastContainer.innerText = correctedText;
@@ -227,7 +227,7 @@ export const FirewallOverlay: IFirewallOverlay & { _lastReason?: string } = {
                 lastContainer.style.borderLeft = "3px solid #7000FF";
                 lastContainer.style.paddingLeft = "12px";
                 lastContainer.style.pointerEvents = "auto";
-                
+
                 // Add a badge
                 const badge = document.createElement('div');
                 badge.innerHTML = "💎 <b>REALITY RESTORED</b> BY NEURAL BRIDGE";
@@ -238,7 +238,7 @@ export const FirewallOverlay: IFirewallOverlay & { _lastReason?: string } = {
             btn.style.transform = "scale(0.9)";
             btn.style.opacity = "0";
             setTimeout(() => btn.remove(), 300);
-            
+
             this.update('verified', 1.0, undefined, undefined, this._features);
         };
 
@@ -276,7 +276,7 @@ export const FirewallOverlay: IFirewallOverlay & { _lastReason?: string } = {
 
         const statusColor = this._lastState === 'verified' ? 'var(--nb-status-success)' : (this._lastState === 'blocked' ? 'var(--nb-status-error)' : 'var(--nb-status-warning)');
         const statusText = this._lastState === 'verified' ? 'SECURE' : (this._lastState === 'blocked' ? 'BLOCKED' : 'WARNING');
-        
+
         // Render Invariants List
         const invariantsHtml = (this._lastInvariants || []).map(inv => `
             <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
@@ -288,12 +288,12 @@ export const FirewallOverlay: IFirewallOverlay & { _lastReason?: string } = {
         `).join('');
 
         panel.innerHTML = `
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-                <div style="display:flex;align-items:center;gap:8px;">
-                     <div style="width:8px;height:8px;border-radius:50%;background:${statusColor};box-shadow:0 0 10px ${statusColor};"></div>
-                     <span style="font-weight:700;font-size:12px;letter-spacing:1px;color:var(--nb-text-primary);">DECISION RECEIPT</span>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                     <div style="width:10px;height:10px;border-radius:50%;background:${statusColor};box-shadow:0 0 12px ${statusColor};"></div>
+                     <span style="font-weight:800;font-size:12px;letter-spacing:1px;background:linear-gradient(135deg, #fff 0%, #94a3b8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">GOVERNANCE PROOF</span>
                 </div>
-                <span style="font-size:10px;color:var(--nb-text-secondary);font-family:var(--nb-font-mono);">${new Date().toLocaleTimeString()}</span>
+                <span style="font-size:10px;color:var(--nb-text-secondary);font-family:var(--nb-font-mono);opacity:0.6;">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
             </div>
             
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
@@ -370,13 +370,13 @@ export const FirewallOverlay: IFirewallOverlay & { _lastReason?: string } = {
         panel.appendChild(style);
 
         document.body.appendChild(panel);
-        
+
         // Animate in
         requestAnimationFrame(() => {
             panel.style.opacity = '1';
             panel.style.transform = 'translateY(0)';
         });
-        
+
         // Auto-close on click outside
         const closeHandler = (e: MouseEvent) => {
             if (!panel.contains(e.target as Node) && !(e.target as HTMLElement).closest('#nb-firewall-overlay')) {
