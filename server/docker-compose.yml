@@ -28,9 +28,9 @@ services:
       PORT: ${PORT:-8080}
       SUPABASE_URL: ${SUPABASE_URL}
       SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
-      DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/neural_bridge?sslmode=disable}
+      DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379}
-      JWT_SIGNING_KEY: ${JWT_SIGNING_KEY:-dev-insecure-change-me}
+      JWT_SIGNING_KEY: ${JWT_SIGNING_KEY}
       JWT_TTL: ${JWT_TTL:-24h}
       DEFAULT_MAX_CALLS: ${DEFAULT_MAX_CALLS:-2}
       DEFAULT_TOKEN_BUDGET: ${DEFAULT_TOKEN_BUDGET:-2000}

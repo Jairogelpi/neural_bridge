@@ -19,13 +19,7 @@ type AnthropicProvider struct {
 func NewAnthropicProvider() *AnthropicProvider {
 	key := os.Getenv("ANTHROPIC_API_KEY")
 	model := os.Getenv("ANTHROPIC_MODEL")
-	if model == "" {
-		model = "claude-3-5-sonnet-latest"
-	}
 	base := os.Getenv("ANTHROPIC_BASE_URL")
-	if base == "" {
-		base = "https://api.anthropic.com/v1"
-	}
 	return &AnthropicProvider{
 		APIKey:  key,
 		Model:   model,

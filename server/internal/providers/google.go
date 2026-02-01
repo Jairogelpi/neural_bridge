@@ -19,13 +19,7 @@ type GoogleProvider struct {
 func NewGoogleProvider() *GoogleProvider {
 	key := os.Getenv("GOOGLE_API_KEY")
 	model := os.Getenv("GOOGLE_MODEL")
-	if model == "" {
-		model = "gemini-1.5-flash"
-	}
 	base := os.Getenv("GOOGLE_BASE_URL")
-	if base == "" {
-		base = "https://generativelanguage.googleapis.com/v1beta"
-	}
 	return &GoogleProvider{
 		APIKey:  key,
 		Model:   model,

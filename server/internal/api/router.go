@@ -105,8 +105,8 @@ func (s *Server) handleBootstrap(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tenantID := compiler.DeriveTenantID(req.InstallID)
-	deviceID := compiler.DeriveDeviceID(req.InstallID)
+	tenantID := compiler.DeriveTenantID(req.InstallID, s.Cfg.TenantIDSalt)
+	deviceID := compiler.DeriveDeviceID(req.InstallID, s.Cfg.DeviceIDSalt)
 
 	token, exp, err := auth.SignJWT(s.SigningKey, tenantID, deviceID, s.Cfg.JWTTTL)
 	if err != nil {
@@ -163,7 +163,7 @@ func (s *Server) handleHostProfile(w http.ResponseWriter, r *http.Request) {
 		Error(w, 400, "bad_request", "platform query param required", nil)
 		return
 	}
-	p := compiler.GetHostProfile(platform)
+	p := compiler.GetHostProfile(platform, s.Cfg.ProfileMaxTurns, s.Cfg.ProfileMaxChars, s.Cfg.ProfileAcceptThreshold)
 	JSON(w, 200, p)
 }
 
@@ -184,7 +184,7 @@ func (s *Server) handleCompile(w http.ResponseWriter, r *http.Request) {
 
 	// ---- BUDGET ENFORCEMENT: Preflight ----
 	plan, _ := db.GetTenantPlan(r.Context(), s.DB.Pool, tenantID)
-	limits := compiler.LimitsForPlan(plan)
+	limits := compiler.LimitsForPlan(plan, s.Cfg.FreeMaxTokens, s.Cfg.FreeMaxDailyUSD, s.Cfg.FreeMaxCompiles)
 
 	// Check daily compile count
 	compilesToday, _ := db.GetCompilesToday(r.Context(), s.DB.Pool, tenantID)

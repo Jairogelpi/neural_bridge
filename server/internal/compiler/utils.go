@@ -19,13 +19,13 @@ func NowISO() string {
 
 // Stable IDs derived from install_id for "no-login" bootstrap v1.
 // (You can migrate later to real tenant/user identity.)
-func DeriveTenantID(installID string) string {
-	h := sha256.Sum256([]byte("tenant_v1:" + installID))
+func DeriveTenantID(installID, salt string) string {
+	h := sha256.Sum256([]byte("tenant_v1:" + salt + ":" + installID))
 	return uuidFromHash(h[:])
 }
 
-func DeriveDeviceID(installID string) string {
-	h := sha256.Sum256([]byte("device_v1:" + installID))
+func DeriveDeviceID(installID, salt string) string {
+	h := sha256.Sum256([]byte("device_v1:" + salt + ":" + installID))
 	return uuidFromHash(h[:])
 }
 

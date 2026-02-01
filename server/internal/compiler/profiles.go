@@ -19,25 +19,25 @@ type HostProfile struct {
 	} `json:"verification"`
 }
 
-func GetHostProfile(platform string) HostProfile {
+func GetHostProfile(platform string, maxTurns, maxChars int, threshold float64) HostProfile {
 	p := HostProfile{Platform: platform}
 	p.Capture.Strategy = "dom"
-	p.Capture.MaxTurns = 60
-	p.Capture.MaxChars = 12000
+	p.Capture.MaxTurns = maxTurns
+	p.Capture.MaxChars = maxChars
 
 	p.Injection.InputMode = "auto"
 	p.Injection.SendMode = "auto"
 
 	p.Verification.Ladder = []string{"compact", "redundant", "sectioned"}
 	p.Verification.MinChecks = 8
-	p.Verification.AcceptThreshold = 0.85
+	p.Verification.AcceptThreshold = threshold
 	p.Verification.ResponseFormat = "json_only"
 
 	switch platform {
 	case "gemini":
-		p.Capture.MaxChars = 14000
+		p.Capture.MaxChars = maxChars + 2000 // keeps existing logic relative to config
 	case "claude":
-		p.Verification.AcceptThreshold = 0.88
+		p.Verification.AcceptThreshold = threshold + 0.03
 	}
 	return p
 }

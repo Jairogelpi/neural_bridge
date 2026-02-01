@@ -115,57 +115,18 @@ func LoadPriceBook() *PriceBook {
 		go func() {
 			if err := FetchFromOpenRouter(); err != nil {
 				log.Printf("pricing: failed to fetch from OpenRouter: %v (using defaults)", err)
-				loadDefaults()
-			}
-		}()
-
 		// If first load, block briefly
 		globalPriceBook.mu.RLock()
 		empty := len(globalPriceBook.models) == 0
 		globalPriceBook.mu.RUnlock()
 		if empty {
-			_ = FetchFromOpenRouter()
-			globalPriceBook.mu.RLock()
-			if len(globalPriceBook.models) == 0 {
-				globalPriceBook.mu.RUnlock()
-				loadDefaults()
-			} else {
-				globalPriceBook.mu.RUnlock()
+			if err := FetchFromOpenRouter(); err != nil {
+				log.Printf("pricing: failed to fetch from OpenRouter: %v", err)
 			}
 		}
 	}
 
 	return globalPriceBook
-}
-
-func loadDefaults() {
-	globalPriceBook.mu.Lock()
-	defer globalPriceBook.mu.Unlock()
-
-	// Fallback defaults (per-token, not MTok) from official pricing
-	defaults := map[string]ModelPrice{
-		// OpenAI
-		"openai/gpt-4.1-mini":      {InputPerToken: 0.4e-6, OutputPerToken: 1.6e-6},
-		"openai/gpt-4.1":           {InputPerToken: 2e-6, OutputPerToken: 8e-6},
-		"openai/gpt-4o-mini":       {InputPerToken: 0.15e-6, OutputPerToken: 0.6e-6},
-		"openai/gpt-4o":            {InputPerToken: 2.5e-6, OutputPerToken: 10e-6},
-		// Anthropic
-		"anthropic/claude-3.5-sonnet":        {InputPerToken: 3e-6, OutputPerToken: 15e-6},
-		"anthropic/claude-3-5-sonnet-latest": {InputPerToken: 3e-6, OutputPerToken: 15e-6},
-		"anthropic/claude-3.5-haiku":         {InputPerToken: 0.8e-6, OutputPerToken: 4e-6},
-		// Google
-		"google/gemini-1.5-flash": {InputPerToken: 0.075e-6, OutputPerToken: 0.3e-6},
-		"google/gemini-1.5-pro":   {InputPerToken: 1.25e-6, OutputPerToken: 5e-6},
-		"google/gemini-2.0-flash": {InputPerToken: 0.1e-6, OutputPerToken: 0.4e-6},
-	}
-
-	for k, v := range defaults {
-		if _, exists := globalPriceBook.models[k]; !exists {
-			globalPriceBook.models[k] = v
-		}
-	}
-	globalPriceBook.lastFetched = time.Now()
-	log.Println("pricing: loaded default fallback prices")
 }
 
 // EstimateUSD calculates cost for given tokens

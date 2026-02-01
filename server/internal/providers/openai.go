@@ -19,13 +19,7 @@ type OpenAIProvider struct {
 func NewOpenAIProvider() *OpenAIProvider {
 	key := os.Getenv("OPENAI_API_KEY")
 	model := os.Getenv("OPENAI_MODEL")
-	if model == "" {
-		model = "gpt-4.1-mini"
-	}
 	base := os.Getenv("OPENAI_BASE_URL")
-	if base == "" {
-		base = "https://api.openai.com/v1"
-	}
 	return &OpenAIProvider{
 		APIKey:  key,
 		Model:   model,

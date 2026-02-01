@@ -8,7 +8,7 @@ type PlanLimits struct {
 }
 
 // LimitsForPlan returns the limits for a given plan tier
-func LimitsForPlan(plan string) PlanLimits {
+func LimitsForPlan(plan string, freeTokens int, freeUSD float64, freeCompiles int) PlanLimits {
 	switch plan {
 	case "pro":
 		return PlanLimits{
@@ -30,9 +30,9 @@ func LimitsForPlan(plan string) PlanLimits {
 		}
 	default: // free
 		return PlanLimits{
-			MaxTokenBudget: 2000,
-			MaxUSDPerDay:   0.02, // ~$0.02/day free tier
-			MaxCompiles:    5,
+			MaxTokenBudget: freeTokens,
+			MaxUSDPerDay:   freeUSD,
+			MaxCompiles:    freeCompiles,
 		}
 	}
 }

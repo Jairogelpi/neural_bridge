@@ -16,6 +16,7 @@ import (
 
 func main() {
 	cfg := config.Load()
+	cfg.Validate()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -54,12 +55,9 @@ func main() {
 		log.Println("Google provider initialized")
 	}
 
-	// If no keys in dev, fallback to stubs
-	if openai == nil && anthropic == nil && google == nil && cfg.Env == "dev" {
-		log.Println("No provider keys found, using stubs for dev")
-		openai = providers.Stub{Provider: "openai", Model: "stub"}
-		anthropic = providers.Stub{Provider: "anthropic", Model: "stub"}
-		google = providers.Stub{Provider: "google", Model: "stub"}
+	// If no keys, fail (no mock data allowed)
+	if openai == nil && anthropic == nil && google == nil {
+		log.Fatalf("no provider API keys found; at least one real provider is required")
 	}
 
 	pr := providers.Router{
