@@ -16,9 +16,12 @@
   "scripts": {
     "dev": "vite build --watch",
     "build": "npm run build:all",
-    "build:all": "npm run build:dash && npm run build:sync-ext && npm run build:ext && npm run build:sdk",
+    "build:all": "npm run build:ext && npm run build:dash && npm run build:sync-ext && npm run build:sdk && npm run build:icons && npm run build:manifest && npm run build:bundle",
     "build:dash": "cd dashboard && npm run build",
     "build:sync-ext": "tsx scripts/sync-next-ext.ts",
+    "build:bundle": "tsx scripts/bundle-extension.ts",
+    "build:manifest": "tsx scripts/generate-manifest.ts",
+    "build:icons": "tsx scripts/process-icons.ts",
     "build:ext": "vite build",
     "build:sdk": "vite build -c vite.sdk.config.ts && tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -54,7 +57,10 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.93.3",
+    "@types/archiver": "^7.0.0",
     "@types/fs-extra": "^11.0.4",
+    "@types/sharp": "^0.31.1",
+    "archiver": "^7.0.1",
     "axios": "^1.13.4",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
@@ -62,7 +68,8 @@
     "express": "^4.18.2",
     "fs-extra": "^11.3.3",
     "jsonwebtoken": "^9.0.3",
-    "pg": "^8.18.0"
+    "pg": "^8.18.0",
+    "sharp": "^0.34.5"
   },
   "optionalDependencies": {
     "@langchain/core": "^0.1.0"
