@@ -3,7 +3,9 @@ import { type Crystal, CrystalStatus, ConstraintRule } from '../types/crystal_fo
 import { DecisionReceipts, type DecisionReceipt } from './decision_receipts';
 import { UsidEngine } from './usid_engine';
 
-const OPENROUTER_API_KEY = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_OPENROUTER_API_KEY || (globalThis as unknown as { process?: { env: Record<string, string> } }).process?.env?.VITE_OPENROUTER_API_KEY || '';
+const OPENROUTER_API_KEY = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_OPENROUTER_API_KEY ||
+    (globalThis as unknown as { process?: { env: Record<string, string> } }).process?.env?.VITE_OPENROUTER_API_KEY ||
+    (globalThis as unknown as { process?: { env: Record<string, string> } }).process?.env?.OPENROUTER_API_KEY || '';
 const OPENROUTER_BASE = 'https://openrouter.ai/api/v1';
 
 // Dynamic model selection from environment
@@ -87,7 +89,8 @@ async function callLLM(
 
     // Lazy load API Key to allow runtime injection (e.g. via dotenv)
     const apiKey = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_OPENROUTER_API_KEY ||
-        (globalThis as unknown as { process?: { env: Record<string, string> } }).process?.env?.VITE_OPENROUTER_API_KEY;
+        (globalThis as unknown as { process?: { env: Record<string, string> } }).process?.env?.VITE_OPENROUTER_API_KEY ||
+        (globalThis as unknown as { process?: { env: Record<string, string> } }).process?.env?.OPENROUTER_API_KEY;
 
     if (!apiKey) {
         throw new Error('MISSING_API_KEY: VITE_OPENROUTER_API_KEY is not defined.');
