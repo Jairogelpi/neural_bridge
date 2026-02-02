@@ -1,4 +1,3 @@
-
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 
@@ -33,5 +32,10 @@ export default defineConfig({
                 }
             }
         }
+    },
+    define: {
+        "process.env.SUPABASE_URL": JSON.stringify(process.env.SUPABASE_URL),
+        "process.env.SUPABASE_ANON_KEY": JSON.stringify(process.env.SUPABASE_ANON_KEY),
+        "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "production"),
     }
 });

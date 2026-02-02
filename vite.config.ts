@@ -34,21 +34,20 @@ export default defineConfig({
             input: {
                 // MV3 service worker
                 service_worker: resolve(__dirname, "src/background.ts"),
-                // content script entry
-                content: resolve(__dirname, "src/content/index.ts"),
-                // silent monitor script
-                silent_monitor: resolve(__dirname, "src/content/silent_monitor.ts"),
                 // popup UI
                 popup: resolve(__dirname, "src/ui/popup.html"),
             },
             output: {
                 entryFileNames: (chunk) => {
                     if (chunk.name === "service_worker") return "background/service_worker.js";
-                    if (chunk.name === "content") return "content/index.js";
-                    if (chunk.name === "silent_monitor") return "content/silent_monitor.js";
                     return "assets/[name].js";
                 }
             }
         }
-    }
+    },
+    define: {
+        "process.env.SUPABASE_URL": JSON.stringify(process.env.SUPABASE_URL),
+        "process.env.SUPABASE_ANON_KEY": JSON.stringify(process.env.SUPABASE_ANON_KEY),
+        "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "production"),
+    },
 });
