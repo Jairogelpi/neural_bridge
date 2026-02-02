@@ -13,9 +13,11 @@ import {
     LogOut,
     ChevronRight,
     RefreshCcw,
-    Binary
+    Binary,
+    Gavel
 } from 'lucide-react';
 import api from '@/lib/api';
+import Link from 'next/link';
 
 interface Stats {
     total_vaccines: number;
@@ -78,6 +80,16 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="flex items-center space-x-6">
+                    <nav className="flex items-center space-x-1 mr-4">
+                        <Link href="/dashboard" className="px-3 py-1.5 rounded-lg text-xs font-bold text-cyan-400 bg-cyan-500/5 border border-cyan-500/10 flex items-center">
+                            <LayoutDashboard className="w-3 h-3 mr-2" /> Dashboard
+                        </Link>
+                        <div className="w-1 h-1 bg-white/10 rounded-full mx-1" />
+                        <Link href="/jury" className="px-3 py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-all flex items-center">
+                            <Gavel className="w-3 h-3 mr-2" /> Jury Cases
+                        </Link>
+                    </nav>
+
                     <div className="flex items-center space-x-3 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
                         <div className="flex flex-col items-end">
                             <span className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">System Purity</span>
