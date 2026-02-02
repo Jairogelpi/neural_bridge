@@ -62,7 +62,23 @@ func (s *Server) Routes() http.Handler {
 
 	// Final CORS Wrapper
 	cors := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		origin := r.Header.Get("Origin")
+		allowedOrigins := map[string]bool{
+			"https://chat.openai.com":   true,
+			"https://chatgpt.com":       true,
+			"https://gemini.google.com": true,
+			"https://claude.ai":         true,
+			"https://openrouter.ai":     true,
+			"https://neural-bridge.ai":  true, // Example production dashboard
+		}
+
+		if allowedOrigins[origin] {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+		} else if s.Cfg.Env == "dev" {
+			// Allow local dev if in dev mode
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+		}
+
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Idempotency-Key")
 

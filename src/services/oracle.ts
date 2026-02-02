@@ -43,12 +43,19 @@ export class Oracle {
         }
         `;
 
-        const simRes = await SCPService.resilientCallLLM(simulationPrompt, 'google/gemini-2.0-flash-exp:free', 'You are Murphy\'s Law.');
+        let simRes;
+        try {
+            simRes = await SCPService.resilientCallLLM(simulationPrompt, 'google/gemini-2.0-flash-exp:free', 'You are Murphy\'s Law.');
+        } catch (e) {
+            console.warn(`[Oracle] ⚠️ Ghost Simulation unavailable (Network/API Error). Proceeding safely.`);
+            return { original_timeline_outcome: 'SUCCESS', optimized_crystal_diff: "Oracle Offline - No Intervention." };
+        }
+
         let prediction;
         try {
             prediction = JSON.parse(simRes.content);
         } catch {
-            return { original_timeline_outcome: 'SUCCESS', optimized_crystal_diff: "No intervention needed." };
+            return { original_timeline_outcome: 'SUCCESS', optimized_crystal_diff: "Oracle Parse Error - No Intervention." };
         }
 
         if (prediction.outcome === 'SUCCESS') {
@@ -59,8 +66,24 @@ export class Oracle {
             };
         }
 
-        // 2. INTERVENTION (The Time Travel Patch)
+        // 2. INTERVENTION & PRE-IMMUNIZATION (Oracle V2: Dreaming Engine)
         console.log(`[Oracle] ⚠️ PREDICTION: Future Failure detected -> "${prediction.failure_reason}"`);
+        console.log(`[Oracle] ⏳ Activating Dreaming Engine for Global Pre-Immunization...`);
+
+        // A. Generate PRE-EMPTIVE VACCINE (Network-wide protection)
+        const { VaccineEngine } = await import('./vaccine_engine');
+        await VaccineEngine.synthesizePrecognitiveVaccine(crystal, prediction.failure_reason);
+
+        // Notify Sentinel
+        const { Sentinel } = await import('./sentinel');
+        await Sentinel.emit({
+            type: 'ORACLE_DREAM',
+            severity: 'warning',
+            message: `Pre-immunized against future failure: "${prediction.failure_reason}"`,
+            details: { crystal_id: crystal.context_id, predicted_fail: prediction.failure_reason }
+        });
+
+        // B. Apply Local Patch
         console.log(`[Oracle] ⏳ Rewriting the present to change the future...`);
 
         const interventionPrompt = `

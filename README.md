@@ -1,55 +1,55 @@
-# Neural Bridge: The Semantic Context Protocol (SCP)
-> **Reference Implementation & SDK**
+# Neural Bridge Omega 🌌
+> **The First Sovereign, Mathematically Verified Intelligence Layer**
 
-Neural Bridge is the official reference implementation of the **Semantic Context Protocol (SCP)**, a standard for creating verifiable, deterministic, and portable knowledge containers ("Crystals") for Large Language Models.
+[![Status](https://img.shields.io/badge/Status-PRODUCTION_READY-green)]()
+[![Verification](https://img.shields.io/badge/Verification-HOEFFDING_BOUNDED-blue)]()
+[![Forensics](https://img.shields.io/badge/Forensics-SHA256_MERKLE-orange)]()
 
-It transforms AI from a "Black Box" into a verifiable system using cryptographic proofs and semantic invariants.
+Neural Bridge Omega is a **Sovereign Intelligence Firewall** that sits between your enterprise and generic LLMs (GPT-4, Claude, Gemini). It transforms probabilistic output into **Deterministic, Proof-Carrying Knowledge**.
 
-## 📚 The Protocol
-- **[SCP Specification](./PROTOCOL_SPEC.md)**: The formal rules for Crystal structure, SRI metrics, and verification handshakes.
-- **[Crystal Format](./src/types/crystal_format.ts)**: The JSON schema for universal knowledge transfer.
+## 🚀 The 4 Pillars of Omega
+1.  **PCK (Proof-Carrying Knowledge):** Zero-cost verification using cryptographic proofs.
+2.  **ZKV (Zero-Knowledge Verification):** Verify facts without revealing source data.
+3.  **SMT (Semantic Merkle Trees):** Hash-based audit trails for "meaning", not just text.
+4.  **Sovereign Synthesis:** If external APIs fail, the system generates its own truth based on Axiomatic Physical Laws.
 
-## 🛠️ The SDK
-Developers can use Neural Bridge to add verification to their own AI apps:
+## 📐 Scientific Rigor
+We do not trust; we verify.
+*   **Confidence:** Calculated via [Hoeffding's Inequality](https://en.wikipedia.org/wiki/Hoeffding%27s_inequality).
+*   **Ontology:** Anchored to $c = 299,792,458 m/s$ and Logic Axioms.
+*   **Integrity:** SHA-256 Merkle Roots for every operation.
+
+## 🛠️ Quick Start
+
+### 1. Verification (The "Ultimate Proof")
+Prove the system's sovereignty by running the stress test:
+```bash
+npm install
+npm run ultimate  # Runs the "Ultimate Proof" scenario
+```
+
+### 2. Deployment (Docker)
+Deploy the Sovereign Node:
+```bash
+docker-compose up -d
+```
+Access the Sentinel Dashboard at `http://localhost:3000/sentinel`.
+
+### 3. SDK Integration
 ```typescript
 import { NeuralBridge } from '@neural-bridge/sdk';
+const nb = new NeuralBridge({ mode: 'pck' }); // Zero-Cost Mode
 
-const nb = new NeuralBridge({ apiKey: '...' });
-const result = await nb.verify({
-  crystal: myMedicalProtocol,
-  question: "Can I take X with Y?",
-  answer: llmResponse
-});
-
-if (result.sri < 0.9) {
-  console.warn("Unsafe response blocked!");
+const result = nb.verifyWithPCK(pck, llmResponse);
+if (result.confidence < 0.99) {
+    console.error("Mathematically Unsafe Response Rejected");
 }
 ```
 
-## 📦 Components
-1. **Core SDK (`src/sdk.ts`)**: The portable verification engine.
-2. **Browser Extension**: Client-side implementation for ChatGPT/Claude/Gemini users.
-3. **API Server (`server/`)**: Enterprise gateway for high-volume verification.
+## 📜 Documentation
+*   [**Whitepaper & Scientific Model**](./whitepaper.md)
+*   [**Certificate of Integrity**](./certificate_of_integrity.md)
+*   [**Verification Walkthrough**](./walkthrough.md)
 
-## Project Structure
-- `core/`: SCP standard implementation.
-- `src/sdk.ts`: Public SDK entry point.
-- `src/services/`: Verification logic (Runtime, LLM, Attestation).
-- `src/types/`: Crystal Format specifications.
-- `server/`: Go backend for API/SaaS deployment.
-
-## Quick Start
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
-2. Run the Ultimate Proof (verify the tech works):
-   ```bash
-   npm run ultimate
-   ```
-
-## CI/CD
-Run the full verification suite:
-```bash
-npm run ci
-```
+---
+*Built for the Age of Sovereign Intelligence.*

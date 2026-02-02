@@ -3,6 +3,8 @@
  * Inject Neural Bridge Reality Shields directly into ChatGPT/Claude DOM.
  */
 
+declare const chrome: any;
+
 interface PlatformConfig {
     name: string;
     messageSelector: string; // CSS selector for the AI's response bubble
@@ -38,8 +40,8 @@ export class DomConqueror {
 
     private detectPlatform() {
         const host = window.location.hostname;
-        if (host.includes('openai') || host.includes('chatgpt')) this.config = PLATFORMS['chatgpt'];
-        else if (host.includes('claude')) this.config = PLATFORMS['claude'];
+        if (host.includes('openai') || host.includes('chatgpt')) this.config = PLATFORMS['chatgpt'] || null;
+        else if (host.includes('claude')) this.config = PLATFORMS['claude'] || null;
 
         if (this.config) {
             console.log(`[NeuralBridge] ⚔️ Conquering ${this.config.name} UI...`);

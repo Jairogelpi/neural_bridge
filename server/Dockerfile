@@ -12,6 +12,8 @@ RUN apk add --no-cache ca-certificates
 WORKDIR /app
 COPY --from=build /bin/api /app/api
 COPY --from=build /app/internal/db/migrate.sql /app/internal/db/migrate.sql
+COPY --from=build /app/scripts/migrate.sh /app/migrate.sh
+RUN chmod +x /app/migrate.sh
 ENV PORT=8080
 EXPOSE 8080
 ENTRYPOINT ["/app/api"]

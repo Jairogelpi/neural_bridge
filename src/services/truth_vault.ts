@@ -16,7 +16,7 @@ export interface Contradiction {
  * Detects and resolves contradictions across all stored knowledge crystals.
  */
 export class TruthVault {
-    
+
     /**
      * Scan for contradictions between a new crystal and existing ones.
      */
@@ -30,7 +30,7 @@ export class TruthVault {
         if (error || !existingCrystals) return [];
 
         const contradictions: Contradiction[] = [];
-        
+
         // 2. Cross-verify claims using LLM
         for (const item of existingCrystals) {
             const existing = item.value;
@@ -81,16 +81,28 @@ Do these conflict?`;
 
     /**
      * Heal the vault by marking contradictory crystals or generating a resolution crystal.
+     * 💉 INTEGRATION: Synthesize Semantic Vaccines from contradictions.
      */
     static async heal(contradictions: Contradiction[]): Promise<void> {
         for (const c of contradictions) {
             console.log(`[SELF-HEALING] Contradiction detected: ${c.explanation}`);
-            // Log to a specialized table or notify the system
+
+            // 1. Log to contradiction store
             await supabase.from('kv_store').upsert({
                 key: `contradiction_${Date.now()}`,
                 value: c,
                 updated_at: new Date().toISOString()
             });
+
+            // 2. 💉 SYNTHESIZE VACCINE
+            // Extract the "Logical DNA" to prevent this error globally.
+            const { VaccineEngine } = await import('./vaccine_engine');
+
+            // Reconstruct a partial crystal for context
+            const { data: crystalData } = await supabase.from('crystals').select('*').eq('context_id', c.crystal_id_a).single();
+            if (crystalData) {
+                await VaccineEngine.synthesizeFromContradiction(crystalData, c);
+            }
         }
     }
 }

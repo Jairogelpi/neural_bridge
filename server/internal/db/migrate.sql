@@ -106,6 +106,71 @@ to service_role
 using (true)
 with check (true);
 
+-- 💉 Semantic Immunity System (Vaccines)
+create table if not exists vaccines (
+  vaccine_id uuid primary key default gen_random_uuid(),
+  error_signature_hash text not null unique, -- SMT hash of the contradiction
+  fallacy_type text not null, -- e.g., 'causal_flip', 'categorical_clash'
+  meta_invariant jsonb not null, -- The "Vaccine" rule
+  context_domain text not null,
+  severity double precision not null default 1.0,
+  times_blocked int not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists vaccines_signature_idx on vaccines(error_signature_hash);
+
+-- ⚖️ Jury of Truth (Human-Machine Consensus)
+create table if not exists experts (
+  expert_id uuid primary key default gen_random_uuid(),
+  name text not null,
+  domain text not null,
+  public_key text not null unique, -- PGP or WebAuthn Public Key
+  reputation double precision not null default 1.0,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists jury_cases (
+  case_id uuid primary key default gen_random_uuid(),
+  context_id uuid not null references crystals(context_id),
+  issue_description text not null,
+  consensus_score_ai double precision not null,
+  status text not null default 'pending', -- pending | resolved | failed
+  final_decision text null, -- ACCEPT | FAIL
+  created_at timestamptz not null default now()
+);
+
+create table if not exists jury_votes (
+  vote_id uuid primary key default gen_random_uuid(),
+  case_id uuid not null references jury_cases(case_id),
+  expert_id uuid not null references experts(expert_id),
+  decision text not null, -- ACCEPT | FAIL
+  signature text not null, -- Cryptographic signature of the context_id + decision
+  signed_at timestamptz not null default now()
+);
+
+create index if not exists jury_cases_context_idx on jury_cases(context_id);
+create index if not exists jury_votes_case_idx on jury_votes(case_id);
+
+-- SENTINEL LOGS (Real-time Telemetry)
+create table if not exists sentinel_logs (
+  log_id uuid primary key default gen_random_uuid(),
+  type text not null,
+  severity text not null,
+  message text not null,
+  details jsonb,
+  timestamp timestamptz not null default now()
+);
+
+create index if not exists sentinel_logs_type_idx on sentinel_logs(type);
+create index if not exists sentinel_logs_timestamp_idx on sentinel_logs(timestamp desc);
+
+-- experts
+insert into experts (expert_id, name, domain, public_key, reputation)
+values 
+  ('e1e1e1e1-e1e1-e1e1-e1e1-e1e1e1e1e1e1', 'Dr. Elena Sànchez', 'medicine', 'PUB_KEY_ELENA_SMART_P256', 0.99),
+  ('e2e2e2e2-e2e2-e2e2-e2e2-e2e2e2e2e2e2', 'Javier Ruiz (Abogado)', 'law', 'PUB_KEY_JAVIER_LEGAL_P256', 0.98);
+
 -- Indices
 create index if not exists crystals_author_idx on crystals(author_id);
 create index if not exists reputation_ledger_author_idx on reputation_ledger(author_id, created_at desc);

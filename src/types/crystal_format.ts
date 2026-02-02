@@ -199,15 +199,15 @@ export interface CrystalVerification {
     /** Optional: External verifier requirements */
     external_verifiers?: string[];
 
-    /** Optional: Cryptographic signature */
-    signature?: {
-        algorithm: 'ECDSA-P256';
+    /** Optional: Expert cryptographic signatures (Jury of Truth) */
+    expert_signatures?: Array<{
+        algorithm: 'ECDSA-P256' | 'PGP' | 'WebAuthn';
         public_key: string;
         signature: string;
         timestamp: string;
-        signer_id: string;
-        author_reputation?: number; // Reputation at signing time
-    };
+        expert_id: string;
+        domain: string;
+    }>;
 }
 
 export interface CrystalDependency {

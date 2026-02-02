@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { runGrandRealityDemo } from 'c:/Users/jairo/Desktop/neural_bridge/src/verify_crystal_runtime_logic';
+import { runGrandRealityDemo } from './verify_crystal_runtime_logic';
 
 describe('Neural Bridge: TURBO Reality Engine (100% Real)', () => {
     it('should execute parallel pipeline with cryptographic proof', async () => {

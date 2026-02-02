@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { RealityEngine } from './src/services/reality_engine';
+import { RealityEngine } from './services/reality_engine';
 
 async function runUniversalARD() {
     console.log('╔════════════════════════════════════════════════════════════════════════════╗');

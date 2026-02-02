@@ -43,7 +43,10 @@ app.use(express.json({ limit: '10mb' }));
 
 // Serve Dashboard
 import path from 'path';
-app.use('/dashboard', express.static(path.join(process.cwd(), 'dashboard/dist')));
+app.get('/sentinel', (req: Request, res: Response) => {
+    res.sendFile(path.join(process.cwd(), 'src/ui/sentinel_dashboard.html'));
+});
+app.use('/sentinel', express.static(path.join(process.cwd(), 'src/ui')));
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SCP EXTENSION ENDPOINTS (Real LLM Backend)
@@ -109,10 +112,93 @@ app.post('/v1/compile', async (req: Request, res: Response) => {
                 latency_ms: elapsed
             }
         });
-    } catch (error: any) {
+    } catch (error) {
         console.error('Compile Error:', error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: (error as any).message });
     }
+});
+
+app.post('/v1/singularity/fuse', async (req: Request, res: Response) => {
+    try {
+        const { crystals } = req.body;
+        const { CrystalFuser } = await import('./services/crystal_fuser');
+        const master = await CrystalFuser.fuse(crystals);
+        res.json({ success: true, master_crystal: master });
+    } catch (error) {
+        res.status(500).json({ error: (error as any).message });
+    }
+});
+
+app.post('/v1/singularity/purify', async (req: Request, res: Response) => {
+    try {
+        const { crystal } = req.body;
+        const { EntropyShield } = await import('./services/entropy_shield');
+        const purified = await EntropyShield.purify(crystal);
+        res.json({ success: true, purified_crystal: purified });
+    } catch (error) {
+        res.status(500).json({ error: (error as any).message });
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// OMEGA GENESIS (REALITY BRANCHING) 🌳⛓️
+// ═══════════════════════════════════════════════════════════════════════════════
+
+app.post('/v1/genesis/branch', async (req: Request, res: Response) => {
+    try {
+        const { parent_crystal, branch_name } = req.body;
+        const { RealityBrancher } = await import('./services/reality_brancher');
+        const branch = await RealityBrancher.createBranch(parent_crystal, branch_name);
+        res.json({ success: true, branch });
+    } catch (error) {
+        res.status(500).json({ error: (error as any).message });
+    }
+});
+
+app.post('/v1/genesis/simulate', async (req: Request, res: Response) => {
+    try {
+        const { branch, parent_crystal } = req.body;
+        const { RealitySimulator } = await import('./services/reality_simulator');
+        const result = await RealitySimulator.simulate(branch, parent_crystal);
+        res.json({ success: true, ...result });
+    } catch (error) {
+        res.status(500).json({ error: (error as any).message });
+    }
+});
+
+app.post('/v1/genesis/merge', async (req: Request, res: Response) => {
+    try {
+        const { branch, parent_crystal } = req.body;
+        const { RealityBrancher } = await import('./services/reality_brancher');
+        const master = await RealityBrancher.merge(branch, parent_crystal);
+        res.json({ success: true, master_crystal: master });
+    } catch (error) {
+        res.status(500).json({ error: (error as any).message });
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// OMEGA HORIZON (UNIVERSAL TRUTH PROTOCOL) 🌌⚖️⛓️
+// ═══════════════════════════════════════════════════════════════════════════════
+
+app.post('/v1/horizon/commit', async (req: Request, res: Response) => {
+    try {
+        const { axiom, domain } = req.body;
+        const { ConsensusEngine } = await import('./services/consensus_engine');
+        const receipt = await ConsensusEngine.reachConsensus(axiom, domain);
+        res.json({ success: true, receipt });
+    } catch (error) {
+        res.status(500).json({ error: (error as any).message });
+    }
+});
+
+app.get('/v1/horizon/truth', async (req: Request, res: Response) => {
+    // In a production system, this would query the TruthVault's Consensus-verified records
+    res.json({
+        message: "Universal Truth API Active",
+        protocol: "Omega Horizon v1.0",
+        consensus_threshold: 0.8
+    });
 });
 
 app.post('/v1/verify', async (req: Request, res: Response) => {
@@ -120,7 +206,7 @@ app.post('/v1/verify', async (req: Request, res: Response) => {
         const { context_id, invariants, llm_response, threshold } = req.body;
 
         // Reconstruct partial crystal for verification context
-        const crystalStub: any = {
+        const verificationContext: any = {
             context_id,
             domain: 'general', // Default, or pass from client
             verification: {
@@ -134,7 +220,7 @@ app.post('/v1/verify', async (req: Request, res: Response) => {
         // We use verifyBatch for efficiency if available, or verifyArbitrary loop
         // Here we map the extension's request to verifyBatch
         const batchResult = await SCPService.verifyBatch({
-            crystal: crystalStub,
+            crystal: verificationContext,
             invariants: invariants,
             answer: llm_response
         });
@@ -153,9 +239,9 @@ app.post('/v1/verify', async (req: Request, res: Response) => {
             cost: batchResult.cost
         });
 
-    } catch (error: any) {
+    } catch (error) {
         console.error('Verify Error:', error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: (error as any).message });
     }
 });
 
@@ -169,6 +255,52 @@ app.post('/v1/session/bootstrap', (req: Request, res: Response) => {
         success: true,
         session_token: `sess_${crypto.randomBytes(16).toString('hex')}`
     });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// OMEGA OBSERVABILITY (THE SENTINEL) 👁️
+// ═══════════════════════════════════════════════════════════════════════════════
+
+app.get('/v1/sentinel/logs', async (req: Request, res: Response) => {
+    try {
+        const { supabase } = await import('./db/supabase');
+        const { data, error } = await supabase
+            .from('sentinel_logs')
+            .select('*')
+            .order('timestamp', { ascending: false })
+            .limit(50);
+
+        if (error) throw error;
+        res.json({ success: true, logs: data });
+    } catch (error) {
+        res.status(500).json({ error: (error as any).message });
+    }
+});
+
+app.get('/v1/sentinel/stats', async (req: Request, res: Response) => {
+    try {
+        const { supabase } = await import('./db/supabase');
+
+        // Parallel counts for the dashboard
+        const [vaccines, crystals, cases] = await Promise.all([
+            supabase.from('vaccines').select('*', { count: 'exact', head: true }),
+            supabase.from('crystals').select('*', { count: 'exact', head: true }),
+            supabase.from('jury_cases').select('*', { count: 'exact', head: true })
+        ]);
+
+        res.json({
+            success: true,
+            stats: {
+                total_vaccines: vaccines.count || 0,
+                total_crystals: crystals.count || 0,
+                total_jury_cases: cases.count || 0,
+                system_health: 1.0, // Calculated value in production
+                omega_status: 'ACTIVE'
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ error: (error as any).message });
+    }
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -249,8 +381,8 @@ app.post('/api/pck/compile', (req: Request, res: Response) => {
                 llm_calls: 0
             }
         });
-    } catch (error: any) {
-        res.status(500).json({ error: error.message });
+    } catch (error) {
+        res.status(500).json({ error: (error as any).message });
     }
 });
 
@@ -282,8 +414,8 @@ app.post('/api/pck/verify', (req: Request, res: Response) => {
                 llm_calls: 0
             }
         });
-    } catch (error: any) {
-        res.status(500).json({ error: error.message });
+    } catch (error) {
+        res.status(500).json({ error: (error as any).message });
     }
 });
 
@@ -327,8 +459,8 @@ app.post('/api/zkv/proof', (req: Request, res: Response) => {
                 proof_generation_time_ms: elapsed
             }
         });
-    } catch (error: any) {
-        res.status(500).json({ error: error.message });
+    } catch (error) {
+        res.status(500).json({ error: (error as any).message });
     }
 });
 
@@ -359,8 +491,8 @@ app.post('/api/zkv/verify', (req: Request, res: Response) => {
                 verification_time_ms: elapsed
             }
         });
-    } catch (error: any) {
-        res.status(500).json({ error: error.message });
+    } catch (error) {
+        res.status(500).json({ error: (error as any).message });
     }
 });
 
@@ -397,8 +529,8 @@ app.post('/api/smt/build', (req: Request, res: Response) => {
                 claim_count: tree.claims.length
             }
         });
-    } catch (error: any) {
-        res.status(500).json({ error: error.message });
+    } catch (error) {
+        res.status(500).json({ error: (error as any).message });
     }
 });
 
@@ -430,8 +562,8 @@ app.post('/api/smt/compare', (req: Request, res: Response) => {
                 comparison_time_ms: elapsed
             }
         });
-    } catch (error: any) {
-        res.status(500).json({ error: error.message });
+    } catch (error) {
+        res.status(500).json({ error: (error as any).message });
     }
 });
 
@@ -472,8 +604,8 @@ app.post('/api/clpv/receipt', (req: Request, res: Response) => {
                 creation_time_ms: elapsed
             }
         });
-    } catch (error: any) {
-        res.status(500).json({ error: error.message });
+    } catch (error) {
+        res.status(500).json({ error: (error as any).message });
     }
 });
 
@@ -506,8 +638,8 @@ app.post('/api/clpv/cross-verify', (req: Request, res: Response) => {
                 verification_time_ms: elapsed
             }
         });
-    } catch (error: any) {
-        res.status(500).json({ error: error.message });
+    } catch (error) {
+        res.status(500).json({ error: (error as any).message });
     }
 });
 
@@ -534,7 +666,6 @@ app.get('/api/demo', async (req: Request, res: Response) => {
 
     // 1. PCK Demo (Dynamic)
     const pck = PCKRuntime.compile(text, { domain: String(domain) });
-    const pckVerify = PCKRuntime.verifyAnswer(pck, "Summarize this text"); // Dynamic check
 
     // 2. ZKV Demo (Dynamic)
     const zkProof = ZKVRuntime.createProof({

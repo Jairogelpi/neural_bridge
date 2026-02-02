@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { UsidEngine } from './src/services/usid_engine';
+import { UsidEngine } from './services/usid_engine';
 
 async function runUsidDemo() {
     console.log('╔════════════════════════════════════════════════════════════════════════════╗');

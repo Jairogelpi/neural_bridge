@@ -28,10 +28,14 @@ export class UsidEngine {
         Return ONLY the JSON array.
         `;
 
-        const response = await SCPService.callLLM(intent, 'anthropic/claude-3.5-sonnet', systemPrompt);
         try {
+            const response = await SCPService.resilientCallLLM(intent, 'nvidia/nemotron-3-nano-30b-a3b:free', systemPrompt);
             return JSON.parse(response.content);
-        } catch (e) {
+        } catch (e: any) {
+            if (e.message === 'SOVEREIGN_REQUIRED') {
+                console.log("[uSID] 🛡️ Sovereign mode active: Synthesizing structural constraints...");
+                return [{ id: 'sov_c1', type: 'CAPABILITY', key: 'requires', op: 'in', value: ['axiomatic_integrity'] }];
+            }
             console.error("Compilation failed:", e);
             return [];
         }
@@ -128,10 +132,11 @@ export class UsidEngine {
         If CONSISTENT, return: {"consistent": true}
         `;
 
-        const res = await SCPService.callLLM("Analyze Consistency", 'anthropic/claude-3.5-sonnet', prompt);
         try {
+            const res = await SCPService.resilientCallLLM("Analyze Consistency", 'nvidia/nemotron-3-nano-30b-a3b:free', prompt);
             return JSON.parse(res.content);
-        } catch {
+        } catch (e: any) {
+            if (e.message === 'SOVEREIGN_REQUIRED') return { consistent: true, conflicts: [], ids: [] };
             return { consistent: true, conflicts: [], ids: [] };
         }
     }

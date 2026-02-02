@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"neural-bridge-backend/internal/api"
@@ -71,12 +73,35 @@ func main() {
 	addr := ":" + cfg.HTTPPort
 	log.Printf("listening on %s env=%s", addr, cfg.Env)
 	httpSrv := &http.Server{
-		Addr:    addr,
-		Handler: srv.Routes(),
+		Addr:         addr,
+		Handler:      srv.Routes(),
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 30 * time.Second,
 	}
 
-	if err := httpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Printf("server error: %v", err)
-		os.Exit(1)
+	// Channel to listen for signals
+	shutdownChan := make(chan os.Signal, 1)
+	signal.Notify(shutdownChan, os.Interrupt, syscall.SIGTERM)
+
+	// Run server in a goroutine
+	go func() {
+		if err := httpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("server error: %v", err)
+		}
+	}()
+
+	// Wait for shutdown signal
+	<-shutdownChan
+	log.Println("shutting down server...")
+
+	// Graceful shutdown with 15s timeout
+	shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancelShutdown()
+
+	if err := httpSrv.Shutdown(shutdownCtx); err != nil {
+		log.Printf("graceful shutdown failed: %v", err)
 	}
+
+	log.Println("server stopped.")
 }

@@ -24,7 +24,7 @@ func NewOpenAIProvider() *OpenAIProvider {
 		APIKey:  key,
 		Model:   model,
 		BaseURL: base,
-		HTTP:    NewHTTPClient(20*time.Second, 1),
+		HTTP:    NewHTTPClient(30*time.Second, 3),
 		Prices:  LoadPriceBook(),
 	}
 }
@@ -36,7 +36,7 @@ func (p *OpenAIProvider) GenerateJSON(req JSONCall) (JSONResult, error) {
 		return JSONResult{}, errors.New("OPENAI_API_KEY missing")
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
 	defer cancel()
 
 	body := map[string]any{

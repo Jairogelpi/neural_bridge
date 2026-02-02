@@ -8,6 +8,7 @@ export interface ConsensusResult {
         vote: 'AGREE' | 'DISAGREE';
         reason: string;
     }[];
+    jury_case_id?: string | undefined; // Link to human jury if escalated
 }
 
 /**
@@ -38,10 +39,23 @@ export class ConsensusEngine {
         if (score > 0.66) decision = 'CONSENSUS_REACHED';
         if (score < 0.33) decision = 'DISSENT';
 
+        let juryCaseId: string | undefined;
+
+        // AUTOMATIC ESCALATION: If uncertain (e.g. 50/50 split), call humans
+        if (decision === 'UNCERTAIN') {
+            const { JuryService } = await import('./jury_service');
+            const { sovereignSynthesize } = await import('./llm');
+
+            // Synthesize a REAL sovereign crystal for the Jury to review
+            const { crystal } = await sovereignSynthesize(context, 'consensus_fallback');
+            juryCaseId = await JuryService.escalate(crystal, score, "Uncertain AI Consensus (50/50 split detected).") || undefined;
+        }
+
         return {
             final_decision: decision,
             consensus_score: score,
-            participants: votes
+            participants: votes,
+            jury_case_id: juryCaseId
         };
     }
 

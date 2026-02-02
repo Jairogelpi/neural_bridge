@@ -9,8 +9,6 @@
         "scripting"
     ],
     "host_permissions": [
-        "http://localhost:3000/*",
-        "http://127.0.0.1:3000/*",
         "https://chat.openai.com/*",
         "https://chatgpt.com/*",
         "https://gemini.google.com/*",
@@ -52,7 +50,10 @@
                 "*"
             ],
             "matches": [
-                "<all_urls>"
+                "https://chat.openai.com/*",
+                "https://chatgpt.com/*",
+                "https://gemini.google.com/*",
+                "https://claude.ai/*"
             ]
         }
     ],

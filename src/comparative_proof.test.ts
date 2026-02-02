@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { runComparativeProof } from './comparative_proof';
+import { runComparativeStudy } from './comparative_proof';
 
 describe('Neural Bridge vs Traditional: COMPARATIVE A/B PROOF', () => {
     it('should prove Neural Bridge is SUPERIOR to Traditional methods', async () => {
-        const result = await runComparativeProof();
+        const result = await runComparativeStudy();
 
         // Neural Bridge must win OR tie (never lose to traditional)
         expect(result.neural_bridge_wins).toBeGreaterThanOrEqual(result.traditional_wins);

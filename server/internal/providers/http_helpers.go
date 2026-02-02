@@ -36,6 +36,18 @@ func (c *HTTPClient) doJSON(ctx context.Context, method, url string, headers map
 
 	var lastErr error
 	for attempt := 0; attempt <= c.Retries; attempt++ {
+		if attempt > 0 {
+			// Exponential backoff: 200ms * 2^(attempt-1) + jitter
+			backoff := time.Duration(200*(1<<(attempt-1))) * time.Millisecond
+			jitter := time.Duration(100+time.Duration(time.Now().UnixNano()%200)) * time.Millisecond
+			
+			select {
+			case <-ctx.Done():
+				return nil, 0, ctx.Err()
+			case <-time.After(backoff + jitter):
+			}
+		}
+
 		req, err := http.NewRequestWithContext(ctx, method, url, bytes.NewReader(payload))
 		if err != nil {
 			return nil, 0, err
@@ -57,10 +69,9 @@ func (c *HTTPClient) doJSON(ctx context.Context, method, url string, headers map
 			return data, resp.StatusCode, nil
 		}
 
-		// Retry on 429/5xx
+		// Retry on 429 (Rate Limit) or 5xx (Server Error)
 		if resp.StatusCode == 429 || resp.StatusCode >= 500 {
 			lastErr = errors.New(string(data))
-			time.Sleep(time.Duration(200*(attempt+1)) * time.Millisecond)
 			continue
 		}
 
