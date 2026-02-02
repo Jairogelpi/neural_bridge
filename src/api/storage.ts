@@ -5,7 +5,7 @@ const KEY = {
     policy: "nb_policy_v1",
 } as const;
 
-// In-memory storage for non-extension environments (Demo/CLI)
+// In-memory storage for headless or serverless edge environments
 const _memStorage: Record<string, unknown> = {};
 
 function uuid(): string {

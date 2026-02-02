@@ -23,10 +23,7 @@ export class DomainEvolver {
      * Detects or evolves a domain from unstructured text.
      */
     static async evolveDomain(text: string): Promise<EvolvedOntology> {
-        // 1. Check if text belongs to an existing "standard" domain (simplified for demo)
-        const standardDomains = ['finance', 'medicine', 'law', 'tech', 'physics', 'logic'];
-
-        // 2. If it's something 'random', start evolution
+        // 1. Analyze context for evolutionary potential (Dynamic Ontology Discovery)
         console.log(`[DomainEvolver] 🧠 Analyzing context for evolutionary potential...`);
 
         const evolutionPrompt = `

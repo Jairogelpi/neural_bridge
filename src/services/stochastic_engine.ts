@@ -10,23 +10,29 @@ import { Sentinel } from './sentinel';
 export class StochasticEngine {
 
     /**
-     * Processes input through a stochastic filter to extract latent meaning
-     * from high-entropy (random) data.
+     * PURIFICATION: Measures true Shannon Bit-Entropy using the HDC manifestation.
+     * No more word-level estimations. Pure bit-perfect complexity analysis.
      */
     static async processChaos(input: string): Promise<{ semanticPotential: number; entropy: number }> {
-        console.log(`[StochasticEngine] 🌀 Processing high-entropy input: "${input.substring(0, 50)}..."`);
+        const { SemanticHasher } = await import('./semantic_hashing');
+        const { Hypervector } = await import('../math/hypervector');
 
-        // In a real implementation, this would use a probabilistic latent semantic analysis
-        // For Omega, we measure complexity and variability
-        const words = input.split(/\s+/);
-        const uniqueWords = new Set(words).size;
-        const entropy = uniqueWords / words.length;
-        const potential = 1 - (1 / (1 + uniqueWords));
+        console.log(`[StochasticPurifier] 🌀 Purifying information density...`);
+
+        // 1. Generate Holographic Manifestation
+        const hash = SemanticHasher.computeHolographicHash(input);
+        const hv = Hypervector.fromString(hash);
+
+        // 2. Compute True Shannon Bit-Entropy (H)
+        const entropy = hv.getEntropy();
+
+        // 3. Potential is the Fisher Information (Knowledge Certainty)
+        const potential = hv.getFisherInformation();
 
         await Sentinel.emit({
             type: 'ENTROPY_PURIFICATION',
             severity: 'info',
-            message: `Stochastic focus completed. Entropy: ${entropy.toFixed(2)}, Potential: ${potential.toFixed(2)}`,
+            message: `Mathematical purification complete. Bit-Entropy: ${entropy.toFixed(4)}, Potential: ${potential.toFixed(4)}`,
             details: { input_length: input.length, entropy, potential }
         });
 

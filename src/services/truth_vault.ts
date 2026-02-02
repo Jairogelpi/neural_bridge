@@ -4,6 +4,7 @@ import { Attestation } from './attestation';
 import { CrystallizationService } from './crystallization';
 import { SemanticHasher } from './semantic_hashing';
 import { RLMEngine } from './rlm_engine';
+import { Hypervector } from '../math/hypervector';
 import type { Crystal } from '../types/crystal_format';
 
 export interface Contradiction {
@@ -27,17 +28,15 @@ export class TruthVault {
     static async scanForContradictions(newCrystal: Crystal): Promise<Contradiction[]> {
         // 1. Get similar crystals from Supabase (by domain or tags)
         const { data: existingCrystals, error } = await supabase
-            .from('kv_store')
-            .select('value')
-            .filter('key', 'like', 'nb_cc_%');
+            .from('crystals')
+            .select('*');
 
         if (error || !existingCrystals) return [];
 
         const contradictions: Contradiction[] = [];
 
         // 2. Cross-verify claims using LLM
-        for (const item of existingCrystals) {
-            const existing = item.value;
+        for (const existing of existingCrystals) {
             if (existing.context_id === newCrystal.context_id) continue;
 
             // Only compare if domains match or are related
@@ -116,21 +115,17 @@ Do these conflict?`;
     static async retrieveBestCrystal(params: { domain: string; tags?: string[] }): Promise<Crystal | null> {
         // 1. Try exact match by domain (simplest deterministic retrieval)
         let query = supabase
-            .from('kv_store')
-            .select('value')
-            .filter('key', 'like', 'nb_cc_%') // Filter for crystals
+            .from('crystals')
+            .select('*');
 
-        // In a real DB we'd filter by JSON column, here we filter in memory for MVP
-        const { data, error } = await query;
+        const { data: candidates, error } = await query;
 
-        if (error || !data || data.length === 0) return null;
+        if (error || !candidates || candidates.length === 0) return null;
 
-        // 2. Client-side deterministic filtering (until we index JSONb)
-        const candidates: Crystal[] = data
-            .map(row => row.value as Crystal)
-            .filter(c => c.domain === params.domain);
+        // 2. Filter by domain in code (or use .eq('domain', params.domain) in query)
+        const filtered = candidates.filter(c => c.domain === params.domain);
 
-        if (candidates.length === 0) return null;
+        if (filtered.length === 0) return null;
 
 
 
@@ -138,14 +133,14 @@ Do these conflict?`;
 
         // 3. Score by tag overlap (Deterministic Ranking)
         if (params.tags && params.tags.length > 0) {
-            candidates.sort((a, b) => {
-                const aMatches = (a.tags || []).filter(t => params.tags?.includes(t)).length;
-                const bMatches = (b.tags || []).filter(t => params.tags?.includes(t)).length;
+            filtered.sort((a, b) => {
+                const aMatches = (a.tags || []).filter((t: string) => params.tags?.includes(t)).length;
+                const bMatches = (b.tags || []).filter((t: string) => params.tags?.includes(t)).length;
                 return bMatches - aMatches;
             });
         }
 
-        let best = candidates[0] || null;
+        let best = filtered[0] || null;
 
         // ⚡ SUBLIMATION PROTOCOL
         // If we hit a "Proto-Crystal" (Regex/Flash), we must refine it Just-In-Time.
@@ -172,43 +167,47 @@ Do these conflict?`;
         // 1. Compute SimHash of the user's query
         const queryHash = SemanticHasher.computeSimHash(query);
 
-        // 2. Fetch all candidates in domain (Flash/Proto + Verified)
-        // In a real DB, we would use a Bit-Search Index (e.g. pgvector or custom bitmask)
-        // Here we fetch all and filter in memory (MVP)
-        const { data, error } = await supabase
-            .from('kv_store')
-            .select('value')
-            .filter('key', 'like', 'nb_cc_%');
+        // 2. Fetch all candidates in domain
+        const { data: candidates, error } = await supabase
+            .from('crystals')
+            .select('*')
+            .eq('domain', domain);
 
-        if (error || !data) return [];
+        if (error || !candidates) return [];
 
-        let candidates: Crystal[] = [];
+        const scored: { crystal: Crystal; score: number }[] = [];
 
-        for (const row of data) {
-            const crystal = row.value as Crystal;
-            if (crystal.domain !== domain) continue;
-
-            // Find LSH tag
-            const lshTag = (crystal.tags || []).find(t => t.startsWith('lsh:'));
+        for (const raw of candidates) {
+            const crystal = raw as unknown as Crystal;
+            const lshTag = (crystal.tags || []).find((t: string) => t.startsWith('lsh:'));
             if (!lshTag) continue;
 
             const storedHash = lshTag.replace('lsh:', '');
 
             // 3. Compare with Hamming Distance
             const distance = SemanticHasher.hammingDistance(queryHash, storedHash);
+            let score = 1 - (distance / 64);
 
-            // Threshold: < 15 bits difference = Very Semantically Similar
-            if (distance <= 15) {
-                candidates.push(crystal);
+            // 🌌 SEMANTIC GRAVITY (Mass-Based Priority)
+            // Crystals with high bit density (Axioms) exert more pull.
+            const hv = Hypervector.fromString(crystal.verification?.canonical_hash || '');
+            const density = hv.getFisherInformation(); // Certainty acts as mass
+            score += (density * 0.15); // Boost foundational truths
+
+            if (score > 0.4) {
+                scored.push({ crystal, score });
             }
         }
 
-        // 4. RLM RE-RANKING (Brain Upgrade) 🧠
-        // Instead of just sorting by distance, we sort by "Wisdom" (Q-Score + Exploration)
-        // REAL STATS: Sum of usage of this cohort (Contextual Bandit Horizon)
-        const totalSystemUsage = candidates.reduce((sum, c) => sum + (c.rlm_stats?.usage_count || 0), 0) || 1;
-        candidates = RLMEngine.rankCandidates(candidates, totalSystemUsage);
+        const topCrystals = scored
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 10)
+            .map(s => s.crystal);
 
-        return candidates;
+        // 4. RLM RE-RANKING (Brain Upgrade) 🧠
+        // Re-ranks based on learned utility and global certainty.
+        const totalSystemUsage = (await supabase.from('crystals').select('usage_count', { count: 'exact' })).count || 1000;
+
+        return RLMEngine.rankCandidates(topCrystals, totalSystemUsage, domain);
     }
 }

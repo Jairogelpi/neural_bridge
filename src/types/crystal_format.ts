@@ -211,6 +211,9 @@ export interface CrystalVerification {
         expert_id: string;
         domain: string;
     }>;
+
+    /** Optional: Retroactively applied vaccine IDs for safety hardening */
+    retroactive_vaccines?: string[];
 }
 
 export interface CrystalDependency {
@@ -321,8 +324,8 @@ export interface Crystal {
     /** Version of THIS Crystal (semver) */
     version: string;
 
-    /** Trust Tier: COMMUNITY | VERIFIED | CERTIFIED | TRUSTED */
-    tier: 'community' | 'verified' | 'certified' | 'trusted';
+    /** Trust Tier: COMMUNITY | VERIFIED | CERTIFIED | TRUSTED | SOVEREIGN */
+    tier: 'community' | 'verified' | 'certified' | 'trusted' | 'sovereign';
 
     /** Author Metadata */
     author: {
@@ -543,7 +546,7 @@ export const CrystalSchemaV01 = {
         "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
         "tier": {
             "type": "string",
-            "enum": ["community", "verified", "certified", "trusted"]
+            "enum": ["community", "verified", "certified", "trusted", "sovereign"]
         },
         "author": {
             "type": "object",

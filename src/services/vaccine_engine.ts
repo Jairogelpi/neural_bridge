@@ -1,5 +1,6 @@
 import { SCPService } from './llm';
 import type { Crystal } from '../types/crystal_format';
+import { Attestation } from './attestation';
 import { supabase } from '../db/supabase';
 
 
@@ -13,11 +14,6 @@ export interface SemanticVaccine {
         prohibited_pattern: string;
     };
     context_domain: string;
-}
-
-export interface Contradiction {
-    claim_a: string;
-    claim_b: string;
 }
 
 export interface Contradiction {
@@ -45,10 +41,17 @@ export class VaccineEngine {
     ): Promise<SemanticVaccine | null> {
         console.log(`[VaccineEngine] 💉 Analyzing contradiction for context ${crystal.context_id}...`);
 
-        // 1. Generate Signature (Based on the semantic clash)
-        // We use SMT to hash the relationship between the contradicting claims
-        const signatureText = `FAIL_PATTERN: [${contradiction.claim_a}] vs [${contradiction.claim_b}]`;
-        const signatureHash = crypto.createHash('sha256').update(signatureText).digest('hex');
+        // 1. GEOMETRIC IMMUNOLOGY: Generate Invariant Signature
+        // We hash the HDC Vector resultant of the relationship, not strings.
+        const { SemanticHasher } = await import('./semantic_hashing');
+        const { Hypervector } = await import('../math/hypervector');
+
+        const hvA = Hypervector.fromString(SemanticHasher.computeHolographicHash(contradiction.claim_a));
+        const hvB = Hypervector.fromString(SemanticHasher.computeHolographicHash(contradiction.claim_b));
+
+        // The contradiction is the XOR binding of the two claims (The Relationship Vector)
+        const relationship = hvA.bind(hvB);
+        const signatureHash = await Attestation.realSHA256(relationship.toString());
 
         // Check if vaccine already exists
         const { data: existing } = await supabase
@@ -141,7 +144,7 @@ export class VaccineEngine {
         console.log(`[VaccineEngine] 🔮 Precognitive synthesis for predicted error: "${predictedFailure}"`);
 
         const signatureText = `PRECOGNITIVE_FAILURE: [${predictedFailure}] in DOMAIN: [${crystal.domain}]`;
-        const signatureHash = crypto.createHash('sha256').update(signatureText).digest('hex');
+        const signatureHash = await (await import('./attestation')).Attestation.realSHA256(signatureText);
 
         const extractionPrompt = `
         PRECOGNITIVE DNA EXTRACTION
@@ -207,5 +210,3 @@ export class VaccineEngine {
         return data as SemanticVaccine[];
     }
 }
-
-import crypto from 'crypto';

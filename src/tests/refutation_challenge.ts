@@ -1,5 +1,5 @@
 import { CrystalRuntime } from '../services/crystal_runtime';
-import { CrystalExamples } from '../types/crystal_examples';
+import { CrystalExamples } from '../../examples/crystal_examples';
 import { DecisionReceipts } from '../services/decision_receipts';
 
 /**

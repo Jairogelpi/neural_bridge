@@ -1,5 +1,5 @@
 // Scientific Metrics Module - PAC-style Bounds & SRI
-// Implements the scientific framework from DEMO.MD
+// Implements the scientific framework from the Neural Bridge Omega Technical Specification
 
 export interface PACBounds {
     epsilon: number;          // PAC-style confidence bound

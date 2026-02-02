@@ -773,20 +773,27 @@ export function getOptimalModel(params: {
     task?: 'compile' | 'verify' | 'repair' | 'dream' | 'abstract';
     text?: string;
 }): string {
-    // For now, we use a synchronous heuristic to avoid breaking existing sync calls,
-    // but in a production refined version, this would be an async call to EconomicRouter.route()
-    const { domain = 'general', isCritical = false, task = 'verify' } = params;
+    const { isCritical = false, task = 'verify', text = '' } = params;
 
-    if (isCritical) {
-        return 'anthropic/claude-3.5-sonnet'; // Maximum power for zero-risk failure
-    }
+    // 🏛️ OMEGA ROUTING FORMULA
+    // We derive the required "Intelligence Density" (I) based on task and text entropy.
+    // If text is complex (high entropy), we need a higher capability model.
+    let requiredIQ = isCritical ? 0.9 : 0.5;
+    if (task === 'compile' || task === 'repair') requiredIQ += 0.2;
+    if (text.length > 5000) requiredIQ += 0.1;
 
-    if (task === 'dream' || task === 'compile') {
-        return 'google/gemini-pro-1.5'; // High intelligence
-    }
+    // Model Library with Math-Mapped Capability Scores
+    const models = [
+        { id: 'google/gemini-2.0-flash-exp:free', capability: 0.6, cost: 0 },
+        { id: 'google/gemini-pro-1.5', capability: 0.85, cost: 0.01 },
+        { id: 'anthropic/claude-3.5-sonnet', capability: 0.95, cost: 0.03 }
+    ];
 
-    // Default to ultra-fast/cheap for everything else
-    return 'google/gemini-2.0-flash-exp:free';
+    // Optimization: argmax(Capability(m) / (Cost(m) + 0.01)) subject to Capability >= requiredIQ
+    const eligible = models.filter(m => m.capability >= Math.min(requiredIQ, 0.95));
+    const best = eligible.sort((a, b) => (b.capability / (b.cost + 0.01)) - (a.capability / (a.cost + 0.01)))[0];
+
+    return best?.id || 'google/gemini-2.0-flash-exp:free';
 }
 
 /**

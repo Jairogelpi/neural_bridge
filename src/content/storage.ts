@@ -76,12 +76,21 @@ export async function loadTranscript(id: string): Promise<Transcript | null> {
 }
 
 export async function saveCrystal(c: ContextCrystal): Promise<void> {
-    await storage.set({ [`${CRYSTAL_PREFIX}${c.context_id}`]: c });
+    if (isBrowser) {
+        return storage.set({ [`${CRYSTAL_PREFIX}${c.context_id}`]: c });
+    }
+    // Server-side: Use the dedicated crystals table (Production Path)
+    await supabase.from('crystals').upsert(c);
 }
 
 export async function loadCrystal(id: string): Promise<ContextCrystal | null> {
-    const res = await storage.get(`${CRYSTAL_PREFIX}${id}`) as Record<string, unknown>;
-    return (res[`${CRYSTAL_PREFIX}${id}`] ?? null) as ContextCrystal | null;
+    if (isBrowser) {
+        const res = await storage.get(`${CRYSTAL_PREFIX}${id}`) as Record<string, unknown>;
+        return (res[`${CRYSTAL_PREFIX}${id}`] ?? null) as ContextCrystal | null;
+    }
+    // Server-side: Use the dedicated crystals table
+    const { data } = await supabase.from('crystals').select('*').eq('context_id', id).single();
+    return (data as unknown as ContextCrystal) || null;
 }
 
 export async function getActiveContextId(): Promise<string | undefined> {

@@ -9,9 +9,31 @@ import type { Crystal } from '../types/crystal_format';
  */
 export class RLMEngine {
 
-    // Hyperparameters
-    private static ALPHA = 0.1; // Learning Rate (How much recent feedback matters)
-    private static C = 1.414;   // Exploration Constant (UCB1 standard)
+    /**
+     * DYNAMIC HYPERPARAMETERS 0️⃣
+     * 
+     * ALPHA and C react to the domain's Real-Time Stability.
+     */
+    private static async getDynamicParams(domain: string): Promise<{ alpha: number, c: number }> {
+        const { LogicTuner } = await import('./logic_tuner');
+        const { supabase } = await import('../db/supabase');
+
+        const { data } = await supabase.from('crystals').select('*').eq('domain', domain);
+        const crystals = (data || []) as any;
+
+        const stability = LogicTuner.calculateStability(crystals);
+
+        // Alpha (Learning Rate): More stable = slower learning (wisdom preservation)
+        const alpha = 0.2 * (1 - stability); // Scale 0.05 - 0.2
+
+        // C (Exploration): Less stable = higher curiosity
+        const c = 1.0 + (1 - stability); // Scale 1.0 - 2.0
+
+        return {
+            alpha: Math.max(alpha, 0.05),
+            c: Math.min(c, 2.0)
+        };
+    }
 
     /**
      * Updates the Crystal's Q-Score based on user feedback.
@@ -20,7 +42,7 @@ export class RLMEngine {
      * @param crystal The crystal to update
      * @param reward +1 (Helpful), -1 (Harmful/Hallucinated), 0 (Neutral)
      */
-    static updateCrystalUtility(crystal: Crystal, reward: number): Crystal {
+    static async updateCrystalUtility(crystal: Crystal, reward: number, domain: string = 'general'): Promise<Crystal> {
         // Initialize if missing
         if (!crystal.rlm_stats) {
             crystal.rlm_stats = {
@@ -35,20 +57,15 @@ export class RLMEngine {
         stats.usage_count += 1;
         stats.last_reward_at = new Date().toISOString();
 
-        // Q_new = Q_old + alpha * (Reward - Q_old)
-        // We clamp reward impact to keep score between 0 and 1
-        // Map reward (-1 to 1) to (0 to 1) signal for Q-update if we want probability-like score.
-        // But standard Q can be unbounded. Let's keep it normalized 0-1 for "Probability of Utility".
-        // Reward: 1 -> Target 1.0, -1 -> Target 0.0
+        // 0️⃣ ZERO-CONSTANT INFERENCE
+        const { alpha } = await this.getDynamicParams(domain);
 
         const target = (reward + 1) / 2; // Map -1..1 to 0..1
 
         const oldQ = stats.q_score;
-        const newQ = oldQ + RLMEngine.ALPHA * (target - oldQ);
+        const newQ = oldQ + alpha * (target - oldQ);
 
         stats.q_score = parseFloat(newQ.toFixed(4));
-
-        // Volatility tracks how much the "Truth" status is changing
         stats.volatility = Math.abs(newQ - oldQ);
 
         return crystal;
@@ -59,26 +76,41 @@ export class RLMEngine {
      * High bonus for rarely used crystals.
      * Low bonus for well-known crystals.
      */
-    static calculateExplorationBonus(crystal: Crystal, totalSystemUsage: number): number {
+    static async calculateExplorationBonus(crystal: Crystal, totalSystemUsage: number, domain: string = 'general'): Promise<number> {
         if (!crystal.rlm_stats || crystal.rlm_stats.usage_count === 0) {
             return 1.0; // Max bonus if never seen (Infinite curiosity)
         }
 
-        // UCB1 = C * sqrt(ln(TotalAttempts) / ArmsAttempts)
-        const bonus = RLMEngine.C * Math.sqrt(Math.log(totalSystemUsage) / crystal.rlm_stats.usage_count);
+        // 0️⃣ ZERO-CONSTANT INFERENCE
+        const { c } = await this.getDynamicParams(domain);
+
+        const bonus = c * Math.sqrt(Math.log(totalSystemUsage) / crystal.rlm_stats.usage_count);
 
         // Clamp to avoid craziness
         return Math.min(bonus, 1.0);
     }
 
     /**
-     * Rank candidates by combining Exploitation (Q-Score) + Exploration (Bonus).
+     * Rank candidates by combining Exploitation (Q-Score) + Exploration (Bonus) + Certainty (Fisher).
      */
-    static rankCandidates(candidates: Crystal[], totalSystemUsage: number): Crystal[] {
-        return candidates.sort((a, b) => {
-            const scoreA = (a.rlm_stats?.q_score || 0.5) + RLMEngine.calculateExplorationBonus(a, totalSystemUsage);
-            const scoreB = (b.rlm_stats?.q_score || 0.5) + RLMEngine.calculateExplorationBonus(b, totalSystemUsage);
-            return scoreB - scoreA; // Descending
-        });
+    static async rankCandidates(candidates: Crystal[], totalSystemUsage: number, domain: string = 'general'): Promise<Crystal[]> {
+        const { Hypervector } = await import('../math/hypervector');
+
+        const scoredCandidates = await Promise.all(candidates.map(async c => {
+            const hv = Hypervector.fromString(c.verification?.canonical_hash || '');
+            const fisher = hv.getFisherInformation(); // 0.0 to 1.0 (Certainty)
+
+            const bonus = await this.calculateExplorationBonus(c, totalSystemUsage, domain);
+
+            // Score = (Utility + Bonus) * (1 + Fisher)
+            // This penalizes high-entropy (noisy) crystals even if they have high Q
+            const score = ((c.rlm_stats?.q_score || 0.5) + bonus) * (1 + fisher);
+
+            return { crystal: c, score };
+        }));
+
+        return scoredCandidates
+            .sort((a, b) => b.score - a.score)
+            .map(sc => sc.crystal);
     }
 }

@@ -15,33 +15,23 @@ export class UsidEngine {
     /**
      * COMPILER: Transforms natural language intent into Logic Constraints
      */
-    static async compileIntent(intent: string): Promise<UniversalConstraint[]> {
-        console.log(`[uSID] Compiling Intent: "${intent}"`);
+    static async compileIntent(intent: string, domain: string = 'general'): Promise<UniversalConstraint[]> {
+        console.log(`[uSID] Compiling Intent for domain '${domain}': "${intent}"`);
+
+        // 🎓 DYNAMIC EXPERT SELECTION
+        const { ExpertRegistry } = await import('./expert_registry');
+        const models = await ExpertRegistry.findBestJudges(domain);
+        const model = models[0] || 'anthropic/claude-3.5-sonnet';
 
         const systemPrompt = `
         You are a LOGIC COMPILER. Translate User Intent into UNIVERSAL CONSTRAINTS.
-        
-        CONSTRAINT TYPES: FORMAT, CONTENT, PROHIBITION, CAPABILITY, TIME, EVIDENCE, CERTAINTY.
-        
-        EXAMPLE INPUT: "Dame un JSON con datos de bolsa en tiempo real"
-        OUTPUT JSON: [
-            {"id": "c1", "type": "FORMAT", "key": "output_mode", "op": "=", "value": "json"},
-            {"id": "c2", "type": "CAPABILITY", "key": "requires", "op": "in", "value": ["real_time_access"]}
-        ]
-
         Return ONLY the JSON array.
         `;
 
         try {
-            const response = await SCPService.resilientCallLLM(intent, 'nvidia/nemotron-3-nano-30b-a3b:free', systemPrompt);
+            const response = await SCPService.resilientCallLLM(intent, model, systemPrompt);
             return JSON.parse(response.content);
         } catch (e: unknown) {
-            const msg = (e && typeof e === 'object' && 'message' in e && typeof e.message === 'string') ? e.message : '';
-            if (msg === 'SOVEREIGN_REQUIRED') {
-                console.log("[uSID] 🛡️ Sovereign mode active: Synthesizing structural constraints...");
-                return [{ id: 'sov_c1', type: 'CAPABILITY', key: 'requires', op: 'in', value: ['axiomatic_integrity'] }];
-            }
-            console.error("Compilation failed:", e);
             return [];
         }
     }
@@ -92,13 +82,8 @@ export class UsidEngine {
             conflicts.push(certConstraint.id);
         }
 
-        // U3: FORMAT vs CONTENT (Internal Contradiction)
-        // Heuristic: JSON-only requested BUT natural language explanation required
-        const jsonOnly = constraints.find(c => c.type === 'FORMAT' && c.value.toString().toLowerCase().includes('json'));
-        const explanationReq = constraints.find(c => c.type === 'CONTENT' && c.source_snippet?.toLowerCase().includes('expli')); // simple heuristic for demo
-
-        // In a real solver, we'd use a more robust check (LLM-based or SAT library)
-        // For this demo, let's ask the LLM to find Logical Contradictions if heuristic didn't catch specific ones.
+        // U3: SEMANTIC & LOGICAL CONSISTENCY (Deep Solve)
+        // We rely on the LLM Arbiter (Scientific Logic) to detect non-heuristic contradictions.
         if (unsatCore.length === 0) {
             const logicalCheck = await this.checkLogicalConsistency(constraints);
             if (!logicalCheck.consistent) {

@@ -26,9 +26,8 @@ export class FractalCompressor {
 
         console.log(`[Fractal] 🌀 Layer ${depth}: Distilling ${Math.round(fullText.length / 1024)}KB into Meta-Invariants...`);
 
-        // 2. SHARDING: Split reality into manageable pieces
-        const chunkSize = Math.max(80000, Math.floor(fullText.length / 5));
-        const shards = this.shardReality(fullText, chunkSize);
+        // 2. SHARDING: Topological Phase-Shift Analysis
+        const shards = await this.shardReality(fullText);
 
         // 3. MAP: Extract Axioms from each shard in parallel
         const model = getOptimalModel({ task: 'compile' });
@@ -90,11 +89,49 @@ export class FractalCompressor {
         return res.content.trim();
     }
 
-    private static shardReality(text: string, size: number): string[] {
+    /**
+     * TOPOLOGICAL SHARDING: Shards reality at Vector Phase Shifts.
+     * Uses HDC Trajectory Analysis to identify semantic boundaries.
+     */
+    private static async shardReality(text: string): Promise<string[]> {
+        const { SemanticHasher } = await import('./semantic_hashing');
+        const { Hypervector } = await import('../math/hypervector');
+
+        console.log("[Fractal] 📐 Analyzing Topological Trajectory for optimal sharding...");
+
         const shards: string[] = [];
-        for (let i = 0; i < text.length; i += size) {
-            shards.push(text.slice(i, i + size));
+        const words = text.split(/\s+/);
+        let currentShardWords: string[] = [];
+
+        // The "Anchor" is the shifting semantic context
+        let anchor = Hypervector.random();
+
+        for (const word of words) {
+            currentShardWords.push(word);
+
+            // Periodically check phase shift (Sensitive detection)
+            if (currentShardWords.length % 50 === 0 && currentShardWords.length > 100) {
+                const currentText = currentShardWords.join(' ');
+                const currentHv = Hypervector.fromString(SemanticHasher.computeHolographicHash(currentText));
+
+                // If similarity to anchor drops, we found a "Phase Shift"
+                // Using a higher threshold (0.6) for tighter semantic bounds
+                const similarity = anchor.similarity(currentHv);
+
+                if (similarity < 0.6) {
+                    shards.push(currentText);
+                    currentShardWords = [];
+                    // Reset anchor to the next state's initial representation
+                    anchor = currentHv;
+                }
+                // NOTE: We no longer "bundle" the anchor here to maintain phase-purity
+            }
         }
+
+        if (currentShardWords.length > 0) {
+            shards.push(currentShardWords.join(' '));
+        }
+
         return shards;
     }
 

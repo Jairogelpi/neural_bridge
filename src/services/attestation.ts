@@ -40,9 +40,8 @@ export async function signCrystal(params: {
 }): Promise<CrystalSignature> {
     const { crystal, keyPair: providedKeyPair, capturer_id } = params;
 
-    // Calculate SHA-256 of Crystal content (Web Crypto API native)
-    const payload = JSON.stringify(crystal);
-    const payload_hash = await realSHA256(payload);
+    // GEOMETRIC ATTESTATION: Hash the bit-stable manifestation
+    const payload_hash = await realSHA256Geometric(crystal);
 
     // Generate or use provided key pair
     const keyPair = params.keyPair ?? await generateKeyPair();
@@ -69,9 +68,8 @@ export async function verifyCrystalSignature(params: {
 }): Promise<{ valid: boolean; reason?: string }> {
     const { crystal, signature } = params;
 
-    // Recalculate payload hash
-    const payload = JSON.stringify(crystal);
-    const computed_hash = await realSHA256(payload);
+    // GEOMETRIC ATTESTATION verify
+    const computed_hash = await realSHA256Geometric(crystal);
 
     if (computed_hash !== signature.payload_hash) {
         return { valid: false, reason: 'payload_hash_mismatch' };
@@ -116,6 +114,28 @@ async function realSHA256(data: string): Promise<string> {
     const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return '0x' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * GEOMETRIC ATTESTATION: Semantic Fingerprinting
+ * Hashes the HDC Manifestation of the knowledge, not just the text.
+ */
+async function realSHA256Geometric(crystal: Crystal): Promise<string> {
+    const { Hypervector } = await import('../math/hypervector');
+
+    // 1. Collect all semantic invariants as Hypervectors
+    const vectors: any[] = [];
+    for (const inv of crystal.verification?.semantic_invariants || []) {
+        vectors.push(Hypervector.fromString(await realSHA256(inv.prompt + JSON.stringify(inv.expected))));
+    }
+
+    if (vectors.length === 0) return await realSHA256(JSON.stringify(crystal));
+
+    // 2. Bundle all semantic invariants into one Geometric Fingerprint
+    const fingerprint = Hypervector.bundle(vectors);
+
+    // 3. Hash the resulting bit-stable vector
+    return await realSHA256(fingerprint.toString());
 }
 
 async function generateKeyPair(): Promise<CryptoKeyPair> {

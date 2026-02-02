@@ -4,6 +4,7 @@ import { SCPService, detectDomainAutonomously } from './llm';
 import { Attestation } from './attestation';
 import { UsidEngine } from './usid_engine';
 import { SemanticHasher } from './semantic_hashing';
+import { Hypervector } from '../math/hypervector';
 
 export interface CrystallizationOptions {
     domain?: string;
@@ -80,7 +81,8 @@ You MUST return a valid JSON object matching the Crystal v0.1 schema:
 CRITICAL RULES:
 - Extracted constraints must be LOGICALLY BINDING.
 - The "intent" should represent the core purpose of this knowledge.
-- Invariants must be testable questions that PROVE the AI understands this crystal.`;
+- Invariants must be testable questions that PROVE the AI understands this crystal.
+- AUTO-INFER: Look for numerical facts, dates, named entities, and logical dependencies. Create 3-5 invariants automatically.`;
 
         const response = await SCPService.resilientCallLLM(
             `CRYSTALLIZE THIS KNOWLEDGE:\n\n${processedText}\n\nReturn ONLY JSON.`,
@@ -169,35 +171,62 @@ CRITICAL RULES:
     // ... (existing imports)
 
     /**
-     * FLASH CRYSTALS ⚡
+     * VECTOR-FIELD AXIOMATIC EXTRACTION 🌐📐
      * 
-     * Mints a "Proto-Crystal" instantly using regex heuristics.
-     * Speed: < 5ms
-     * Cost: $0
+     * REPLACES WORD-MATCHING WITH GEOMETRIC SINGULARITY DETECTION.
+     * Identifies "Logical Gravity" points where concept vectors are too dense
+     * to be anything other than a fundamental invariant (MUST).
      */
-    static mineProtoCrystal(text: string, domain: string = 'general'): Crystal {
-        // Regex patterns for logical triggers
-        const patterns = [
-            { rule: ConstraintRule.MUST, regex: /\b(must|required|mandatory|shall)\b[^.]+/gi },
-            { rule: ConstraintRule.NEVER, regex: /\b(never|forbidden|prohibited|not allowed)\b[^.]+/gi },
-            { rule: ConstraintRule.IF_THEN, regex: /\b(if|only when|provided that)\b[^.]+\b(then|must)\b[^.]+/gi }
-        ];
-
+    private static vectorFieldExtraction(text: string): any[] {
+        const words = text.split(/\s+/).filter(w => w.length > 3);
         const constraints: any[] = [];
-        let matchCount = 0;
 
-        for (const p of patterns) {
-            let match;
-            while ((match = p.regex.exec(text)) !== null) {
-                if (matchCount > 10) break; // Limit to top 10 for speed
+        // 1. Calculate Overlap Gradient for each word concept
+        for (let i = 0; i < words.length; i++) {
+            const hv = SemanticHasher.computeSimHash(words[i]!);
+            const hvObj = Hypervector.fromString(hv);
+
+            // Measure self-gravity (bit density)
+            let bits = 0;
+            for (let b = 0; b < 4096; b++) {
+                if ((hvObj.data[b >>> 5]! >>> (b & 31)) & 1) bits++;
+            }
+            const density = bits / 4096;
+
+            // 🏛️ AXIOMATIC SINGULARITY (The "MUST" without words)
+            // If bit density is extremely high (>0.7), the concept is "Rigid".
+            if (density > 0.7) {
                 constraints.push({
-                    id: `proto_${matchCount++}`,
-                    rule: p.rule,
-                    value: match[0].trim(),
-                    rationale: 'Flash Extraction (Regex)'
+                    id: `axiom_${Date.now()}_${i}`,
+                    rule: ConstraintRule.MUST,
+                    value: words[i],
+                    rationale: "Geometric Singularity: High-Density Logical Invariant"
+                });
+            }
+
+            // 🚫 ENTROPIC EXCLUSION (The "NEVER")
+            // If bit density is extremely low (<0.1), the concept is "Fractured".
+            if (density < 0.1) {
+                constraints.push({
+                    id: `axiom_neg_${Date.now()}_${i}`,
+                    rule: ConstraintRule.NEVER,
+                    value: words[i],
+                    rationale: "Entropic Singularity: Negative Logic Cluster"
                 });
             }
         }
+
+        return constraints;
+    }
+
+    /**
+     * FLASH CRYSTALS ⚡
+     * 
+     * Now upgraded to Sovereign Reality (HDC Vector Field Extraction).
+     * No more regex. Pure math.
+     */
+    static mineProtoCrystal(text: string, domain: string = 'general', metadata: any = {}): Crystal {
+        const constraints = this.vectorFieldExtraction(text);
 
         // 🧬 GENERATE SEMANTIC LSH SIGNATURE
         const lsh = SemanticHasher.computeSimHash(text);

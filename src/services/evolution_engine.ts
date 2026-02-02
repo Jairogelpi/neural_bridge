@@ -1,4 +1,5 @@
 import { SCPService } from './llm';
+import { Crystal, CrystalConstraint, CrystalStatus } from '../types/crystal_format';
 
 /**
  * THE EVOLUTION ENGINE 🧬
@@ -7,8 +8,87 @@ import { SCPService } from './llm';
  * Function: When a prompt fails to yield a high-reliability Crystal, this engine
  *           wakes up, analyzes the failure, and "Genetically Mutates" the prompt
  *           to evolve a better strategy.
+ * 
+ * UPGRADE (Phase 10): Now manages BIOLOGICAL EVOLUTION of Crystals.
+ * - Breeding (Sexual Reproduction of Knowledge)
+ * - Mutation (Random Variation)
+ * - Natural Selection (Reaping Weak Ideas)
  */
 export class EvolutionEngine {
+
+    /**
+     * BREEDING (Sexual Reproduction) 🌹
+     * Combines two high-performing crystals to create a superior offspring.
+     * Strategy:
+     * - Intent: Synthesis of both.
+     * - Constraints: Crossover (Random mix from both).
+     * - Evidence: Union of non-duplicate evidence.
+     */
+    static breed(parentA: Crystal, parentB: Crystal): Crystal {
+        console.log(`[EvolutionEngine] 🌹 Breeding Generation ${parentA.version} & ${parentB.version}...`);
+
+        // 1. Crossover Constraints (50/50 Split + Random Mutation)
+        const childConstraints = this.crossoverConstraints(parentA.constraints || [], parentB.constraints || []);
+
+        // 2. Synthesize Intent
+        const childIntent = {
+            ...parentA.intent,
+            primary: `${parentA.intent.primary} + ${parentB.intent.primary} [SYNTHESIS]`,
+            status: CrystalStatus.ACTIVE
+        };
+
+        // 3. Create Child
+        const child: Crystal = {
+            ...parentA, // Inherit base properties from A
+            context_id: `child_${Date.now()}_gen`,
+            version: `${parseInt(parentA.version) + 1}.0.0`,
+            intent: childIntent,
+            constraints: childConstraints,
+            // Inherit RLM stats (Start with parents' average potential)
+            rlm_stats: {
+                q_score: ((parentA.rlm_stats?.q_score || 0.5) + (parentB.rlm_stats?.q_score || 0.5)) / 2,
+                usage_count: 0,
+                last_reward_at: new Date().toISOString(),
+                volatility: 0.1 // High volatility initially (Newborn)
+            },
+            created_at: new Date().toISOString(),
+            verification: {
+                ...parentA.verification,
+                canonical_hash: "PENDING_REHASH" // Needs re-verification
+            }
+        };
+
+        return child;
+    }
+
+    /**
+     * NATURAL SELECTION (The Reaper) 💀
+     * Identifies weak crystals that should be culled from the population.
+     * Criteria: High Usage but Low Q-Score (Proven to be bad).
+     */
+    static reap(population: Crystal[]): string[] {
+        const weaklings = population.filter(c => {
+            const stats = c.rlm_stats || { q_score: 0.5, usage_count: 0 };
+            // If used > 10 times and Score < 0.2 (20% utility), it's trash.
+            return stats.usage_count > 10 && stats.q_score < 0.2;
+        });
+
+        console.log(`[EvolutionEngine] 💀 Reaping ${weaklings.length} weak crystals.`);
+        return weaklings.map(c => c.context_id);
+    }
+
+    // ========== GENETIC HELPERS ==========
+
+    private static crossoverConstraints(setA: CrystalConstraint[], setB: CrystalConstraint[]): CrystalConstraint[] {
+        const genePool = [...setA, ...setB];
+        // Deduplicate by ID
+        const uniqueGenes = Array.from(new Map(genePool.map(c => [c.id, c])).values());
+
+        // Random Selection (Mutation Chance 10%)
+        return uniqueGenes.filter(() => Math.random() > 0.1); // Drop 10% of constraints randomly
+    }
+
+    // ========== LEGACY PROMPT EVOLUTION ==========
 
     /**
      * Evolve a better prompt strategy based on failure context.

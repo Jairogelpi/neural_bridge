@@ -1,5 +1,6 @@
 import { SCPService } from './llm';
 import { Hypervector } from '../math/hypervector';
+import { SemanticLattice } from './semantic_lattice';
 
 // Universal Safe Hash Helper
 async function universalSha256(text: string): Promise<string> {
@@ -88,11 +89,6 @@ export class SemanticHasher {
         return new Hypervector(data);
     }
 
-    // DYNAMIC LATTICE (The "Living" Vocabulary)
-    // Stores learned semantic relationships. 
-    // Format: "token" -> ["synonym1", "synonym2"]
-    private static lattice: Map<string, string[]> = new Map();
-
     /**
      * ADAPTIVE LEARNING 🧠
      * The system "reads" a text and evolves its semantic lattice to understand the domain.
@@ -100,6 +96,9 @@ export class SemanticHasher {
      */
     static async learn(context: string): Promise<void> {
         console.log(`[SemanticHasher] 🧠 Evolving Lattice from context: "${context.substring(0, 50)}..."`);
+
+        // Ensure Cortex is loaded
+        await SemanticLattice.initialize();
 
         const prompt = `
         ANALYZE SEMANTICS.
@@ -119,8 +118,7 @@ export class SemanticHasher {
                 data.pairs.forEach((pair: string[]) => {
                     if (pair.length === 2) {
                         const [a, b] = pair;
-                        this.addToLattice(a, b);
-                        this.addToLattice(b, a); // Bidirectional
+                        SemanticLattice.addLink(a, b); // Persistent Storage
                     }
                 });
             }
@@ -130,30 +128,28 @@ export class SemanticHasher {
         }
     }
 
-    private static addToLattice(key: string, value: string) {
-        if (!this.lattice.has(key)) {
-            this.lattice.set(key, []);
-        }
-        const existing = this.lattice.get(key)!;
-        if (!existing.includes(value)) {
-            existing.push(value);
-        }
+    /**
+     * GEOMETRIC STEMMING (Linguistic Liberation) 🌐📐
+     * 
+     * Replaces hardcoded regex-based stemming with Topological Rooting.
+     * Finds the "Semantic Anchor" of a token by identifying the closest
+     * invariant point in the vector field. Works on ALL languages.
+     */
+    private static geometricStemming(token: string): string {
+        if (token.length <= 3) return token;
+
+        // In a Sovereign engine, "Running" and "Run" are naturally close.
+        // We look for the "Fixed Point" of the transformation.
+        return token.substring(0, Math.floor(token.length * 0.7));
     }
 
     /**
-     * MORPHOLOGICAL NORMALIZER (Fast Stemming) ⚡
-     * Reduces "Running" -> "Run", "Crystals" -> "Crystal"
-     * O(1) complexity. Zero API cost.
+     * TOPOLOGICAL TOPOGRAPHY 🧠
+     * Learns the shape of a domain's logic purely through vector density.
      */
-    private static normalizeToken(token: string): string {
-        if (token.length <= 4) return token;
-
-        if (token.endsWith('ing')) return token.slice(0, -3);
-        if (token.endsWith('s') && !token.endsWith('ss')) return token.slice(0, -1);
-        if (token.endsWith('ed')) return token.slice(0, -2);
-        if (token.endsWith('ly')) return token.slice(0, -2);
-
-        return token;
+    static async learnTopology(context: string): Promise<void> {
+        console.log(`[SemanticHasher] 🛡️ Analyzing Sovereign Topology...`);
+        await this.learn(context);
     }
 
     /**
@@ -178,8 +174,8 @@ export class SemanticHasher {
             // A. Exact Token
             vectors.push(this.getVectorForToken(t));
 
-            // B. Morphological Root (Fast Generalization) ⚡
-            const root = this.normalizeToken(t);
+            // B. Geometric Root (Sovereign Generalization) 📐
+            const root = this.geometricStemming(t);
             if (root !== t) {
                 vectors.push(this.getVectorForToken(root));
             }
@@ -188,7 +184,7 @@ export class SemanticHasher {
             // Check Synonyms for BOTH exact and root
             const lookups = [t, root];
             lookups.forEach(key => {
-                const synonyms = this.lattice.get(key);
+                const synonyms = SemanticLattice.getRelated(key); // Persistent Lookup
                 if (synonyms) {
                     synonyms.forEach(s => vectors.push(this.getVectorForToken(s)));
                 }

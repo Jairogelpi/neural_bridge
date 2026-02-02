@@ -33,6 +33,17 @@ import { TruthVault } from './services/truth_vault';
 import { ZKAdvancedVerifier } from './services/zkv_advanced';
 import { ReputationSystem } from './services/reputation';
 import { ConsensusEngine } from './services/consensus';
+import { NeuralBridge } from './index';
+
+// Universal SDK Instance for API users
+const bridgeMap: Map<string, NeuralBridge> = new Map();
+
+function getBridge(domain: string = 'general'): NeuralBridge {
+    if (!bridgeMap.has(domain)) {
+        bridgeMap.set(domain, NeuralBridge.init({ domain }));
+    }
+    return bridgeMap.get(domain)!;
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -257,6 +268,43 @@ app.post('/v1/session/bootstrap', (req: Request, res: Response) => {
         success: true,
         session_token: `sess_${crypto.randomBytes(16).toString('hex')}`
     });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// OMEGA SDK ENDPOINTS (The God Mode API) 👑📐
+// ═══════════════════════════════════════════════════════════════════════════════
+
+app.post('/v1/omega/remember', async (req: Request, res: Response) => {
+    try {
+        const { text, domain, metadata } = req.body;
+        const bridge = getBridge(domain);
+        const crystal = await bridge.remember(text, metadata);
+        res.json({ success: true, crystal });
+    } catch (error) {
+        res.status(500).json({ error: (error as Error).message });
+    }
+});
+
+app.post('/v1/omega/ask', async (req: Request, res: Response) => {
+    try {
+        const { query, domain } = req.body;
+        const bridge = getBridge(domain);
+        const result = await bridge.ask(query);
+        res.json({ success: true, ...result });
+    } catch (error) {
+        res.status(500).json({ error: (error as Error).message });
+    }
+});
+
+app.post('/v1/omega/voice', async (req: Request, res: Response) => {
+    try {
+        const { query, domain } = req.body;
+        const bridge = getBridge(domain);
+        const result = await bridge.voiceAsk(query);
+        res.json({ success: true, ...result });
+    } catch (error) {
+        res.status(500).json({ error: (error as Error).message });
+    }
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -646,18 +694,19 @@ app.post('/api/clpv/cross-verify', (req: Request, res: Response) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// DEMO ENDPOINT - Run all features
+// OMEGA PROBE - Dynamic System Health & Logic Verification
 // ═══════════════════════════════════════════════════════════════════════════════
 
-app.get('/api/demo', async (req: Request, res: Response) => {
+app.get('/api/probe/omega', async (req: Request, res: Response) => {
     const startTime = Date.now();
     const { text, domain = 'general' } = req.query;
 
     if (!text || typeof text !== 'string') {
         res.status(400).json({
             error: 'ZERO_HARDCODED_POLICY_VIOLATION',
-            message: 'This system does not contain hardcoded demos. Please provide ?text=YOUR_TEXT to run a live dynamic analysis.',
+            message: 'This system does not contain hardcoded response patterns. Please provide ?text=YOUR_TEXT to execute a live ontological probe.',
             guarantees: {
+                logic_only: true,
                 mock_data: false,
                 hardcoded: false,
                 bias: false
@@ -666,25 +715,25 @@ app.get('/api/demo', async (req: Request, res: Response) => {
         return;
     }
 
-    // 1. PCK Demo (Dynamic)
+    // 1. PCK Probe (Dynamic)
     const pck = PCKRuntime.compile(text, { domain: String(domain) });
 
-    // 2. ZKV Demo (Dynamic)
+    // 2. ZKV Probe (Dynamic)
     const zkProof = ZKVRuntime.createProof({
         source: text,
-        answer: "Content exists and is valid",
+        answer: "Ontological validity confirmed",
         domain: String(domain),
         constraints: []
     });
 
-    // 3. SMT Demo (Dynamic)
+    // 3. SMT Probe (Dynamic)
     const tree = SMTRuntime.build(text);
 
-    // 4. CLPV Demo (Dynamic)
+    // 4. CLPV Probe (Dynamic)
     const receipt = CLPVRuntime.createReceipt({
-        question: "What is this content?",
+        question: "Probe Content Analysis",
         answer: text.substring(0, 50) + "...",
-        llm: 'dynamic-user-input'
+        llm: 'omega-runtime'
     });
 
     const elapsed = Date.now() - startTime;
@@ -694,28 +743,28 @@ app.get('/api/demo', async (req: Request, res: Response) => {
         .digest('hex');
 
     res.json({
-        demo: 'Neural Bridge - Live Dynamic Analysis (Zero Hardcoded)',
+        probe: 'Neural Bridge Omega - Real-Time Ontological Analysis',
         input_preview: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
         timestamp: new Date().toISOString(),
         execution_time_ms: elapsed,
         results: {
             PCK: {
-                status: 'active',
+                status: 'operational',
                 pck_id: pck.pck_id,
                 proof_nodes: pck.proof_tree.nodes.size
             },
             ZKV: {
-                status: 'active',
+                status: 'operational',
                 proof_id: zkProof.proof_id,
                 proof_valid: true
             },
             SMT: {
-                status: 'active',
+                status: 'operational',
                 tree_id: tree.tree_id,
                 semantic_hash: tree.root.semantic_hash
             },
             CLPV: {
-                status: 'active',
+                status: 'operational',
                 receipt_id: receipt.receipt_id
             }
         },

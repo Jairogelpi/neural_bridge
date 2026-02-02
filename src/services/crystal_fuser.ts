@@ -1,7 +1,9 @@
 import type { Crystal } from '../types/crystal_format';
-import { ConstraintRule } from '../types/crystal_format';
+import { ConstraintRule, CrystalStatus } from '../types/crystal_format';
 import { SCPService } from './llm';
 import { Sentinel } from './sentinel';
+import { SemanticHasher } from './semantic_hashing'; // For Math Fusion
+import { Hypervector } from '../math/hypervector';
 
 /**
  * CRYSTAL FUSION ENGINE (Reality Merging) 💎
@@ -11,6 +13,56 @@ import { Sentinel } from './sentinel';
  * all semantic conflicts autonomously.
  */
 export class CrystalFuser {
+
+    /**
+     * HOLOGRAPHIC MATH FUSION ⚡ (Phase 9)
+     * Instant O(N) merging of crystals using Hyperdimensional Computing.
+     * No LLM costs. Pure superpositions.
+     */
+    static fuseHolographic(crystals: Crystal[]): Crystal {
+        if (crystals.length === 0) throw new Error("Vacuum fusion attempted.");
+        if (crystals.length === 1) return crystals[0]!;
+
+        console.log(`[CrystalFuser] ⚡ Holographic Fusion of ${crystals.length} realities...`);
+
+        // 1. Superposition of Intents (Concatenation for now, could be Summary)
+        const mergedIntent = crystals.map(c => c.intent.primary).join(" + ");
+
+        // 2. Constraint Union (Set Theory)
+        const allConstraints = crystals.flatMap(c => c.constraints || []);
+        const uniqueConstraints = Array.from(new Set(allConstraints.map(c => JSON.stringify(c))))
+            .map(s => JSON.parse(s));
+
+        // 3. Mathematical Identity Fusion (Bundle Hashes)
+        // New Hash = Majority(Hash A, Hash B, Hash C)
+        const vectors = crystals.map(c =>
+            // We need to re-compute or parse the stored hash. 
+            // Assuming stored is Hex String.
+            Hypervector.fromString(c.verification.canonical_hash)
+        );
+        const fusedVector = Hypervector.bundle(vectors);
+
+        const master: Crystal = {
+            ...crystals[0]!,
+            context_id: `holo_master_${Date.now()}`,
+            version: '3.0.0 (Holographic)',
+            intent: {
+                primary: mergedIntent,
+                status: crystals[0]?.intent.status || CrystalStatus.ACTIVE,
+                secondary: []
+            },
+            constraints: uniqueConstraints,
+            entities: crystals.flatMap(c => c.entities || []),
+            created_at: new Date().toISOString(),
+            verification: {
+                canonical_hash: fusedVector.toString(), // The Mathematical Sum of its parts
+                semantic_invariants: [],
+                policy: crystals[0]!.verification.policy || { strictness: 'high', method: 'standard' }
+            }
+        };
+
+        return master;
+    }
 
     /**
      * Merges an array of Crystals into one.

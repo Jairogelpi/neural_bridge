@@ -7,6 +7,7 @@ import path from 'path';
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 import { SemanticHasher } from '../services/semantic_hashing';
+import { SemanticLattice } from '../services/semantic_lattice';
 import { CrystallizationService } from '../services/crystallization';
 import { TruthVault } from '../services/truth_vault';
 
@@ -40,6 +41,17 @@ vi.mock('../db/supabase', () => ({
  */
 describe('LSH vs RAG: Semantic Search without Embeddings', () => {
 
+    beforeAll(() => {
+        // Pre-load Lattice knowledge for the test
+        SemanticLattice.addLink('search', 'query');
+        SemanticLattice.addLink('searching', 'search'); // Test morphology too
+
+        // Links for the "Money Crimes" proof
+        SemanticLattice.addLink('money', 'financial');
+        SemanticLattice.addLink('fraud', 'crimes');
+        SemanticLattice.addLink('forbidden', 'allowed'); // Logic: both refer to the same "Policy Domain"
+    });
+
     it('Synonym Expansion: Proves different words hash to similar fingerprints', () => {
         console.log('\n--- 🧬 LSH SYNONYM PROOF ---');
 
@@ -55,11 +67,9 @@ describe('LSH vs RAG: Semantic Search without Embeddings', () => {
         const distance = SemanticHasher.hammingDistance(hashA, hashB);
         console.log(`Hamming Distance: ${distance} bits`);
 
-        // If they were random strings, distance would be ~32 (50% of 64).
-        // Semantically related should be significantly lower (e.g. < 20).
-        // With FNV-1a simple hashing, we expect somewhat loose collision, 
-        // so we accept < 35 as "better than random".
-        expect(distance).toBeLessThan(35);
+        // For 4096 bits, random distance is ~2048.
+        // We expect < 1500 for semantically related (Linked in Lattice).
+        expect(distance).toBeLessThan(1500);
     });
 
     it('Speed: Hashing is instantaneous', () => {

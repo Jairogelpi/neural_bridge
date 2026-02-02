@@ -54,7 +54,20 @@ docker-compose up -d
 ```
 Access the Sentinel Dashboard at `http://localhost:3000/sentinel`.
 
-### 3. SDK Integration
+### 3. Deploying to Render ☁️
+Deploy the Sovereign Node to Render using the included Blueprint:
+1.  **Fork/Push** this repository to your GitHub.
+2.  In **Render**, go to **Blueprints** and connect your repository.
+3.  Render will automatically detect the `render.yaml` file.
+4.  Configure the following **Secret Environment Variables**:
+    *   `OPENROUTER_API_KEY`
+    *   `SUPABASE_URL`
+    *   `SUPABASE_ANON_KEY`
+    *   `DATABASE_URL` (if applicable)
+    *   `JWT_SIGNING_KEY`
+5.  Click **Deploy**.
+
+### 4. SDK Integration
 ```typescript
 import { NeuralBridge } from '@neural-bridge/sdk';
 const nb = new NeuralBridge({ mode: 'pck' }); // Zero-Cost Mode

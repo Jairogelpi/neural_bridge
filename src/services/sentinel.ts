@@ -1,5 +1,6 @@
 import { supabase } from '../db/supabase';
 import { SMTRuntime } from '../smt';
+import type { Crystal } from '../types/crystal_format';
 
 export interface SentinelEvent {
     type: 'VACCINE_SYNTHESIS' | 'ORACLE_DREAM' | 'JURY_ESCALATION' | 'FRACTAL_COMPRESSION' | 'ECONOMIC_ROUTING' | 'CRYSTAL_FUSION' | 'ENTROPY_PURIFICATION' | 'CHAOS_EVOLUTION' | 'SEMANTIC_HANDSHAKE' | 'SOVEREIGN_CONSENSUS';
@@ -46,18 +47,24 @@ export class Sentinel {
         if (!vaccine) return 0;
 
         // 2. Scan for "infected" crystals (simplified check by domain)
-        const { data: crystals } = await supabase
+        const { data } = await supabase
             .from('crystals')
-            .select('context_id, verification')
+            .select('*')
             .eq('domain', vaccine.context_domain);
+
+        const crystals = (data || []) as unknown as Crystal[];
 
         if (!crystals) return 0;
 
+        // 🏛️ ZERO-CONSTANT REALITY TUNING
+        const { LogicTuner } = await import('./logic_tuner');
+        const threshold = await LogicTuner.autoCalibrationLoop(vaccine.context_domain, crystals);
+
         let healedCount = 0;
         for (const crystal of crystals) {
-            // REAL SEMANTIC SCAN: Check if crystal is affected by the vaccine's fallacy
+            // REAL SEMANTIC SCAN
             const comparison = SMTRuntime.compare(JSON.stringify(crystal), String(vaccine.meta_invariant || ""));
-            const isVulnerable = comparison.contradiction_detected || (comparison.semantic_similarity > 0.4);
+            const isVulnerable = comparison.contradiction_detected || (comparison.semantic_similarity > threshold);
 
             if (isVulnerable) {
                 console.log(`[Sentinel] 🩹 Healing Crystal ${crystal.context_id}: Applying retroactive vaccine armor.`);

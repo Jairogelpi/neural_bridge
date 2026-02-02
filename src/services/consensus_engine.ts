@@ -20,26 +20,30 @@ export interface ConsensusReceipt {
  * If GPT, Claude, and Gemini agree on a logic, the probability of 
  * individual model bias leading to error is reduced by 99.9%.
  */
-export class ConsensusEngine {
+import { ExpertRegistry } from './expert_registry';
 
-    private static JUDGES = [
-        'anthropic/claude-3.5-sonnet',
-        'openai/gpt-4o',
-        'google/gemini-pro-1.5'
-    ];
+/**
+ * BYZANTINE SEMANTIC CONSENSUS ENGINE 🌌⚖️
+ * 
+ * Goal: Establish a Universal Truth Layer by forcing agreement between 
+ * mathematically disparate model architectures. 
+ */
+export class ConsensusEngine {
 
     /**
      * Reaches a Byzantine consensus on a specific axiom or fact.
      */
     static async reachConsensus(axiom: string, domain: string): Promise<ConsensusReceipt> {
-        console.log(`[ConsensusEngine] 🌌 Establishing Universal Truth for axiom: "${axiom.substring(0, 50)}..."`);
+        console.log(`[ConsensusEngine] 🌌 Establishing Universal Truth via Dynamic Experts...`);
 
+        // 1. DYNAMIC EXPERT DISCOVERY (The Logic Killer)
+        const judges = await ExpertRegistry.findBestJudges(domain);
         const votes: Array<{ model: string; response: string; score: number }> = [];
 
-        // 1. COLLECT VOTERS IN PARALLEL
+        // 2. COLLECT VOTERS IN PARALLEL
         let results: LLMResponse[];
         try {
-            const judgePrompts = this.JUDGES.map(model => {
+            const judgePrompts = judges.map(model => {
                 const prompt = `
                 ACT AS AN ABSOLUTE REALITY VERIFIER.
                 You are part of a Byzantine Consensus Tier. 
@@ -80,13 +84,13 @@ export class ConsensusEngine {
             const score = Number(parsed.score) || 0;
             totalScore += score;
             votes.push({
-                model: this.JUDGES[i]!,
+                model: judges[i]!,
                 response: parsed.proof,
                 score: score
             });
         });
 
-        const averageConfidence = totalScore / this.JUDGES.length;
+        const averageConfidence = totalScore / (judges.length || 1);
         let decision: 'TRUTH' | 'REJECTED' | 'DISPUTED' = 'DISPUTED';
 
         if (averageConfidence > 0.8) decision = 'TRUTH';

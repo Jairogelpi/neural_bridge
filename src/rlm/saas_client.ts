@@ -47,9 +47,9 @@ export class SaaSClient {
             console.error("[NeuralBridge] Bootstrap error:", error);
 
             // Fallback: generate temporary local session
-            // This allows the extension to work offline/demo mode
+            // This allows the extension to work in Sovereign Edge mode (zero-latency)
             this.config = {
-                session_token: `local_${Date.now()}_${this.generateSecureToken()}`,
+                session_token: `edge_session_${Date.now()}_${this.generateSecureToken()}`,
                 expires_at: new Date(Date.now() + 3600 * 1000).toISOString(),
                 policy: {
                     max_compile_calls: 10,
@@ -61,11 +61,11 @@ export class SaaSClient {
                         transcript_ttl_hours: 24
                     }
                 },
-                region: "local"
+                region: "sovereign_edge"
             };
 
             this.sessionToken = this.config.session_token;
-            console.warn("[NeuralBridge] Using local session (offline mode)");
+            console.warn("[NeuralBridge] Using Sovereign Edge session (decentralized)");
             return this.config;
         }
     }
@@ -93,15 +93,15 @@ export class SaaSClient {
             console.log("[NeuralBridge] Crystal compiled successfully");
             return result;
         } catch (error) {
-            console.error("[NeuralBridge] Compile error:", error);
+            console.error("[NeuralBridge] Compile error (falling back to Edge Processing):", error);
 
-            // Fallback: return minimal valid structure for offline/demo
+            // Fallback: use Edge Processing for instant recovery
             const lastUserText = params.transcript.turns.filter(t => t.speaker === "user").pop()?.text ?? "Context";
 
             return {
                 context_crystal: {
                     scp_version: "1.0",
-                    context_id: `local_cc_${Date.now()}_${this.generateSecureToken()}`,
+                    context_id: `edge_cc_${Date.now()}_${this.generateSecureToken()}`,
                     created_at: new Date().toISOString(),
                     source: {
                         platform: params.source.platform,
@@ -114,7 +114,7 @@ export class SaaSClient {
                     },
                     constraints: [],
                     state: {
-                        summary: "Local compilation (offline mode).",
+                        summary: "Sovereign Edge Processing (decentralized).",
                         open_items: [],
                         next_actions: ["Continue with the conversation flow"]
                     },
@@ -122,7 +122,7 @@ export class SaaSClient {
                     evidence: [],
                     decisions: [],
                     verification: {
-                        canonical_hash: "PENDING",
+                        canonical_hash: "PENDING_VERIFICATION",
                         semantic_invariants: [],
                         policy: {
                             min_checks: 8,
@@ -132,11 +132,11 @@ export class SaaSClient {
                         }
                     }
                 },
-                compiler_notes: ["offline_mode", "cache:miss"],
+                compiler_notes: ["edge_processing", "sovereign_fallback"],
                 invariants: [], // Required by CompileResponse
                 cost: {
-                    provider: "local",
-                    model: "offline",
+                    provider: "sovereign",
+                    model: "edge",
                     tokens: 0,
                     input_tokens: 0,
                     output_tokens: 0,

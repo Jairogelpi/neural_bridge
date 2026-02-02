@@ -47,6 +47,7 @@ async function init() {
 
     injectFloatingButton();
     injectStyles();
+    startAutoPilot();
 }
 
 // Helper for safe runtime messages
@@ -93,7 +94,7 @@ async function handleMessage(message: any): Promise<any> {
 async function callLLM(prompt: string, model: string, systemPrompt?: string) {
     if (!apiKey) throw new Error('API key missing');
     const messages = systemPrompt ? [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }] : [{ role: 'user', content: prompt }];
-    
+
     const res = await sendToBackground({
         action: 'OPENROUTER_CALL',
         data: {
@@ -122,10 +123,10 @@ async function captureContextReal(): Promise<any> {
 
         const text = extractConversation();
         updateConsole(`Context Length: ${text.length} characters detected.`, '#94a3b8');
-        
+
         updateOverlay('running', 'Compiling Semantic Crystal (RLM v1.0)...');
         updateConsole('Executing multi-modal entity extraction...', '#6366f1');
-        
+
         // Use BACKEND for real compilation
         const compileRes = await sendToBackground({
             action: 'API_CALL',
@@ -134,8 +135,8 @@ async function captureContextReal(): Promise<any> {
                 path: '/v1/compile',
                 body: {
                     transcript: { messages: [{ role: 'user', content: text }] },
-                    compile_policy: { 
-                        mode: 'accuracy', 
+                    compile_policy: {
+                        mode: 'accuracy',
                         token_budget: 4096,
                         generate_invariants: true
                     }
@@ -144,7 +145,7 @@ async function captureContextReal(): Promise<any> {
         });
 
         if (!compileRes.success) throw new Error(compileRes.error || 'Compilation failed');
-        
+
         const crystal = compileRes.data.context_crystal;
         const invariants = compileRes.data.invariants;
         const cost = compileRes.data.cost;
@@ -165,10 +166,10 @@ async function captureContextReal(): Promise<any> {
         updateOverlay('success', `Context Crystal Forged. Total Cost: $${cost.cost_usd_est.toFixed(4)}`);
         setTimeout(hideOverlay, 2000);
         return { success: true, data: crystal };
-    } catch (err) { 
+    } catch (err) {
         updateOverlay('error', `Kernel Panic: ${err}`);
         setTimeout(hideOverlay, 5000);
-        return { success: false, error: String(err) }; 
+        return { success: false, error: String(err) };
     }
 }
 
@@ -193,12 +194,12 @@ async function verifyTransferReal(crystal: Crystal): Promise<any> {
 
     for (let level = 1; level <= totalLevels; level++) {
         updateConsole(`LADDER_STEP_${level}: Initiating ${level === 1 ? 'Semantic Stability' : 'Logical Consistency'} Test...`, '#818cf8');
-        
+
         // 1. Construct Challenge
-        const levelInvariants = level === 1 
+        const levelInvariants = level === 1
             ? crystal.invariants.slice(0, Math.ceil(crystal.invariants.length / 2))
             : crystal.invariants;
-            
+
         updateConsole(`Level ${level}: Analyzing ${levelInvariants.length} formal invariants...`, '#818cf8');
         const questions = levelInvariants.map((inv: any, i: number) => `Q${i + 1}: ${inv.prompt}`).join('\n');
         const challenge = `[LADDER_LEVEL_${level}] Please verify your understanding of the context by answering these specific questions concisely:\n\n${questions}`;
@@ -207,7 +208,7 @@ async function verifyTransferReal(crystal: Crystal): Promise<any> {
         updateConsole(`Sending level ${level} challenge to target host...`, '#6366f1');
         await sendMessage(challenge);
         const hostResponse = await waitForResponse();
-        
+
         // 3. Backend Verification
         updateOverlay('running', `Verifying Ladder Level ${level}...`);
         const verifyRes = await sendToBackground({
@@ -251,7 +252,7 @@ async function verifyTransferReal(crystal: Crystal): Promise<any> {
     const epsilon = Math.sqrt(Math.log(2 / delta) / (2 * n));
     const lowerBound = Math.max(0, finalScore - epsilon);
     const upperBound = Math.min(1, finalScore + epsilon);
-    const sri = finalScore * (1 - epsilon); 
+    const sri = finalScore * (1 - epsilon);
 
     updateConsole(`Final Formal Score: ${Math.round(finalScore * 100)}%`, '#4ade80');
     updateConsole(`PAC Epsilon (ε): ${epsilon.toFixed(4)}`, '#a5b4fc');
@@ -262,8 +263,8 @@ async function verifyTransferReal(crystal: Crystal): Promise<any> {
         timestamp: new Date().toISOString(),
         source_model: crystal.source_model,
         target_model: hostName,
-        transfer: { 
-            success: finalScore >= 0.8, 
+        transfer: {
+            success: finalScore >= 0.8,
             score: finalScore,
             pac_lower_bound: lowerBound,
             pac_epsilon: epsilon,
@@ -273,7 +274,7 @@ async function verifyTransferReal(crystal: Crystal): Promise<any> {
         total_cost_usd: crystal.metadata.generation_cost + accumulatedMetrics.cost,
         total_latency_ms: latency
     };
-    
+
     const metricsEl = document.getElementById('nb-metrics-live');
     if (metricsEl) metricsEl.textContent = `LATENCY: ${latency}ms | COST: $${metrics.total_cost_usd.toFixed(6)} | SRI: ${sri.toFixed(4)}`;
 
@@ -284,7 +285,7 @@ async function verifyTransferReal(crystal: Crystal): Promise<any> {
         target_host: hostName,
         decision: finalScore >= 0.8 ? 'ACCEPT' : 'FAIL',
         score: finalScore,
-        ladder_steps: [], 
+        ladder_steps: [],
         extension_version: '1.0.0',
         pac_bound: epsilon,
         sri: sri,
@@ -320,7 +321,7 @@ async function waitForResponse(): Promise<string> {
     let lastLen = 0;
     let stableCount = 0;
     const maxTries = 30; // Max 15s
-    
+
     for (let i = 0; i < maxTries; i++) {
         const text = extractConversation();
         if (text.length > lastLen) {
@@ -329,10 +330,10 @@ async function waitForResponse(): Promise<string> {
         } else if (text.length > 0 && text.length === lastLen) {
             stableCount++;
         }
-        
+
         // If stable for 3 checks (1.5s) and has content, assume done
         if (stableCount >= 3) return text;
-        
+
         await new Promise(r => setTimeout(r, 500));
     }
     return extractConversation();
@@ -408,6 +409,31 @@ function injectStyles() {
     const s = document.createElement('style');
     s.textContent = '@keyframes s{to{transform:rotate(360deg);}}';
     document.head.appendChild(s);
+}
+
+// AUTO-PILOT LOGIC (Zero Friction)
+let lastVerificationId: string = '';
+
+async function startAutoPilot() {
+    console.log('[Neural Bridge] Auto-Pilot Active. Monitoring Reality...');
+
+    const observer = new MutationObserver(async () => {
+        const conversation = extractConversation();
+        const messages = conversation.split('\n\n');
+        const lastMessage = messages[messages.length - 1];
+
+        // If the last message looks like an AI response and we haven't verified it yet
+        if (lastMessage && lastMessage.length > 50 && !lastMessage.includes('LADDER_LEVEL')) {
+            const res = await chrome.storage.local.get(['nb_auto_verify', 'current_crystal']);
+            if (res.nb_auto_verify && res.current_crystal && lastVerificationId !== res.current_crystal.context_id) {
+                lastVerificationId = res.current_crystal.context_id;
+                console.log('[Neural Bridge] Auto-Verify Triggered for Crystal:', lastVerificationId);
+                verifyTransferReal(res.current_crystal);
+            }
+        }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
 }
 
 function detectHost(): string {
