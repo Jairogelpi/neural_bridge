@@ -211,7 +211,7 @@ export function formatSRI(sri: SRIMetrics): string {
  */
 export function calculateReputationImpact(params: {
     sri: number;
-    tier: 'community' | 'verified' | 'certified' | 'trusted';
+    tier: 'community' | 'verified' | 'certified' | 'trusted' | 'sovereign';
     threshold: number;
 }): number {
     const { sri, tier, threshold } = params;
@@ -222,7 +222,8 @@ export function calculateReputationImpact(params: {
         community: 1.0,
         verified: 1.5,
         certified: 2.0,
-        trusted: 3.0
+        trusted: 3.0,
+        sovereign: 5.0
     };
 
     const m = multipliers[tier] || 1.0;

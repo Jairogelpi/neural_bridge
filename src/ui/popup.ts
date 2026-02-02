@@ -1,8 +1,16 @@
 // Neural Bridge - Crystal OS Logic
+import { loginAuthor, registerAuthorV2 } from "../api/client";
 
 const views = {
     live: document.getElementById('view-live')!,
-    storage: document.getElementById('view-storage')!
+    storage: document.getElementById('view-storage')!,
+    auth: document.getElementById('view-auth')!,
+    main: document.getElementById('main-content')!
+};
+
+const containers = {
+    login: document.getElementById('auth-login')!,
+    register: document.getElementById('auth-register')!
 };
 
 const tabs = {
@@ -77,10 +85,70 @@ document.getElementById('btn-copy')!.onclick = () => {
     }
 };
 
-document.getElementById('open-dashboard')!.onclick = () => {
-    chrome.tabs.create({ url: 'http://localhost:3000/dashboard' }); // Assuming dashboard is served here
+// Redirection to Dashboard
+document.getElementById('open-dashboard')!.onclick = (e) => {
+    e.preventDefault();
+    chrome.tabs.create({ url: 'https://neural-bridge-dashboard.onrender.com' });
+};
+
+// --- AUTH LOGIC ---
+
+const authError = document.getElementById('auth-error')!;
+
+async function checkAuth() {
+    const storage = await chrome.storage.local.get(['nb_auth_token', 'nb_user']);
+    if (storage.nb_auth_token && storage.nb_user) {
+        views.auth.style.display = 'none';
+        views.main.style.display = 'block';
+        document.getElementById('auth-status')!.textContent = 'SIGNED IN';
+        document.getElementById('auth-status')!.style.color = 'var(--crystal-cyan)';
+        document.getElementById('user-info')!.textContent = `${storage.nb_user.name} (@${storage.nb_user.handle})`;
+        return true;
+    } else {
+        views.auth.style.display = 'block';
+        views.main.style.display = 'none';
+        document.getElementById('auth-status')!.textContent = 'NOT SIGNED IN';
+        return false;
+    }
+}
+
+document.getElementById('link-show-register')!.onclick = () => {
+    containers.login.style.display = 'none';
+    containers.register.style.display = 'block';
+};
+
+document.getElementById('link-show-login')!.onclick = () => {
+    containers.login.style.display = 'block';
+    containers.register.style.display = 'none';
+};
+
+document.getElementById('btn-login-submit')!.onclick = async () => {
+    const email = (document.getElementById('login-email') as HTMLInputElement).value;
+    const password = (document.getElementById('login-password') as HTMLInputElement).value;
+    authError.textContent = "";
+    try {
+        await loginAuthor({ email, password });
+        await checkAuth();
+    } catch (err: any) {
+        authError.textContent = err.message || "Login failed";
+    }
+};
+
+document.getElementById('btn-register-submit')!.onclick = async () => {
+    const name = (document.getElementById('reg-name') as HTMLInputElement).value;
+    const handle = (document.getElementById('reg-handle') as HTMLInputElement).value;
+    const email = (document.getElementById('reg-email') as HTMLInputElement).value;
+    const password = (document.getElementById('reg-password') as HTMLInputElement).value;
+    authError.textContent = "";
+    try {
+        await registerAuthorV2({ name, handle, email, password });
+        await checkAuth();
+    } catch (err: any) {
+        authError.textContent = err.message || "Registration failed";
+    }
 };
 
 // Init
-setInterval(updateMetrics, 1000);
+checkAuth();
+setInterval(updateMetrics, 2000);
 updateMetrics();

@@ -85,4 +85,35 @@ export class ReputationSystem {
 
         return newReputation;
     }
+
+    /**
+     * Rewards an author for participating in a Jury Case.
+     */
+    static async rewardJuryParticipation(authorId: string, caseId: string): Promise<number> {
+        const reward = 0.02;
+
+        const { data: author } = await supabase
+            .from('authors')
+            .select('reputation')
+            .eq('author_id', authorId)
+            .single();
+
+        if (!author) return 0;
+
+        const newReputation = Math.min(1.0, author.reputation + reward);
+
+        await supabase
+            .from('authors')
+            .update({ reputation: newReputation })
+            .eq('author_id', authorId);
+
+        await supabase.from('reputation_ledger').insert({
+            author_id: authorId,
+            delta: reward,
+            new_reputation: newReputation,
+            reason: `Jury participation: ${caseId}`,
+        });
+
+        return newReputation;
+    }
 }

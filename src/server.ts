@@ -35,6 +35,7 @@ import { ReputationSystem } from './services/reputation';
 import { ConsensusEngine } from './services/consensus';
 import { NeuralBridge } from './index';
 import { AuthService } from './services/auth';
+import { JuryService } from './services/jury_service';
 
 // Universal SDK Instance for API users
 const bridgeMap: Map<string, NeuralBridge> = new Map();
@@ -102,6 +103,42 @@ app.post('/v1/auth/login', async (req: Request, res: Response) => {
         res.json({ success: true, ...result });
     } catch (error) {
         res.status(401).json({ error: (error as Error).message });
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// JURY & CONSENSUS ENDPOINTS (Authenticated)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+app.get('/v1/jury/cases', AuthService.authenticate, async (req: Request, res: Response) => {
+    try {
+        const cases = await JuryService.getPendingCases();
+        res.json({ success: true, cases });
+    } catch (error) {
+        res.status(500).json({ error: (error as Error).message });
+    }
+});
+
+app.post('/v1/jury/vote', AuthService.authenticate, async (req: Request, res: Response) => {
+    try {
+        const { case_id, decision, signature } = req.body;
+        const author_id = (req as any).user.author_id;
+
+        if (!case_id || !decision || !signature) {
+            res.status(400).json({ error: 'Missing voting data' });
+            return;
+        }
+
+        const success = await JuryService.recordExpertVote({
+            case_id,
+            author_id,
+            decision,
+            signature
+        });
+
+        res.json({ success });
+    } catch (error) {
+        res.status(500).json({ error: (error as Error).message });
     }
 });
 

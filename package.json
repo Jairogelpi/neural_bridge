@@ -15,7 +15,10 @@
   },
   "scripts": {
     "dev": "vite build --watch",
-    "build": "npm run build:ext && npm run build:sdk",
+    "build": "npm run build:all",
+    "build:all": "npm run build:dash && npm run build:sync-ext && npm run build:ext && npm run build:sdk",
+    "build:dash": "cd dashboard && npm run build",
+    "build:sync-ext": "tsx scripts/sync-next-ext.ts",
     "build:ext": "vite build",
     "build:sdk": "vite build -c vite.sdk.config.ts && tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -51,11 +54,13 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.93.3",
+    "@types/fs-extra": "^11.0.4",
     "axios": "^1.13.4",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^4.18.2",
+    "fs-extra": "^11.3.3",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.18.0"
   },

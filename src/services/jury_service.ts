@@ -1,10 +1,11 @@
 import { supabase } from '../db/supabase';
+import { ReputationSystem } from './reputation';
 
 interface JuryVote {
-    expert_id: string;
+    author_id: string;
     signature: string;
     decision: string;
-    experts: {
+    authors: {
         public_key: string;
         domain: string;
     };
@@ -29,6 +30,20 @@ export interface JuryEscalation {
  * 4. Finalize: Once a threshold of signatures is reached, the Crystal is finalized.
  */
 export class JuryService {
+
+    /**
+     * Get all pending jury cases
+     */
+    static async getPendingCases(): Promise<JuryEscalation[]> {
+        const { data, error } = await supabase
+            .from('jury_cases')
+            .select('*')
+            .eq('status', 'pending')
+            .order('created_at', { ascending: false });
+
+        if (error) throw new Error(error.message);
+        return data as JuryEscalation[];
+    }
 
     /**
      * Escalates an uncertain claim to the human jury.
@@ -64,14 +79,14 @@ export class JuryService {
      */
     static async recordExpertVote(params: {
         case_id: string;
-        expert_id: string;
+        author_id: string;
         decision: 'ACCEPT' | 'FAIL';
         signature: string; // The cryptographic proof
     }): Promise<boolean> {
-        const { case_id, expert_id, decision, signature } = params;
+        const { case_id, author_id, decision, signature } = params;
 
         // 1. VERIFY SIGNATURE (Mathematical Rigor)
-        const isValid = await this.verifySignature(expert_id, case_id, signature);
+        const isValid = await this.verifySignature(author_id, case_id, signature);
         if (!isValid) {
             console.error('[JuryService] 🛡️ CRYPTOGRAPHIC FAILURE: Signature is invalid.');
             return false;
@@ -80,7 +95,7 @@ export class JuryService {
         // 2. Store vote
         const { error } = await supabase.from('jury_votes').insert({
             case_id,
-            expert_id,
+            author_id,
             decision,
             signature
         });
@@ -100,6 +115,9 @@ export class JuryService {
             await this.finalizeCase(case_id);
         }
 
+        // 4. Reward participation
+        await ReputationSystem.rewardJuryParticipation(author_id, case_id);
+
         return true;
     }
 
@@ -117,8 +135,8 @@ export class JuryService {
             .select(`
                 decision,
                 signature,
-                expert_id,
-                experts (name, public_key, domain)
+                author_id,
+                authors (name, public_key, domain)
             `)
             .eq('case_id', caseId);
 
@@ -146,11 +164,11 @@ export class JuryService {
                 if (crystal) {
                     const expertSignatures = (votes as unknown as JuryVote[]).map(v => ({
                         algorithm: 'ECDSA-P256' as const,
-                        public_key: v.experts.public_key,
+                        public_key: v.authors.public_key,
                         signature: v.signature,
                         timestamp: new Date().toISOString(),
-                        expert_id: v.expert_id,
-                        domain: v.experts.domain
+                        author_id: v.author_id,
+                        domain: v.authors.domain
                     }));
 
                     const updatedVerification = {

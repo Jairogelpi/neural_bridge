@@ -12,7 +12,10 @@ import type {
     VerifyRequest,
     VerifyResponse,
     Crystal,
-    GenerateInvariantsResponse
+    GenerateInvariantsResponse,
+    LoginRequest,
+    RegisterRequest,
+    AuthResponse
 } from "./types";
 
 function idempotencyKey(): string {
@@ -35,7 +38,12 @@ function browserInfo(): { name: "chrome" | "edge" | "brave" | "other"; version: 
 
 /** Ensure we have a valid session token. Refresh if expired. */
 export async function ensureSession(extensionVersion: string): Promise<string> {
-    const s = await getSession();
+    // 1. Check for User Auth Token (Highest priority)
+    const storage = await chrome.storage.local.get(['nb_auth_token', 'nb_session']);
+    if (storage.nb_auth_token) return storage.nb_auth_token;
+
+    // 2. Fallback to Anonymous Session
+    const s = storage.nb_session || { token: "", expiresAt: "" };
     if (s.token && !isExpired(s.expiresAt)) return s.token;
 
     const install_id = await getOrCreateInstallId();
@@ -177,6 +185,38 @@ export async function getAuthor(params: {
         headers: { Authorization: `Bearer ${token}` },
         timeoutMs: 10_000,
     });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// NEW AUTHENTICATION API (Phase 7)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export async function loginAuthor(params: LoginRequest): Promise<AuthResponse> {
+    const res = await fetchJSON<AuthResponse>(`${API_BASE_URL}/v1/auth/login`, {
+        method: "POST",
+        body: JSON.stringify(params),
+        timeoutMs: 15_000,
+    });
+    // Save to storage
+    await chrome.storage.local.set({
+        nb_auth_token: res.token,
+        nb_user: res.author
+    });
+    return res;
+}
+
+export async function registerAuthorV2(params: RegisterRequest): Promise<AuthResponse> {
+    const res = await fetchJSON<AuthResponse>(`${API_BASE_URL}/v1/auth/register`, {
+        method: "POST",
+        body: JSON.stringify(params),
+        timeoutMs: 15_000,
+    });
+    // Save to storage
+    await chrome.storage.local.set({
+        nb_auth_token: res.token,
+        nb_user: res.author
+    });
+    return res;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

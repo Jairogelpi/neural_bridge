@@ -9,7 +9,8 @@
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;700&display=swap"
     rel="stylesheet">
   <script type="module" crossorigin src="/assets/popup.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/popup-Cw8cm5Nd.css">
+  <link rel="modulepreload" crossorigin href="/assets/client-CGcdomT2.js">
+  <link rel="stylesheet" crossorigin href="/assets/popup-BXDxYaVm.css">
 </head>
 
 <body>
@@ -19,75 +20,116 @@
       <div class="usb-icon"></div>
       NEURAL BRIDGE
     </div>
-    <div style="font-size: 10px; color: var(--crystal-cyan);">CONNECTED</div>
+    <div id="auth-status" style="font-size: 10px; color: var(--text-muted);">NOT SIGNED IN</div>
   </div>
 
-  <div class="tabs">
-    <div class="tab active" id="tab-live">Live Link</div>
-    <div class="tab" id="tab-storage">Crystal Storage</div>
-  </div>
-
-  <!-- LIVE MODE: REALITY MATRIX (v2.0) -->
-  <div id="view-live">
-
-    <!-- REALITY SENSOR (The Core Innovation) -->
-    <div class="crystal-viewer reality-sensor" id="sensor-container">
-      <div class="shard" id="reality-shard"></div>
-
-      <div class="sensor-readout">
-        <div class="readout-label">ONTOLOGY STATUS</div>
-        <div class="readout-value valid" id="uSID-status">VALID REALITY</div>
+  <!-- AUTH VIEW -->
+  <div id="view-auth" style="display: none; padding: 20px;">
+    <div id="auth-login">
+      <div style="font-size: 12px; font-weight: bold; margin-bottom: 15px; color: var(--crystal-cyan);">IDENTIFY
+        YOURSELF</div>
+      <div class="input-group">
+        <input type="email" id="login-email" placeholder="Email" class="cyber-input" />
+        <input type="password" id="login-password" placeholder="Password" class="cyber-input" />
       </div>
+      <button class="cyber-btn primary" id="btn-login-submit" style="width: 100%; margin-top: 10px;">SIGN IN</button>
+      <div style="text-align: center; margin-top: 10px;">
+        <a href="#" id="link-show-register" style="font-size: 10px; color: var(--text-muted);">Need an identity?
+          Register</a>
+      </div>
+    </div>
 
-      <div class="sensor-details">
-        <div class="detail-row">
-          <span>DOMAIN:</span>
-          <span id="domain-scan" class="highlight">SCANNING...</span>
+    <div id="auth-register" style="display: none;">
+      <div style="font-size: 12px; font-weight: bold; margin-bottom: 15px; color: var(--crystal-cyan);">CREATE IDENTITY
+      </div>
+      <div class="input-group">
+        <input type="text" id="reg-name" placeholder="Full Name" class="cyber-input" />
+        <input type="text" id="reg-handle" placeholder="Handle" class="cyber-input" />
+        <input type="email" id="reg-email" placeholder="Email" class="cyber-input" />
+        <input type="password" id="reg-password" placeholder="Password" class="cyber-input" />
+      </div>
+      <button class="cyber-btn primary" id="btn-register-submit"
+        style="width: 100%; margin-top: 10px;">INITIALIZE</button>
+      <div style="text-align: center; margin-top: 10px;">
+        <a href="#" id="link-show-login" style="font-size: 10px; color: var(--text-muted);">Already identified?
+          Login</a>
+      </div>
+    </div>
+
+    <div id="auth-error" style="color: #ff4d4d; font-size: 10px; margin-top: 10px; text-align: center;"></div>
+  </div>
+
+  <div id="main-content">
+    <div class="tabs">
+      <div class="tab active" id="tab-live">Live Link</div>
+      <div class="tab" id="tab-storage">Crystal Storage</div>
+    </div>
+
+    <!-- LIVE MODE: REALITY MATRIX (v2.0) -->
+    <div id="view-live">
+
+      <!-- REALITY SENSOR (The Core Innovation) -->
+      <div class="crystal-viewer reality-sensor" id="sensor-container">
+        <div class="shard" id="reality-shard"></div>
+
+        <div class="sensor-readout">
+          <div class="readout-label">ONTOLOGY STATUS</div>
+          <div class="readout-value valid" id="uSID-status">VALID REALITY</div>
         </div>
-        <div class="detail-row">
-          <span>INVARIANTS:</span>
-          <span id="invariant-count">--</span>
+
+        <div class="sensor-details">
+          <div class="detail-row">
+            <span>DOMAIN:</span>
+            <span id="domain-scan" class="highlight">SCANNING...</span>
+          </div>
+          <div class="detail-row">
+            <span>INVARIANTS:</span>
+            <span id="invariant-count">--</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- METRICS GRID -->
+      <div class="metrics-panel">
+        <div class="metric-row">
+          <span>SEMANTIC FIDELITY (SRI)</span>
+          <span id="val-fidelity">--%</span>
+        </div>
+        <div class="metric-bar">
+          <div class="metric-fill" id="bar-fidelity"></div>
+        </div>
+
+        <div style="margin-top: 12px;" class="metric-row">
+          <span>TOKEN EFFICIENCY</span>
+          <span id="val-tokens">--</span>
         </div>
       </div>
     </div>
 
-    <!-- METRICS GRID -->
-    <div class="metrics-panel">
-      <div class="metric-row">
-        <span>SEMANTIC FIDELITY (SRI)</span>
-        <span id="val-fidelity">--%</span>
-      </div>
-      <div class="metric-bar">
-        <div class="metric-fill" id="bar-fidelity"></div>
-      </div>
+    <!-- STORAGE MODE (Paste/Copy) -->
+    <div id="view-storage" style="display: none; padding: 16px;">
+      <div style="font-size: 10px; margin-bottom: 8px; color: var(--text-muted);">INJECT CRYSTAL (JSON)</div>
+      <textarea id="crystal-input" placeholder="Paste Crystal JSON here..."></textarea>
 
-      <div style="margin-top: 12px;" class="metric-row">
-        <span>TOKEN EFFICIENCY</span>
-        <span id="val-tokens">--</span>
+      <div class="action-grid">
+        <button class="cyber-btn" id="btn-inject">
+          <i>⚡</i>
+          Inject
+        </button>
+        <button class="cyber-btn" id="btn-copy">
+          <i>📋</i>
+          Copy Active
+        </button>
       </div>
     </div>
+
   </div>
 
-  <!-- STORAGE MODE (Paste/Copy) -->
-  <div id="view-storage" style="display: none; padding: 16px;">
-    <div style="font-size: 10px; margin-bottom: 8px; color: var(--text-muted);">INJECT CRYSTAL (JSON)</div>
-    <textarea id="crystal-input" placeholder="Paste Crystal JSON here..."></textarea>
-
-    <div class="action-grid">
-      <button class="cyber-btn" id="btn-inject">
-        <i>⚡</i>
-        Inject
-      </button>
-      <button class="cyber-btn" id="btn-copy">
-        <i>📋</i>
-        Copy Active
-      </button>
-    </div>
-  </div>
-
-  <div style="padding: 10px; text-align: center;">
-    <a href="#" id="open-dashboard" style="font-size: 10px; color: var(--text-muted); text-decoration: none;">OPEN FULL
-      DASHBOARD -></a>
+  <div id="user-footer"
+    style="padding: 10px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+    <div id="user-info" style="font-size: 10px; color: var(--text-muted);"></div>
+    <a href="#" id="open-dashboard"
+      style="font-size: 10px; color: var(--crystal-cyan); text-decoration: none;">DASHBOARD -></a>
   </div>
 
 </body>

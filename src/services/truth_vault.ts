@@ -210,4 +210,31 @@ Do these conflict?`;
 
         return RLMEngine.rankCandidates(topCrystals, totalSystemUsage, domain);
     }
+
+    /**
+     * Checks if the incoming text contradicts previously verified truths.
+     */
+    static checkReality(text: string): { is_conflict: boolean; contradiction_reason?: string; conflicting_entry?: any } {
+        // In a real implementation, this would perform a semantic similarity search
+        // against the local Truth Vault (indexed by SHA-256 and SMT hashes).
+        // For the MVP, we simulate consistency checks.
+        return { is_conflict: false };
+    }
+
+    /**
+     * Corrects a conflicting reality based on the Truth Vault's source of truth.
+     */
+    static healReality(text: string, conflict: any): string {
+        return text; // Return as-is if no healing logic implemented yet
+    }
+
+    /**
+     * Crystallizes a new truth into the global archive.
+     */
+    static async saveTruth(params: { content: string; domain: string; smt: any; pck?: any; score: number }): Promise<void> {
+        console.log(`[TruthVault] 💎 Crystallizing new truth in domain: ${params.domain}`);
+        // Insert into Supabase logic would go here
+    }
 }
+
+export const truthVault = TruthVault;

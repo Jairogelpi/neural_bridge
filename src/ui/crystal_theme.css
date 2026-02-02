@@ -208,3 +208,33 @@ textarea {
     resize: none;
     height: 100px;
 }
+
+/* Authentication */
+.cyber-input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--text-muted);
+    color: var(--text-main);
+    padding: 10px;
+    margin-bottom: 8px;
+    font-family: var(--font-tech);
+    font-size: 11px;
+    box-sizing: border-box;
+}
+
+.cyber-input:focus {
+    border-color: var(--crystal-cyan);
+    outline: none;
+}
+
+button.cyber-btn.primary {
+    background: var(--crystal-cyan);
+    color: var(--bg-dark);
+    font-weight: bold;
+    flex-direction: row;
+}
+
+button.cyber-btn.primary:hover {
+    background: #fff;
+    box-shadow: 0 0 20px var(--crystal-cyan);
+}

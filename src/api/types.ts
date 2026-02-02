@@ -142,3 +142,29 @@ export interface GenerateInvariantsResponse {
 
 export type Crystal = Record<string, unknown>;
 
+export interface LoginRequest {
+    email: string;
+    password: string;
+}
+
+export interface RegisterRequest {
+    name: string;
+    handle: string;
+    email: string;
+    password: string;
+}
+
+export interface AuthResponse {
+    success: boolean;
+    author: {
+        author_id: string;
+        name: string;
+        handle: string;
+        email: string;
+        tier: string;
+        reputation: number;
+        public_key: string;
+    };
+    token: string;
+}
+

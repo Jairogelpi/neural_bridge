@@ -12,7 +12,7 @@ import { SMTRuntime } from "../smt";
 import type { SemanticMerkleTree } from "../smt";
 import { CLPVRuntime } from "../clpv";
 import type { PortableReceipt } from "../clpv";
-import { truthVault } from "../features/truth_vault";
+import { truthVault } from "../services/truth_vault";
 import type { Crystal } from "../api/types";
 
 export type TrustState = 'idle' | 'scanning' | 'verified' | 'warning' | 'blocked';
