@@ -1,15 +1,13 @@
 // Bridge Flow - Complete End-to-End Integration
 // Connects: Crystal → Invariants → Retry Ladder → Verification → Telemetry
 
-import { overlaySet, overlay } from "./ui/overlay";
-import { reportVerifyTelemetry } from "../api/client";
+import { overlay } from "./ui/overlay";
 import { VerificationService } from "../services/verification_service";
-import { extractFirstJSON } from "../shared/jsonExtract";
 import type { Invariant } from "./verifier/verifier";
 import type { Platform } from "../api/types";
 
 export interface BridgeFlowParams {
-    crystal: any;
+    crystal: Record<string, unknown>;
     invariants: Invariant[];
     canonicalHash: string;
     acceptThreshold?: number;
@@ -25,8 +23,8 @@ export interface BridgeFlowResult {
     ok: boolean;
     score: number;
     decision: "ACCEPT" | "RETRY" | "FAIL";
-    attempts: any[];
-    finalParsed?: any;
+    attempts: unknown[];
+    finalParsed?: unknown;
 }
 
 /**
@@ -39,11 +37,7 @@ export interface BridgeFlowResult {
 export async function runBridgeFlow(params: BridgeFlowParams): Promise<BridgeFlowResult> {
     const {
         crystal,
-        invariants,
         canonicalHash,
-        acceptThreshold = 0.85,
-        platform,
-        extensionVersion,
         host,
     } = params;
 
@@ -56,7 +50,7 @@ export async function runBridgeFlow(params: BridgeFlowParams): Promise<BridgeFlo
 
         const result = await VerificationService.verify({
             context_id: crystal.context_id || canonicalHash,
-            domain: (params as any).domain || 'general',
+            domain: String((params.crystal as Record<string, unknown>).domain || 'general'),
             question: "Semantic Transfer Verification",
             answer: answer,
             mode: 'active',

@@ -5,7 +5,7 @@
 
 declare const chrome: {
     runtime: {
-        sendMessage(message: unknown): Promise<any>;
+        sendMessage(message: unknown): Promise<unknown>;
     };
 };
 

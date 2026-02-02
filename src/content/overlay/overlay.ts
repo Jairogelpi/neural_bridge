@@ -217,7 +217,7 @@ export function mountOverlay(handlers: OverlayHandlers) {
     }
   });
 
-  function renderList(cards: Array<any>, activeId?: string) {
+  function renderList(cards: Array<Record<string, unknown>>, activeId?: string) {
     listEl.innerHTML = "";
     if (!cards.length) {
       listEl.innerHTML = `<div style="font-size:12px;color:#64748b;text-align:center;padding:20px;">No captures detected. Sync to start.</div>`;
@@ -232,11 +232,11 @@ export function mountOverlay(handlers: OverlayHandlers) {
       div.innerHTML = `
         <div class="meta">
           <span>${c.platform}</span>
-          <span>${new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+          <span>${new Date(c.created_at as string).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
           ${isActive ? `<span class="nb-badge">Active</span>` : ""}
         </div>
-        <div class="title">${escapeHtml(c.title ?? "Neural Capture")}</div>
-        <div class="preview">${escapeHtml(c.preview ?? "").slice(0, 180)}...</div>
+        <div class="title">${escapeHtml((c.title as string) ?? "Neural Capture")}</div>
+        <div class="preview">${escapeHtml((c.preview as string) ?? "").slice(0, 180)}...</div>
         <div class="card-actions">
           <button class="nb-small-btn primary" data-act="active" data-id="${c.id}">Focus</button>
           <button class="nb-small-btn" data-act="copy-tx" data-id="${c.id}">TX</button>
