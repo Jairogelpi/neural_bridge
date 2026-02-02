@@ -1,4 +1,14 @@
 import { supabase } from '../db/supabase';
+
+interface JuryVote {
+    expert_id: string;
+    signature: string;
+    decision: string;
+    experts: {
+        public_key: string;
+        domain: string;
+    };
+}
 import { Crystal } from '../types/crystal_format';
 
 export interface JuryEscalation {
@@ -107,7 +117,7 @@ export class JuryService {
 
         if (!votes || votes.length === 0) return;
 
-        const acceptCount = votes.filter((v: any) => v.decision === 'ACCEPT').length;
+        const acceptCount = votes.filter((v: { decision: string }) => v.decision === 'ACCEPT').length;
         const finalDecision = acceptCount > (votes.length / 2) ? 'ACCEPT' : 'FAIL';
 
         // 2. Update jury case status
@@ -127,8 +137,8 @@ export class JuryService {
                 const { data: crystal } = await supabase.from('crystals').select('verification').eq('context_id', caseData.context_id).single();
 
                 if (crystal) {
-                    const expertSignatures = (votes as any[]).map(v => ({
-                        algorithm: 'ECDSA-P256',
+                    const expertSignatures = (votes as unknown as JuryVote[]).map(v => ({
+                        algorithm: 'ECDSA-P256' as const,
                         public_key: v.experts.public_key,
                         signature: v.signature,
                         timestamp: new Date().toISOString(),

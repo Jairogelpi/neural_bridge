@@ -1,6 +1,8 @@
 // Model-Agnostic Routing: Crystal Determines Model Fitness
 // Acts as a semantic firewall based on domain risk and complexity
 
+import { Crystal } from '../types/crystal_format';
+
 export interface ModelRequirements {
     min_sri_threshold: number;
     requires_external_verification: boolean;
@@ -20,7 +22,7 @@ export interface CrystalComplexity {
 /**
  * Calculate Crystal complexity and risk
  */
-export function calculateComplexity(crystal: any): CrystalComplexity {
+export function calculateComplexity(crystal: Crystal): CrystalComplexity {
     const constraints = crystal.constraints || [];
     const entities = crystal.entities || [];
 
@@ -32,7 +34,7 @@ export function calculateComplexity(crystal: any): CrystalComplexity {
 
     // Count invariants and counterfactuals
     const invariant_count = crystal.verification?.semantic_invariants?.length || 0;
-    const counterfactual_count = constraints.filter((c: any) =>
+    const counterfactual_count = constraints.filter((c) =>
         c.tags?.includes('counterfactual')
     ).length;
 
@@ -134,7 +136,7 @@ export function determineModelRequirements(complexity: CrystalComplexity): Model
  */
 export function validateModelForCrystal(params: {
     model: string;
-    crystal: any;
+    crystal: Crystal;
 }): { allowed: boolean; reason?: string; requirements: ModelRequirements } {
     const { model, crystal } = params;
 
@@ -158,7 +160,7 @@ export function validateModelForCrystal(params: {
 }
 
 // Helper functions
-function detectDomain(crystal: any): string {
+function detectDomain(crystal: Crystal): string {
     const text = JSON.stringify(crystal).toLowerCase();
 
     if (text.includes('patient') || text.includes('drug') || text.includes('treatment')) {

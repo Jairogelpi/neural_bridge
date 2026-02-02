@@ -1,3 +1,5 @@
+import { Crystal } from '../types/crystal_format';
+
 export type KnowledgeDomain = string;
 
 export interface DomainScore {
@@ -71,7 +73,7 @@ export const DomainHeuristics = {
 
             const response = await SCPService.callLLM(prompt, 'liquid/lfm-2.5-1.2b-instruct:free');
             const detected = response.content.toLowerCase().trim().replace(/[^a-z0-9_]/g, '');
-            
+
             if (detected && detected.length > 2) {
                 return detected as KnowledgeDomain;
             }
@@ -87,9 +89,9 @@ export const DomainHeuristics = {
      * Detects obvious constraint violations without calling LLM
      * Returns immediately if a clear violation is found
      */
-    quickSafetyCheck(crystal: any, answer: string): { 
-        obviousViolation: boolean; 
-        reason: string; 
+    quickSafetyCheck(crystal: Crystal, answer: string): {
+        obviousViolation: boolean;
+        reason: string;
         violatedConstraint?: string;
         confidence: number;
     } {
@@ -120,7 +122,7 @@ export const DomainHeuristics = {
         for (const constraint of constraints) {
             if (constraint.rule === 'NEVER') {
                 const constraintKeywords = constraint.value.toLowerCase().split(/\s+/).filter((w: string) => w.length > 3);
-                
+
                 // Check if answer suggests doing the forbidden thing
                 const suggestsViolation = constraintKeywords.some((keyword: string) => {
                     // Check for permissive language about the forbidden action

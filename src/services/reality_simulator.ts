@@ -35,9 +35,10 @@ export class RealitySimulator {
         `;
 
         const res = await SCPService.resilientCallLLM(simulationPrompt, 'google/gemini-2.0-flash-exp:free', 'You are a Reality Hacker.');
-        let scenarios;
+        let scenarios: any[] = [];
         try {
             scenarios = JSON.parse(res.content);
+            if (!Array.isArray(scenarios)) scenarios = [scenarios];
         } catch {
             return { stability_score: 0.5, failures: ["Simulation Engine Failure"] };
         }
@@ -46,10 +47,11 @@ export class RealitySimulator {
         const failures: string[] = [];
         let score = 1.0;
 
-        for (const scene of (scenarios as any)) {
+        for (const scene of scenarios) {
             const check = Math.random(); // Simulation logic
             if (check < 0.2) {
-                failures.push(`Conflict detected in scenario: "${scene.description || scene}"`);
+                const desc = typeof scene === 'string' ? scene : (scene.description || JSON.stringify(scene));
+                failures.push(`Conflict detected in scenario: "${desc}"`);
                 score -= 0.3;
             }
         }

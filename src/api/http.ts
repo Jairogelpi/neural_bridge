@@ -3,9 +3,9 @@ import { API_TIMEOUT_MS } from "../config";
 export class ApiError extends Error {
     status?: number | undefined;
     code?: string | undefined;
-    details?: any;
+    details?: unknown;
 
-    constructor(message: string, opts?: { status?: number; code?: string; details?: any }) {
+    constructor(message: string, opts?: { status?: number; code?: string; details?: unknown }) {
         super(message);
         this.name = "ApiError";
         this.status = opts?.status;
@@ -40,11 +40,12 @@ export async function fetchJSON<T>(url: string, init: RequestInit & { timeoutMs?
             });
         }
 
-        return (body ?? ({} as any)) as T;
-    } catch (e: any) {
-        if (e?.name === "AbortError") throw new ApiError("request_timeout", { code: "timeout" });
+        return (body ?? ({} as unknown)) as T;
+    } catch (e: unknown) {
+        if (e && typeof e === 'object' && 'name' in e && e.name === "AbortError") throw new ApiError("request_timeout", { code: "timeout" });
         if (e instanceof ApiError) throw e;
-        throw new ApiError(e?.message ?? "network_error", { code: "network_error" });
+        const msg = (e && typeof e === 'object' && 'message' in e && typeof e.message === 'string') ? e.message : "network_error";
+        throw new ApiError(msg, { code: "network_error" });
     } finally {
         clearTimeout(t);
     }

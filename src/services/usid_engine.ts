@@ -3,7 +3,9 @@ import {
     UniversalConstraint,
     uSidResult,
     SystemCapabilities,
-    DEFAULT_CAPABILITIES
+    DEFAULT_CAPABILITIES,
+    UnsatCoreItem,
+    ConflictRepair
 } from '../types/usid';
 
 export class UsidEngine {
@@ -31,8 +33,9 @@ export class UsidEngine {
         try {
             const response = await SCPService.resilientCallLLM(intent, 'nvidia/nemotron-3-nano-30b-a3b:free', systemPrompt);
             return JSON.parse(response.content);
-        } catch (e: any) {
-            if (e.message === 'SOVEREIGN_REQUIRED') {
+        } catch (e: unknown) {
+            const msg = (e && typeof e === 'object' && 'message' in e && typeof e.message === 'string') ? e.message : '';
+            if (msg === 'SOVEREIGN_REQUIRED') {
                 console.log("[uSID] 🛡️ Sovereign mode active: Synthesizing structural constraints...");
                 return [{ id: 'sov_c1', type: 'CAPABILITY', key: 'requires', op: 'in', value: ['axiomatic_integrity'] }];
             }
@@ -53,7 +56,7 @@ export class UsidEngine {
         const constraints = await this.compileIntent(intent);
         if (constraints.length === 0) return { status: 'UNKNOWN', message: "Could not parse constraints" };
 
-        const unsatCore: any[] = [];
+        const unsatCore: UnsatCoreItem[] = [];
         const conflicts: string[] = [];
 
         // 2. RUN UNIVERSAL RULES (The "Laws of Logic")
@@ -119,7 +122,7 @@ export class UsidEngine {
         };
     }
 
-    static async checkLogicalConsistency(constraints: UniversalConstraint[]): Promise<{ consistent: boolean, conflicts: any[], ids: string[] }> {
+    static async checkLogicalConsistency(constraints: UniversalConstraint[]): Promise<{ consistent: boolean, conflicts: UnsatCoreItem[], ids: string[] }> {
         const prompt = `
         Start by analyzing these constraints looking for LOGICAL CONTRADICTIONS.
         ${JSON.stringify(constraints, null, 2)}
@@ -134,14 +137,24 @@ export class UsidEngine {
 
         try {
             const res = await SCPService.resilientCallLLM("Analyze Consistency", 'nvidia/nemotron-3-nano-30b-a3b:free', prompt);
-            return JSON.parse(res.content);
-        } catch (e: any) {
-            if (e.message === 'SOVEREIGN_REQUIRED') return { consistent: true, conflicts: [], ids: [] };
+            const parsed = JSON.parse(res.content);
+            return {
+                consistent: !!parsed.consistent,
+                conflicts: (parsed.conflicts || []).map((c: { constraint_id: string; reason: string }) => ({
+                    constraint_id: c.constraint_id,
+                    constraint_desc: 'Logical Contradiction',
+                    conflict_reason: c.reason
+                })),
+                ids: parsed.ids || []
+            };
+        } catch (e: unknown) {
+            const msg = (e && typeof e === 'object' && 'message' in e && typeof e.message === 'string') ? e.message : '';
+            if (msg === 'SOVEREIGN_REQUIRED') return { consistent: true, conflicts: [], ids: [] };
             return { consistent: true, conflicts: [], ids: [] };
         }
     }
 
-    static async generateRepairs(unsatCore: any[]): Promise<any[]> {
+    static async generateRepairs(unsatCore: UnsatCoreItem[]): Promise<ConflictRepair[]> {
         const prompt = `
         Given these UNSATISFIABLE Constraints, suggest repairs:
         ${JSON.stringify(unsatCore)}
@@ -150,7 +163,7 @@ export class UsidEngine {
         `;
         const res = await SCPService.callLLM("Suggest Repairs", 'anthropic/claude-3.5-sonnet', prompt);
         try {
-            return JSON.parse(res.content);
+            return JSON.parse(res.content) as ConflictRepair[];
         } catch {
             return [];
         }

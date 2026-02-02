@@ -1,6 +1,7 @@
 import { supabase } from '../db/supabase';
 import { SCPService } from './llm';
 import { Attestation } from './attestation';
+import { Crystal } from '../types/crystal_format';
 
 export interface Contradiction {
     crystal_id_a: string;
@@ -20,7 +21,7 @@ export class TruthVault {
     /**
      * Scan for contradictions between a new crystal and existing ones.
      */
-    static async scanForContradictions(newCrystal: any): Promise<Contradiction[]> {
+    static async scanForContradictions(newCrystal: Crystal): Promise<Contradiction[]> {
         // 1. Get similar crystals from Supabase (by domain or tags)
         const { data: existingCrystals, error } = await supabase
             .from('kv_store')

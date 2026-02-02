@@ -159,7 +159,7 @@ export function calculateSRI(params: {
  */
 export function externalDeterministicVerification(params: {
     fact: AtomicFact;
-    actual_value: any;
+    actual_value: unknown;
 }): { passed: boolean; method: string } {
     const { fact, actual_value } = params;
 
@@ -225,7 +225,7 @@ export function calculateReputationImpact(params: {
         trusted: 3.0
     };
 
-    const m = (multipliers as any)[tier] || 1.0;
+    const m = multipliers[tier] || 1.0;
 
     // Impact is delta * multiplier, capped at sensible ranges
     // Win: small gain, Loss: heavy penalty (Asymmetric Risk)

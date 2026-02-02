@@ -67,6 +67,9 @@ export interface DecisionReceipt {
         approved_at?: string;
         notes?: string;
     };
+
+    /** Optional: Flag for high-performance turbo mode */
+    turbo_mode?: boolean;
 }
 
 export class DecisionReceipts {

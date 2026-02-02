@@ -4,7 +4,7 @@ export interface SentinelEvent {
     type: 'VACCINE_SYNTHESIS' | 'ORACLE_DREAM' | 'JURY_ESCALATION' | 'FRACTAL_COMPRESSION' | 'ECONOMIC_ROUTING' | 'CRYSTAL_FUSION' | 'ENTROPY_PURIFICATION' | 'CHAOS_EVOLUTION' | 'SEMANTIC_HANDSHAKE' | 'SOVEREIGN_CONSENSUS';
     severity: 'info' | 'warning' | 'critical';
     message: string;
-    details: any;
+    details: Record<string, unknown>;
     timestamp: string;
 }
 

@@ -16,7 +16,8 @@ import type {
 } from "./types";
 
 function idempotencyKey(): string {
-    return (crypto as any).randomUUID
+    const hasRandomUUID = typeof crypto !== 'undefined' && 'randomUUID' in crypto && typeof (crypto as any).randomUUID === 'function';
+    return hasRandomUUID
         ? (crypto as any).randomUUID()
         : `idem_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
@@ -88,7 +89,7 @@ export async function compile(params: {
             body: JSON.stringify(params.req),
             timeoutMs: 30_000,
         });
-    } catch (e: any) {
+    } catch (e: unknown) {
         if (e instanceof ApiError && e.status === 401) {
             await setSession("", "", null);
             const token2 = await ensureSession(params.extensionVersion);
@@ -153,11 +154,11 @@ export async function registerAuthor(params: {
     extensionVersion: string;
 }): Promise<{ author_id: string; status: string }> {
     const token = await ensureSession(params.extensionVersion);
-    
+
     // Generate real cryptographic identity
     const keyPair = await Attestation.generateKeyPair();
     const publicKey = await Attestation.exportPublicKey(keyPair.publicKey);
-    
+
     return await fetchJSON<{ author_id: string; status: string }>(`${API_BASE_URL}/v1/authors`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
@@ -171,7 +172,7 @@ export async function getAuthor(params: {
     extensionVersion: string;
 }): Promise<{ id: string; name: string; reputation: number; tier: string }> {
     const token = await ensureSession(params.extensionVersion);
-    return await fetchJSON<any>(`${API_BASE_URL}/v1/authors?id=${params.authorId}`, {
+    return await fetchJSON<{ id: string; name: string; reputation: number; tier: string }>(`${API_BASE_URL}/v1/authors?id=${params.authorId}`, {
         method: "GET",
         headers: { Authorization: `Bearer ${token}` },
         timeoutMs: 10_000,
@@ -189,7 +190,7 @@ import { PCKRuntime, PCKVerifier, type ProofCarryingKnowledge } from '../pck';
  * This runs entirely in the browser/node with zero network cost.
  */
 export function compilePCKLocal(
-    source: string, 
+    source: string,
     domain: string
 ): ProofCarryingKnowledge {
     return PCKRuntime.compile(source, {
@@ -205,7 +206,7 @@ export function compilePCKLocal(
  * This is the revolutionary part: verification without external services.
  */
 export function verifyWithPCKLocal(
-    pck: ProofCarryingKnowledge, 
+    pck: ProofCarryingKnowledge,
     answer: string
 ): {
     valid: boolean;
@@ -218,10 +219,10 @@ export function verifyWithPCKLocal(
     cost_saved: string;  // Human-readable cost saving
 } {
     const result = PCKRuntime.verifyAnswer(pck, answer);
-    
+
     // Calculate estimated cost saved (vs. calling LLM for verification)
     const estimatedLLMCost = 0.002; // ~$0.002 per verification call
-    
+
     return {
         ...result,
         cost_saved: `$${estimatedLLMCost.toFixed(4)} (LLM call avoided)`

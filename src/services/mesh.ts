@@ -1,6 +1,8 @@
 // Neural Bridge Mesh Service
 // Handles real-time context sync across all LLM tabs
 
+import { Crystal } from '../types/crystal_format';
+
 export interface MeshState {
     activeCrystal: string | null; // ID of current Crystal
     checkpoints: Record<string, string>; // name -> crystalJSON
@@ -11,7 +13,7 @@ export interface MeshEvent {
     type: 'CRYSTAL_UPDATED' | 'CHECKPOINT_CREATED' | 'HOST_ACTIVE';
     crystalId?: string;
     host?: string;
-    data?: any;
+    data?: Record<string, unknown>;
 }
 
 // Broadcast updates to all tabs
@@ -47,7 +49,7 @@ export async function saveCheckpoint(name: string, crystalJSON: string) {
 }
 
 // Proactive Hinting Logic
-export function getProactiveHint(host: string, entities: any[], intents: any[]): string | null {
+export function getProactiveHint(host: string, entities: { type: string }[], intents: { type: string }[]): string | null {
     // Logic to suggest switching models
     // e.g. If host is ChatGPT and intents include "coding" and entities include "React",
     // maybe suggest Claude for its better reasoning.

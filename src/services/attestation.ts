@@ -24,15 +24,17 @@ export interface AuditEntry {
     timestamp: string;
     action: 'capture' | 'transfer' | 'verify' | 'reject';
     actor: string;
-    details: any;
+    details: unknown;
     signature?: string;
 }
+
+import type { Crystal } from '../types/crystal_format';
 
 /**
  * Sign a Crystal using REAL Web Crypto API (ECDSA P-256)
  */
 export async function signCrystal(params: {
-    crystal: any;
+    crystal: Crystal;
     keyPair?: { privateKey: CryptoKey; publicKey: CryptoKey };
     capturer_id: string;
 }): Promise<CrystalSignature> {
@@ -62,7 +64,7 @@ export async function signCrystal(params: {
  * Verify Crystal signature using REAL crypto
  */
 export async function verifyCrystalSignature(params: {
-    crystal: any;
+    crystal: Crystal;
     signature: CrystalSignature;
 }): Promise<{ valid: boolean; reason?: string }> {
     const { crystal, signature } = params;
@@ -96,7 +98,7 @@ export async function verifyCrystalSignature(params: {
 export function createAuditEntry(params: {
     action: 'capture' | 'transfer' | 'verify' | 'reject';
     actor: string;
-    details: any;
+    details: unknown;
 }): AuditEntry {
     return {
         timestamp: new Date().toISOString(),
@@ -154,8 +156,8 @@ async function realECDSAVerify(signatureHex: string, message: string, publicKey:
     const valid = await crypto.subtle.verify(
         { name: 'ECDSA', hash: 'SHA-256' },
         publicKey,
-        signatureBytes as any,
-        messageBuffer as any
+        signatureBytes as unknown as BufferSource,
+        messageBuffer as unknown as BufferSource
     );
     return valid;
 }
@@ -175,7 +177,7 @@ export async function importPublicKey(publicKeyHex: string): Promise<CryptoKey> 
 
     return await crypto.subtle.importKey(
         'raw',
-        keyBytes as any,
+        keyBytes as unknown as BufferSource,
         { name: 'ECDSA', namedCurve: 'P-256' },
         true,
         ['verify']

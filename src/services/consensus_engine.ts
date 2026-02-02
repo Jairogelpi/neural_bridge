@@ -1,4 +1,4 @@
-import { SCPService } from './llm';
+import { SCPService, type LLMResponse } from './llm';
 import { Sentinel } from './sentinel';
 import { CrystalStatus } from '../types/crystal_format';
 
@@ -36,8 +36,8 @@ export class ConsensusEngine {
 
         const votes: Array<{ model: string; response: string; score: number }> = [];
 
-        // 1. COLLECT VOTES IN PARALLEL
-        let results: any[];
+        // 1. COLLECT VOTERS IN PARALLEL
+        let results: LLMResponse[];
         try {
             const judgePrompts = this.JUDGES.map(model => {
                 const prompt = `
@@ -62,14 +62,14 @@ export class ConsensusEngine {
             });
 
             results = await Promise.all(judgePrompts);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.warn(`[ConsensusEngine] ⚠️ External Reality Link Failed (API Key missing/invalid). Entering Sovereign Isolation Mode...`);
             return this.reachSovereignConsensus(axiom, domain);
         }
 
         // 2. AGGREGATE VOTES
         let totalScore = 0;
-        results.forEach((res: any, i: number) => {
+        results.forEach((res: LLMResponse, i: number) => {
             let parsed;
             try {
                 parsed = JSON.parse(res.content.match(/\{[\s\S]*\}/)?.[0] || '{}');

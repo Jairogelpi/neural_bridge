@@ -6,20 +6,20 @@ const KEY = {
 } as const;
 
 // In-memory storage for non-extension environments (Demo/CLI)
-const _memStorage: Record<string, any> = {};
+const _memStorage: Record<string, unknown> = {};
 
 function uuid(): string {
-    const c = (globalThis as any).crypto;
-    return c?.randomUUID
-        ? c.randomUUID()
+    const c = typeof crypto !== 'undefined' ? crypto : (globalThis as unknown as { crypto?: Crypto }).crypto;
+    return (c && 'randomUUID' in c && typeof (c as any).randomUUID === 'function')
+        ? (c as any).randomUUID()
         : `id_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
 
-export async function getStorage(keys: string | string[]): Promise<Record<string, any>> {
+export async function getStorage(keys: string | string[]): Promise<Record<string, unknown>> {
     if (typeof chrome !== 'undefined' && chrome.storage?.local) {
         return await chrome.storage.local.get(keys);
     }
-    const res: Record<string, any> = {};
+    const res: Record<string, unknown> = {};
     const keyList = Array.isArray(keys) ? keys : [keys];
     for (const k of keyList) {
         res[k] = _memStorage[k];
@@ -27,7 +27,7 @@ export async function getStorage(keys: string | string[]): Promise<Record<string
     return res;
 }
 
-export async function setStorage(data: Record<string, any>): Promise<void> {
+export async function setStorage(data: Record<string, unknown>): Promise<void> {
     if (typeof chrome !== 'undefined' && chrome.storage?.local) {
         return await chrome.storage.local.set(data);
     }
@@ -44,7 +44,7 @@ export async function getOrCreateInstallId(): Promise<string> {
     return id;
 }
 
-export async function getSession(): Promise<{ token?: string | undefined; expiresAt?: string | undefined; policy?: any | undefined }> {
+export async function getSession(): Promise<{ token?: string | undefined; expiresAt?: string | undefined; policy?: unknown | undefined }> {
     const res = await getStorage([KEY.sessionToken, KEY.sessionExpiresAt, KEY.policy]);
     return {
         token: res[KEY.sessionToken] as string | undefined,
@@ -53,7 +53,7 @@ export async function getSession(): Promise<{ token?: string | undefined; expire
     };
 }
 
-export async function setSession(token: string, expiresAtISO: string, policy?: any): Promise<void> {
+export async function setSession(token: string, expiresAtISO: string, policy?: unknown): Promise<void> {
     await setStorage({
         [KEY.sessionToken]: token,
         [KEY.sessionExpiresAt]: expiresAtISO,

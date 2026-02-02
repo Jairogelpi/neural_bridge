@@ -2,6 +2,9 @@ import { CrystalRuntime, CrystalRuntimeConfig, CrystalExecutionResult } from "..
 import { loadCrystal, loadCards, getActiveContextId } from "../content/storage";
 import { DomainHeuristics, KnowledgeDomain } from "../services/domain_heuristics";
 import { SCPService } from './llm';
+import { Crystal } from "../types/crystal_format";
+import { Platform } from "../api/types";
+import { DecisionReceipt } from "./decision_receipts";
 
 export interface VerificationRequest {
     context_id?: string;
@@ -68,11 +71,11 @@ export class VerificationService {
         // TURBO OPTIMIZATION: Quick Safety Check (Zero LLM Cost)
         // ═══════════════════════════════════════════════════════════════════
         const quickCheck = DomainHeuristics.quickSafetyCheck(crystal, req.answer);
-        
+
         if (quickCheck.obviousViolation && quickCheck.confidence >= 0.85) {
             // FAST PATH: Return immediately without expensive LLM calls
             console.log(`⚡ [TURBO] Quick safety check detected violation: ${quickCheck.reason}`);
-            
+
             return {
                 sri: 0,
                 pac_epsilon: 0.5,
@@ -89,7 +92,7 @@ export class VerificationService {
                     receipt_id: `turbo_${Date.now()}`,
                     timestamp: new Date().toISOString(),
                     turbo_mode: true
-                },
+                } as DecisionReceipt,
                 execution_log: [{
                     timestamp: new Date().toISOString(),
                     action: 'turbo_quick_check',
@@ -102,7 +105,7 @@ export class VerificationService {
         }
 
         const config: CrystalRuntimeConfig = {
-            domain: (req.domain || crystal.domain || 'general') as any,
+            domain: (req.domain || crystal.domain || 'general') as KnowledgeDomain,
             sri_threshold: req.mode === 'active' ? 0.85 : 0.8,
             enable_adversarials: true,
             enable_counterfactuals: req.mode === 'active', // Only for active check to save tokens
@@ -110,7 +113,7 @@ export class VerificationService {
         };
 
         const result = await CrystalRuntime.executeCrystal({
-            crystal,
+            crystal: crystal as Crystal,
             question: req.question,
             answer: req.answer,
             config,
@@ -124,14 +127,14 @@ export class VerificationService {
 
             await reportVerifyTelemetry({
                 body: {
-                    context_id: crystal.context_id,
-                    target_host: (req.domain as any) || "other",
+                    context_id: (crystal as Crystal).context_id,
+                    target_host: (req.domain as string as Platform) || "other",
                     decision: result.passed ? "ACCEPT" : "FAIL",
                     score: result.sri,
                     ladder_steps: result.execution_log,
                     receipt: result.receipt,
-                    author_id: crystal.author?.id,
-                    reputation_impact: (result as any).reputation_impact || 0,
+                    author_id: (crystal as Crystal).author?.id,
+                    reputation_impact: (result as { reputation_impact?: number }).reputation_impact || 0,
                     extension_version: version
                 },
                 extensionVersion: version
@@ -147,7 +150,7 @@ export class VerificationService {
      * REFLOW PROTOCOL: Suggest a repair for a non-compliant answer
      */
     public static async suggestRepair(params: {
-        crystal: any;
+        crystal: Crystal | null;
         question: string;
         originalAnswer: string;
         failedInvariants: string[];
@@ -155,7 +158,7 @@ export class VerificationService {
         const prompt = `
             The following answer violates specific safety/logical constraints.
             
-            ${params.crystal ? `GROUND TRUTH CONSTRAINTS:\n${(params.crystal.constraints || []).map((c: any) => `- [${c.rule}] ${c.value}`).join('\n')}` : ''}
+            ${params.crystal ? `GROUND TRUTH CONSTRAINTS:\n${(params.crystal.constraints || []).map((c) => `- [${c.rule}] ${c.value}`).join('\n')}` : ''}
 
             QUESTION: ${params.question}
             ORIGINAL ANSWER: ${params.originalAnswer}

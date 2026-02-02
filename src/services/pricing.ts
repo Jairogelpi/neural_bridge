@@ -38,7 +38,7 @@ export async function fetchLivePricing(): Promise<Record<string, ModelPricing>> 
         const { data } = await response.json();
         const newCache: Record<string, ModelPricing> = {};
 
-        data.forEach((model: any) => {
+        data.forEach((model: { id: string; name?: string; context_length?: number; pricing?: { prompt?: string; completion?: string; image?: string; request?: string } }) => {
             newCache[model.id] = {
                 id: model.id,
                 name: model.name || model.id,

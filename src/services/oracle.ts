@@ -1,4 +1,4 @@
-import { SCPService } from './llm';
+import { SCPService, type LLMResponse } from './llm';
 import { Crystal, ConstraintRule } from '../types/crystal_format';
 
 export interface OraclePrediction {
@@ -43,7 +43,7 @@ export class Oracle {
         }
         `;
 
-        let simRes;
+        let simRes: LLMResponse;
         try {
             simRes = await SCPService.resilientCallLLM(simulationPrompt, 'google/gemini-2.0-flash-exp:free', 'You are Murphy\'s Law.');
         } catch (e) {

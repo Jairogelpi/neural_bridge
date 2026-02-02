@@ -1,6 +1,8 @@
 // Multi-Crystal Knowledge Graph
 // Versioned dependencies creating a Knowledge OS
 
+import { Crystal } from '../types/crystal_format';
+
 export interface CrystalReference {
     crystal_id: string;
     version: string;        // Semantic versioning (e.g., "1.2.0")
@@ -16,7 +18,7 @@ export interface CrystalDependency {
 export interface VersionedCrystal {
     crystal_id: string;
     version: string;
-    content: any;           // The actual Crystal
+    content: Crystal;           // The actual Crystal
     dependencies: CrystalDependency[];
     created_at: string;
     deprecated?: boolean;
@@ -32,7 +34,7 @@ export interface KnowledgeGraph {
  * Create a versioned Crystal with dependencies
  */
 export function createVersionedCrystal(params: {
-    crystal: any;
+    crystal: Crystal;
     version: string;
     dependencies?: CrystalDependency[];
 }): VersionedCrystal {
@@ -113,7 +115,7 @@ export function resolveDependencies(params: {
 export function mergecrystals(params: {
     crystals: VersionedCrystal[];
     merge_strategy?: 'union' | 'priority' | 'strict';
-}): any {
+}): Crystal {
     const { crystals, merge_strategy = 'union' } = params;
 
     if (crystals.length === 0) {
@@ -151,7 +153,7 @@ export function mergecrystals(params: {
             merged.constraints = merged.constraints || [];
             for (const constraint of current.constraints) {
                 // Avoid duplicates
-                if (!merged.constraints.find((c: any) => c.id === constraint.id)) {
+                if (!merged.constraints.find((c: { id: string }) => c.id === constraint.id)) {
                     merged.constraints.push(constraint);
                 }
             }
@@ -161,7 +163,7 @@ export function mergecrystals(params: {
         if (current.entities) {
             merged.entities = merged.entities || [];
             for (const entity of current.entities) {
-                if (!merged.entities.find((e: any) => e.name === entity.name)) {
+                if (!merged.entities.find((e: { name: string }) => e.name === entity.name)) {
                     merged.entities.push(entity);
                 }
             }
@@ -198,13 +200,13 @@ export function compareVersions(v1: string, v2: string): number {
 /**
  * Detect semantic or structural conflicts between two Crystals
  */
-export function detectConflicts(base: any, incoming: any): string[] {
+export function detectConflicts(base: Crystal, incoming: Crystal): string[] {
     const conflicts: string[] = [];
 
     // 1. Constraint Conflicts
     if (base.constraints && incoming.constraints) {
         for (const inc of incoming.constraints) {
-            const existing = base.constraints.find((c: any) => c.id === inc.id);
+            const existing = base.constraints.find((c: { id: string }) => c.id === inc.id);
             if (existing) {
                 // Same ID must have same content
                 if (existing.value !== inc.value || existing.rule !== inc.rule) {
@@ -212,7 +214,7 @@ export function detectConflicts(base: any, incoming: any): string[] {
                 }
             } else {
                 // Search for semantic overlap (same value, different rule)
-                const overlap = base.constraints.find((c: any) =>
+                const overlap = base.constraints.find((c: { value: string; rule: string }) =>
                     c.value.toLowerCase().trim() === inc.value.toLowerCase().trim() &&
                     c.rule !== inc.rule
                 );

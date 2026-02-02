@@ -21,7 +21,7 @@ export class CloudBridge {
         this.apiKey = config.apiKey;
     }
 
-    private async request<T>(endpoint: string, method: string, body?: any): Promise<T> {
+    private async request<T>(endpoint: string, method: string, body?: unknown): Promise<T> {
         const headers: Record<string, string> = {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${this.apiKey}`,
@@ -39,7 +39,7 @@ export class CloudBridge {
             try {
                 const err = await response.json();
                 errorMsg = err.error || err.message || errorMsg;
-            } catch {}
+            } catch { }
             throw new Error(`Neural Bridge Cloud Error (${response.status}): ${errorMsg}`);
         }
 
@@ -52,7 +52,7 @@ export class CloudBridge {
      */
     async compile(content: string, domain: string = "general"): Promise<Crystal> {
         const res = await this.request<{ context_crystal: Crystal }>("/v1/compile", "POST", {
-            transcript: { 
+            transcript: {
                 turns: [{ speaker: "user", text: content }] // Wrap content as transcript
             },
             compile_policy: { mode: "auto" }

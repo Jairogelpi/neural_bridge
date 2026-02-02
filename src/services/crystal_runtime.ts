@@ -4,9 +4,10 @@
 import { Attestation } from './attestation';
 import { AntiGaming } from './anti_gaming';
 import { ScientificMetrics } from './scientific_metrics';
-import { DecisionReceipts } from './decision_receipts';
+import { DecisionReceipts, DecisionReceipt } from './decision_receipts';
 import type { Invariant, VerifyResult } from '../content/verifier/verifier';
 import { verifyAnswers } from '../content/verifier/verifier';
+import { Crystal, SemanticInvariant } from '../types/crystal_format';
 
 export interface CrystalRuntimeConfig {
     domain: string;
@@ -36,13 +37,13 @@ export interface CrystalExecutionResult {
     adversarial_pass_rate: number;
 
     // Decision Receipt (signed)
-    receipt: any;
+    receipt: DecisionReceipt;
 
     // Reproducibility
     execution_log: Array<{
         timestamp: string;
         action: string;
-        result: any;
+        result: Record<string, unknown>;
     }>;
 
     // Final verdict
@@ -62,7 +63,7 @@ export interface CrystalExecutionResult {
  * EVERYTHING is deterministic and reproducible.
  */
 export async function executeCrystal(params: {
-    crystal: any;
+    crystal: Crystal;
     question: string;
     answer: string;
     config: CrystalRuntimeConfig;
@@ -70,7 +71,7 @@ export async function executeCrystal(params: {
 }): Promise<CrystalExecutionResult> {
     const { crystal, question, answer, config, requester } = params;
 
-    const execution_log: Array<{ timestamp: string; action: string; result: any }> = [];
+    const execution_log: Array<{ timestamp: string; action: string; result: Record<string, unknown> }> = [];
     const issues: string[] = [];
     let total_cost = 0;
 
@@ -85,7 +86,7 @@ export async function executeCrystal(params: {
     // STEP 1: Verify Core Invariants (Deterministic)
     // ===============================================
 
-    const invariants: Invariant[] = crystal.verification?.semantic_invariants || [];
+    const invariants: Invariant[] = (crystal.verification?.semantic_invariants as any) || [];
     let verification_result: VerifyResult = {
         score: 0,
         strictFailures: [],
@@ -123,10 +124,10 @@ export async function executeCrystal(params: {
     // TURBO OPTIMIZATION: Early Exit if score is too low
     // ═══════════════════════════════════════════════════════════════════
     const { SCPService } = await import('./llm');
-    
+
     const earlyExitThreshold = 0.5;
-    const shouldEarlyExit = verification_result.score < earlyExitThreshold && 
-                            verification_result.strictFailures.length > 0;
+    const shouldEarlyExit = verification_result.score < earlyExitThreshold &&
+        verification_result.strictFailures.length > 0;
 
     let adversarial_families_tested = 0;
     let adversarial_pass_rate = 1.0;
@@ -139,7 +140,7 @@ export async function executeCrystal(params: {
         execution_log.push({
             timestamp: new Date().toISOString(),
             action: 'turbo_early_exit',
-            result: { 
+            result: {
                 reason: `Score ${verification_result.score.toFixed(2)} < ${earlyExitThreshold}, skipping adversarials/counterfactuals`,
                 saved_calls: 3
             }
@@ -187,7 +188,7 @@ export async function executeCrystal(params: {
                 });
 
             const adversarialResults = await Promise.all(adversarialPromises);
-            
+
             let adversarial_passed = 0;
             for (const { family, verification } of adversarialResults) {
                 total_cost += verification.cost || 0;
@@ -204,11 +205,11 @@ export async function executeCrystal(params: {
                 execution_log.push({
                     timestamp: new Date().toISOString(),
                     action: 'verify_adversarial_family',
-                    result: { 
-                        family_id: family.family_id, 
+                    result: {
+                        family_id: family.family_id,
                         type: family.concept === 'TRANSITIVE_LOGIC' ? 'CHAINED' : 'ADAPTIVE',
-                        score: verification.score, 
-                        reasoning: verification.reasoning 
+                        score: verification.score,
+                        reasoning: verification.reasoning
                     }
                 });
             }
@@ -222,43 +223,43 @@ export async function executeCrystal(params: {
         // STEP 2.5: Metamorphic Testing (Consistency Check)
         // ===============================================
         // Ensure that rephrasing the question doesn't break the verification.
-        
+
         if (config.enable_adversarials !== false) { // Grouped with advanced checks
-             const metamorphicTest = AntiGaming.generateMetamorphicTests({
-                 original_question: question,
-                 expected_answer: answer
-             });
+            const metamorphicTest = AntiGaming.generateMetamorphicTests({
+                original_question: question,
+                expected_answer: answer
+            });
 
-             // Take one transformation to test
-             const transformation = metamorphicTest.transformations[0];
-             if (transformation) {
-                 const model = SCPService.getOptimalModel({ domain: config.domain, task: 'verify' });
-                 
-                 // Verify if the answer still holds for the transformed question
-                 const metaVerification = await SCPService.verifyArbitrary({
-                     crystal,
-                     question: transformation.transformed_question,
-                     answer: answer, // Does the original answer still satisfy the transformed question?
-                     targetModel: model,
-                     useCache: true
-                 });
-                 
-                 total_cost += metaVerification.cost || 0;
-                 
-                 execution_log.push({
-                     timestamp: new Date().toISOString(),
-                     action: 'verify_metamorphic',
-                     result: {
-                         type: transformation.type,
-                         transformed_question: transformation.transformed_question,
-                         consistency_score: metaVerification.score
-                     }
-                 });
+            // Take one transformation to test
+            const transformation = metamorphicTest.transformations[0];
+            if (transformation) {
+                const model = SCPService.getOptimalModel({ domain: config.domain, task: 'verify' });
 
-                 if (metaVerification.score < 0.6) {
-                     issues.push(`Metamorphic Instability: Rephrasing question as "${transformation.transformed_question}" dropped confidence to ${metaVerification.score.toFixed(2)}`);
-                 }
-             }
+                // Verify if the answer still holds for the transformed question
+                const metaVerification = await SCPService.verifyArbitrary({
+                    crystal,
+                    question: transformation.transformed_question,
+                    answer: answer, // Does the original answer still satisfy the transformed question?
+                    targetModel: model,
+                    useCache: true
+                });
+
+                total_cost += metaVerification.cost || 0;
+
+                execution_log.push({
+                    timestamp: new Date().toISOString(),
+                    action: 'verify_metamorphic',
+                    result: {
+                        type: transformation.type,
+                        transformed_question: transformation.transformed_question,
+                        consistency_score: metaVerification.score
+                    }
+                });
+
+                if (metaVerification.score < 0.6) {
+                    issues.push(`Metamorphic Instability: Rephrasing question as "${transformation.transformed_question}" dropped confidence to ${metaVerification.score.toFixed(2)}`);
+                }
+            }
         }
 
         // ===============================================
@@ -438,7 +439,7 @@ export async function executeCrystal(params: {
 /**
  * Quick validation: Does this Crystal pass basic checks?
  */
-export function validateCrystalStructure(crystal: any): { valid: boolean; errors: string[] } {
+export function validateCrystalStructure(crystal: Crystal): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
 
     if (!crystal) {

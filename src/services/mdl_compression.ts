@@ -1,6 +1,8 @@
 // MDL-Based Intelligent Compression
 // Finds the Minimum Description Length - the smallest core that maintains counterfactual pass rate
 
+import { Crystal, SemanticInvariant } from '../types/crystal_format';
+
 export interface CompressionResult {
     original_tokens: number;
     compressed_tokens: number;
@@ -22,13 +24,12 @@ export interface AblationTestResult {
  * Removes invariants until counterfactual pass rate drops below threshold
  */
 export async function compressCrystalMDL(params: {
-    crystal: any;
-    invariants: any[];
-    counterfactual_tests: any[];
-    verifier: (invariants: any[]) => Promise<{ score: number }>;
+    crystal: Crystal;
+    invariants: SemanticInvariant[];
+    verifier: (invariants: SemanticInvariant[]) => Promise<{ score: number }>;
     min_pass_rate?: number;
 }): Promise<CompressionResult> {
-    const { crystal, invariants, counterfactual_tests, verifier, min_pass_rate = 0.85 } = params;
+    const { crystal, invariants, verifier, min_pass_rate = 0.85 } = params;
 
     // Start with all invariants
     let current_invariants = [...invariants];
@@ -83,7 +84,7 @@ export async function compressCrystalMDL(params: {
         compressed_tokens,
         compression_ratio: compressed_tokens / original_tokens,
         removed_invariants: removed,
-        core_invariants: current_invariants.map((i: any) => i.id),
+        core_invariants: current_invariants.map((i: SemanticInvariant) => i.id),
         counterfactual_pass_rate: final_result.score,
         mdl_score: compressed_tokens + (1 - final_result.score) * 1000 // Penalty for lost accuracy
     };
@@ -94,12 +95,12 @@ export async function compressCrystalMDL(params: {
  * Uses greedy algorithm to aggressively remove non-essential invariants
  */
 export async function findMinimalCore(params: {
-    crystal: any;
-    invariants: any[];
-    verifier: (invariants: any[]) => Promise<{ score: number }>;
+    crystal: Crystal;
+    invariants: SemanticInvariant[];
+    verifier: (invariants: SemanticInvariant[]) => Promise<{ score: number }>;
     target_pass_rate: number;
 }): Promise<{
-    core: any[];
+    core: SemanticInvariant[];
     compression_ratio: number;
     pass_rate: number;
 }> {

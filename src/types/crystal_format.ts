@@ -101,6 +101,9 @@ export interface CrystalConstraint {
 
     /** Optional: Reference to external documentation */
     reference?: string;
+
+    /** Optional: Tags for categorization */
+    tags?: string[];
 }
 
 export interface CrystalEntity {

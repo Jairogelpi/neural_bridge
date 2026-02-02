@@ -3,11 +3,11 @@ import { type Crystal, CrystalStatus, ConstraintRule } from '../types/crystal_fo
 import { DecisionReceipts, type DecisionReceipt } from './decision_receipts';
 import { UsidEngine } from './usid_engine';
 
-const OPENROUTER_API_KEY = (import.meta as any).env?.VITE_OPENROUTER_API_KEY || (globalThis as any).process?.env?.VITE_OPENROUTER_API_KEY || '';
+const OPENROUTER_API_KEY = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_OPENROUTER_API_KEY || (globalThis as unknown as { process?: { env: Record<string, string> } }).process?.env?.VITE_OPENROUTER_API_KEY || '';
 const OPENROUTER_BASE = 'https://openrouter.ai/api/v1';
 
 // Dynamic model selection from environment
-const ENV_MODEL = (import.meta as any).env?.OPENAI_MODEL || (globalThis as any).process?.env?.OPENAI_MODEL;
+const ENV_MODEL = (import.meta as unknown as { env?: Record<string, string> }).env?.OPENAI_MODEL || (globalThis as unknown as { process?: { env: Record<string, string> } }).process?.env?.OPENAI_MODEL;
 
 export interface LLMResponse {
     content: string;
@@ -32,6 +32,24 @@ export interface VerificationResult {
     tokens_used: number;
     cost: number;
     receipt?: DecisionReceipt;
+}
+
+interface SCPCompilerOutput {
+    intent?: { primary?: string };
+    constraints?: Array<{ id: string; rule?: ConstraintRule; value: string; rationale: string }>;
+    entities?: Array<{ name: string; type: string; category: string }>;
+    verification?: {
+        semantic_invariants?: Array<{
+            id: string;
+            kind?: string;
+            prompt: string;
+            expected: { type: string; value: string };
+            weight?: number;
+            strict?: boolean;
+            rationale: string;
+        }>;
+    };
+    author?: { id?: string; name?: string };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -118,8 +136,8 @@ async function callLLM(
             };
 
             const price = model.endsWith(':free') ? { prompt: 0, completion: 0 } : (pricing[model] || { prompt: 0.001, completion: 0.002 });
-            const promptTokens = data.usage?.prompt_tokens || 0;
-            const completionTokens = data.usage?.completion_tokens || 0;
+            const promptTokens = (data.usage as { prompt_tokens?: number }).prompt_tokens || 0;
+            const completionTokens = (data.usage as { completion_tokens?: number }).completion_tokens || 0;
             const cost = (promptTokens / 1000) * price.prompt + (completionTokens / 1000) * price.completion;
 
             return {
@@ -133,8 +151,8 @@ async function callLLM(
                 cost,
                 latency
             };
-        } catch (e: any) {
-            if (attempt < maxRetries && (e.message.includes('429') || e.message.includes('503'))) {
+        } catch (e: unknown) {
+            if (e && typeof e === 'object' && 'message' in e && typeof e.message === 'string' && attempt < maxRetries && (e.message.includes('429') || e.message.includes('503'))) {
                 attempt++;
                 await sleep(Math.pow(2, attempt) * 1000);
                 continue;
@@ -156,13 +174,14 @@ async function resilientCallLLM(
         ? [model, ...FREE_MODEL_FALLBACKS.filter((m: string) => m !== model)]
         : [model];
 
-    let lastError: any;
+    let lastError: unknown;
     for (const target of modelsToTry) {
         try {
             return await callLLM(prompt, target, systemPrompt);
-        } catch (e: any) {
+        } catch (e: unknown) {
             lastError = e;
-            if (e.message.includes('401') || e.message.includes('MISSING_API_KEY')) {
+            const msg = (e && typeof e === 'object' && 'message' in e && typeof e.message === 'string') ? e.message : '';
+            if (msg.includes('401') || msg.includes('MISSING_API_KEY')) {
                 console.warn("🛡️ [SOVEREIGN_MODE] API Access Denied. Switching to internal Ontological Synthesis...");
                 throw new Error("SOVEREIGN_REQUIRED");
             }
@@ -199,8 +218,9 @@ Identify the domain. Return ONLY the domain name in lowercase (e.g. "medicine").
         }
 
         return domain;
-    } catch (e: any) {
-        if (e.message === 'SOVEREIGN_REQUIRED') {
+    } catch (e: unknown) {
+        const msg = (e && typeof e === 'object' && 'message' in e && typeof e.message === 'string') ? e.message : '';
+        if (msg === 'SOVEREIGN_REQUIRED') {
             return 'sovereign_evolution';
         }
         console.warn('⚠️ Autonomous domain detection failed, falling back to evolution:', e);
@@ -319,22 +339,23 @@ Return ONLY valid JSON, no markdown or explanation.`;
             model,
             systemPrompt
         );
-    } catch (e: any) {
-        if (e.message === 'SOVEREIGN_REQUIRED') {
+    } catch (e: unknown) {
+        const msg = (e && typeof e === 'object' && 'message' in e && typeof e.message === 'string') ? e.message : '';
+        if (msg === 'SOVEREIGN_REQUIRED') {
             return await sovereignSynthesize(processedText, domain);
         }
         throw e;
     }
 
     // Parse LLM response
-    let parsed: any;
+    let parsed: SCPCompilerOutput;
     try {
         let jsonStr = response.content;
         const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
         if (jsonMatch && jsonMatch[1]) {
             jsonStr = jsonMatch[1];
         }
-        parsed = JSON.parse(jsonStr.trim());
+        parsed = JSON.parse(jsonStr.trim()) as SCPCompilerOutput;
     } catch (e) {
         throw new Error(`Failed to parse LLM response as JSON: ${e}`);
     }
@@ -362,24 +383,27 @@ Return ONLY valid JSON, no markdown or explanation.`;
             primary: parsed.intent?.primary || 'General knowledge transfer',
             status: CrystalStatus.ACTIVE
         },
-        constraints: (parsed.constraints || []).map((c: any) => ({
+        constraints: (parsed.constraints || []).map((c: { id: string; rule?: ConstraintRule; value: string; rationale: string }) => ({
             id: c.id,
             rule: c.rule || ConstraintRule.MUST,
             value: c.value,
             rationale: c.rationale
         })),
-        entities: (parsed.entities || []).map((e: any) => ({
+        entities: (parsed.entities || []).map((e: { name: string; type: string; category: string }) => ({
             name: e.name,
             type: e.type,
             category: e.category
         })),
         verification: {
             canonical_hash: '', // Set below
-            semantic_invariants: (parsed.verification?.semantic_invariants || []).map((inv: any) => ({
+            semantic_invariants: (parsed.verification?.semantic_invariants || []).map((inv: { id: string; kind?: string; prompt: string; expected: { type: string; value: string }; weight?: number; strict?: boolean; rationale: string }) => ({
                 id: inv.id,
-                kind: inv.kind || 'fact_check',
+                kind: (inv.kind || 'fact_check') as "fact_check" | "constraint_check" | "safety_check" | "derivation" | "custom",
                 prompt: inv.prompt,
-                expected: inv.expected,
+                expected: {
+                    type: inv.expected.type as "string" | "number" | "boolean" | "enum" | "regex" | "json",
+                    value: inv.expected.value
+                },
                 weight: inv.weight || 1.0,
                 strict: inv.strict ?? true,
                 rationale: inv.rationale
@@ -395,7 +419,9 @@ Return ONLY valid JSON, no markdown or explanation.`;
 
     // Use REAL SHA-256 for canonical hash (excluding hash itself)
     const crystalToHash = { ...crystal };
-    delete (crystalToHash.verification as any).canonical_hash;
+    if (crystalToHash.verification) {
+        (crystalToHash.verification as unknown as Record<string, unknown>).canonical_hash = undefined;
+    }
     crystal.verification.canonical_hash = await Attestation.realSHA256(JSON.stringify(crystalToHash));
 
     return { crystal, llmResponse: response };
@@ -552,7 +578,7 @@ async function hashForCache(str: string): Promise<string> {
  */
 export async function verifyBatch(params: {
     crystal: Crystal;
-    invariants: Array<{ id: string; prompt: string; expected: any; weight: number }>;
+    invariants: Array<{ id: string; prompt: string; expected: unknown; weight: number }>;
     answer: string;
     targetModel?: string;
 }): Promise<{ results: Array<{ id: string; score: number; reasoning: string }>; cost: number; latency: number }> {
@@ -603,7 +629,7 @@ Return ONLY a JSON array with scores for each question ID.`;
 
         // Map results to invariant IDs
         const results = invariants.map(inv => {
-            const found = resultsArray.find((r: any) => r.id === inv.id);
+            const found = resultsArray.find((r: { id: string; score: number; reasoning: string }) => r.id === inv.id);
             return {
                 id: inv.id,
                 score: found ? Number(found.score) || 0 : 0,
@@ -717,7 +743,7 @@ ${crystal.verification.semantic_invariants.map((inv, i) => `${i + 1}. ${inv.prom
 // Utilities
 function generateSecureUUID(): string {
     const bytes = new Uint8Array(16);
-    const c = (globalThis as any).crypto || (globalThis as any).msCrypto;
+    const c = (globalThis as unknown as { crypto?: Crypto; msCrypto?: Crypto }).crypto || (globalThis as unknown as { crypto?: Crypto; msCrypto?: Crypto }).msCrypto;
     if (c && c.getRandomValues) {
         c.getRandomValues(bytes);
     } else {
@@ -762,7 +788,7 @@ export function getOptimalModel(params: {
 /**
  * Computes a SHA-256 hash of a object for cryptographic verification.
  */
-async function computeCanonicalHash(obj: any): Promise<string> {
+async function computeCanonicalHash(obj: unknown): Promise<string> {
     const { CrystalFormat } = await import('../types/crystal_format');
     const canon = CrystalFormat.canonicalStringify(obj);
     const msgUint8 = new TextEncoder().encode(canon);
@@ -800,7 +826,7 @@ export async function sovereignSynthesize(text: string, domain: string): Promise
             primary: "Sovereign Context Extraction",
             status: CrystalStatus.ACTIVE
         },
-        entities: entities as any,
+        entities: entities,
         constraints: [
             {
                 id: 'sov_001',

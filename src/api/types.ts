@@ -39,8 +39,8 @@ export interface CompileRequest {
 }
 
 export interface CompileResponse {
-    context_crystal: any;
-    invariants?: any[];
+    context_crystal: Crystal;
+    invariants?: Invariant[];
     compiler_notes: string[];
     cost: {
         provider: "openai" | "anthropic" | "google" | "other";
@@ -87,8 +87,8 @@ export interface VerifyTelemetryRequest {
     target_host: Platform | "other";
     decision: "ACCEPT" | "RETRY" | "FAIL";
     score: number;
-    ladder_steps: any;
-    receipt?: any;
+    ladder_steps: unknown;
+    receipt?: unknown;
     author_id?: string;
     reputation_impact?: number;
     extension_version?: string;
@@ -140,5 +140,5 @@ export interface GenerateInvariantsResponse {
     count: number;
 }
 
-export type Crystal = Record<string, any>;
+export type Crystal = Record<string, unknown>;
 

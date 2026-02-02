@@ -1,3 +1,4 @@
+import { Crystal } from '../types/crystal_format';
 import { supabase } from '../db/supabase';
 
 export interface ReputationChange {
@@ -12,19 +13,19 @@ export interface ReputationChange {
  * Rewards authors for providing verifiable, high-quality knowledge.
  */
 export class ReputationSystem {
-    
+
     /**
      * Calculate and apply reputation changes based on crystal quality and usage.
      */
-    static async rewardQuality(crystal: any): Promise<number> {
+    static async rewardQuality(crystal: Crystal): Promise<number> {
         const baseReward = 0.01;
-        const qualityBonus = crystal.quality_score * 0.05;
+        const qualityBonus = (crystal.verification?.semantic_invariants?.length || 0) * 0.01;
         const totalDelta = baseReward + qualityBonus;
 
         const { data: author, error: fetchError } = await supabase
             .from('authors')
             .select('reputation')
-            .eq('author_id', crystal.author_id)
+            .eq('author_id', crystal.author.id)
             .single();
 
         if (fetchError || !author) return 0;
@@ -34,7 +35,7 @@ export class ReputationSystem {
         const { error: updateError } = await supabase
             .from('authors')
             .update({ reputation: newReputation })
-            .eq('author_id', crystal.author_id);
+            .eq('author_id', crystal.author.id);
 
         if (updateError) {
             console.error('Error updating reputation:', updateError.message);
@@ -43,7 +44,7 @@ export class ReputationSystem {
 
         // Log to ledger
         await supabase.from('reputation_ledger').insert({
-            author_id: crystal.author_id,
+            author_id: crystal.author.id,
             delta: totalDelta,
             new_reputation: newReputation,
             reason: `High quality crystal compilation: ${crystal.context_id}`,

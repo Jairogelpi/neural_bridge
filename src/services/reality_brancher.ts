@@ -6,7 +6,7 @@ export interface RealityBranch {
     parent_crystal_id: string;
     branch_name: string;
     status: 'draft' | 'simulating' | 'merged' | 'rejected';
-    modifications: any;
+    modifications: Record<string, unknown>;
     created_at: string;
 }
 
@@ -30,7 +30,7 @@ export class RealityBrancher {
             parent_crystal_id: parent.context_id,
             branch_name: name,
             status: 'draft',
-            modifications: [],
+            modifications: {},
             created_at: new Date().toISOString()
         };
 

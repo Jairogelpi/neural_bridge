@@ -1,6 +1,8 @@
 // Anti-Gaming Module: REAL DYNAMIC GENERATION FROM CRYSTAL
 // NO hardcoded templates - everything generated from actual Crystal content
 
+import { Crystal, SemanticInvariant, CrystalEntity, CrystalConstraint } from '../types/crystal_format';
+
 export interface AdversarialFamily {
     family_id: string;
     concept: string;
@@ -23,7 +25,7 @@ export interface MetamorphicTest {
  * NO HARDCODED TEMPLATES - uses real constraints from the Crystal
  */
 export function generateAdaptiveAdversarials(params: {
-    crystal: any;
+    crystal: Crystal;
     domain: string;
     count?: number;
 }): AdversarialFamily[] {
@@ -36,14 +38,15 @@ export function generateAdaptiveAdversarials(params: {
     // Generate families from REAL Crystal constraints
     for (let i = 0; i < Math.min(count, constraints.length); i++) {
         const constraint = constraints[i];
+        if (!constraint) continue;
 
         if (!constraint.rule || !constraint.value) continue;
 
         const family: AdversarialFamily = {
             family_id: `adversarial_${constraint.id}_${i}`,
             concept: constraint.rule,
-            templates: generateQuestionVariants(constraint, entities),
-            false_variants: generateFalseStatements(constraint, entities)
+            templates: generateQuestionVariants(constraint, entities || []),
+            false_variants: generateFalseStatements(constraint, entities || [])
         };
 
         families.push(family);
@@ -57,32 +60,34 @@ export function generateAdaptiveAdversarials(params: {
  * Tests multi-step reasoning capabilities
  */
 export function generateChainedAdversarials(params: {
-    crystal: any;
+    crystal: Crystal;
 }): AdversarialFamily[] {
     const { crystal } = params;
     const families: AdversarialFamily[] = [];
     const constraints = crystal.constraints || [];
 
     // Find if-then constraints to chain
-    const ifThens = constraints.filter((c: any) => c.rule === 'IF_THEN');
+    const ifThens = constraints.filter((c) => c.rule === 'IF_THEN');
 
     if (ifThens.length >= 2) {
         // Simple chaining simulation: if A->B and B->C, then A->C
         const c1 = ifThens[0];
         const c2 = ifThens[1];
 
-        families.push({
-            family_id: 'chained_logic_001',
-            concept: 'TRANSITIVE_LOGIC',
-            templates: [
-                `If ${c1.value} and ${c2.value}, what is the final implication?`,
-                `Does the combination of ${c1.id} and ${c2.id} imply a specific result?`
-            ],
-            false_variants: [
-                `The combination of ${c1.value} and ${c2.value} results in an unrelated outcome`,
-                `There is no logical connection between ${c1.id} and ${c2.id}`
-            ]
-        });
+        if (c1 && c2) {
+            families.push({
+                family_id: 'chained_logic_001',
+                concept: 'TRANSITIVE_LOGIC',
+                templates: [
+                    `If ${c1.value} and ${c2.value}, what is the final implication?`,
+                    `Does the combination of ${c1.id} and ${c2.id} imply a specific result?`
+                ],
+                false_variants: [
+                    `The combination of ${c1.value} and ${c2.value} results in an unrelated outcome`,
+                    `There is no logical connection between ${c1.id} and ${c2.id}`
+                ]
+            });
+        }
     }
 
     return families;
@@ -91,7 +96,7 @@ export function generateChainedAdversarials(params: {
 /**
  * Generate question variants from REAL constraint
  */
-function generateQuestionVariants(constraint: any, entities: any[]): string[] {
+function generateQuestionVariants(constraint: CrystalConstraint, entities: CrystalEntity[]): string[] {
     const variants: string[] = [];
     const value = String(constraint.value || '');
 
@@ -122,7 +127,7 @@ function generateQuestionVariants(constraint: any, entities: any[]): string[] {
 /**
  * Generate false statements from REAL constraint (adversarial)
  */
-function generateFalseStatements(constraint: any, entities: any[]): string[] {
+function generateFalseStatements(constraint: CrystalConstraint, entities: CrystalEntity[]): string[] {
     const falseStatements: string[] = [];
     const value = String(constraint.value || '');
 
@@ -184,7 +189,7 @@ export function generateMetamorphicTests(params: {
  * Counterfactual Transfer Test Generator - REAL from Crystal
  */
 export function generateCounterfactualTest(params: {
-    crystal: any;
+    crystal: Crystal;
     domain: string;
 }): {
     id: string;
@@ -211,6 +216,16 @@ export function generateCounterfactualTest(params: {
     // Combine REAL constraints to create a counterfactual
     const constraint1 = constraints[0];
     const constraint2 = constraints[1];
+
+    if (!constraint1 || !constraint2) {
+        return {
+            id: `counterfactual_${Date.now()}`,
+            question: 'Insufficient valid constraints in Crystal',
+            reasoning_requirements: [],
+            not_in_crystal: true,
+            requires_derivation: false
+        };
+    }
 
     const question = `Given that ${constraint1.value} (${constraint1.rule}) and ${constraint2.value} (${constraint2.rule}), what would be the outcome in a scenario that combines both conditions?`;
 

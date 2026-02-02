@@ -15,6 +15,16 @@ export interface SemanticVaccine {
     context_domain: string;
 }
 
+export interface Contradiction {
+    claim_a: string;
+    claim_b: string;
+}
+
+export interface Contradiction {
+    claim_a: string;
+    claim_b: string;
+}
+
 /**
  * SEMANTIC IMMUNITY ENGINE (Vaccine Synthesis)
  * 
@@ -31,7 +41,7 @@ export class VaccineEngine {
      */
     static async synthesizeFromContradiction(
         crystal: Crystal,
-        contradiction: any
+        contradiction: Contradiction
     ): Promise<SemanticVaccine | null> {
         console.log(`[VaccineEngine] 💉 Analyzing contradiction for context ${crystal.context_id}...`);
 
@@ -115,7 +125,7 @@ export class VaccineEngine {
         });
 
         // Retroactively heal the global lattice
-        await Sentinel.triggerEntanglement((vaccine as any).vaccine_id || signatureHash);
+        await Sentinel.triggerEntanglement(((vaccine as unknown as { vaccine_id?: string }).vaccine_id) || signatureHash);
 
         return vaccine;
     }

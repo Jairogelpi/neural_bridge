@@ -74,7 +74,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
                 }
 
                 const author = await getAuthor({
-                    authorId: storage.nb_author_id,
+                    authorId: storage.nb_author_id as string,
                     extensionVersion: EXT_VERSION
                 });
 
@@ -114,9 +114,10 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
             }
 
             sendResponse({ ok: false, error: "unknown_message" });
-        } catch (e: any) {
+        } catch (e: unknown) {
             console.error("[Background Error]", e);
-            sendResponse({ ok: false, error: e?.message ?? "error", details: e });
+            const msg = (e && typeof e === 'object' && 'message' in e && typeof e.message === 'string') ? e.message : "error";
+            sendResponse({ ok: false, error: msg, details: e });
         }
     })();
     return true; // keep channel open

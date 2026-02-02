@@ -1,5 +1,6 @@
 import { SCPService } from './llm';
 import { Sentinel } from './sentinel';
+import { Crystal } from '../types/crystal_format';
 
 export interface EvolvedOntology {
     domain: string;
@@ -50,8 +51,9 @@ export class DomainEvolver {
         let res;
         try {
             res = await SCPService.resilientCallLLM(evolutionPrompt, 'nvidia/nemotron-3-nano-30b-a3b:free', 'You are a master of spontaneous ontology.');
-        } catch (e: any) {
-            if (e.message === 'SOVEREIGN_REQUIRED') {
+        } catch (e: unknown) {
+            const msg = (e && typeof e === 'object' && 'message' in e && typeof e.message === 'string') ? e.message : '';
+            if (msg === 'SOVEREIGN_REQUIRED') {
                 return {
                     domain: 'sovereign_evolution',
                     axioms: ['Logic is the only anchor', 'Structure survives chaos'],
@@ -82,7 +84,7 @@ export class DomainEvolver {
                 type: 'CHAOS_EVOLUTION',
                 severity: 'info',
                 message: `New Domain Evolved: ${ontology.domain.toUpperCase()}`,
-                details: ontology
+                details: ontology as unknown as Record<string, unknown>
             });
         }
 
