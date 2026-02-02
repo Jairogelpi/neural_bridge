@@ -1,115 +1,86 @@
-async function refresh() {
-    const res = await chrome.runtime.sendMessage({ type: "NB_GET_STATE" });
-    const storage = await chrome.storage.local.get(['nb_active_domain', 'nb_domain_confidence']);
+// Neural Bridge - Crystal OS Logic
 
-    // Update main state log
-    const stateEl = document.getElementById("state")!;
-    stateEl.textContent = res ? `[OK] Knowledge Base Active\n[Identity] ${res.tenant_id?.slice(0, 8) || 'unknown'}...\n[Sync] Active Pulse` : "[WAIT] Synchronizing...";
+const views = {
+    live: document.getElementById('view-live')!,
+    storage: document.getElementById('view-storage')!
+};
 
-    // Update metrics
-    const fidelityEl = document.getElementById("fidelity")!;
-    const activeHostEl = document.getElementById("activeHost")!;
+const tabs = {
+    live: document.getElementById('tab-live')!,
+    storage: document.getElementById('tab-storage')!
+};
 
-    // Priority: Auto-detected Knowledge Domain
-    if (storage.nb_active_domain && storage.nb_active_domain !== 'general') {
-        activeHostEl.textContent = String(storage.nb_active_domain).toUpperCase();
-        activeHostEl.style.color = 'var(--accent-blue)';
-    } else if (res && res.active_host) {
-        activeHostEl.textContent = String(res.active_host).toUpperCase();
-        activeHostEl.style.color = 'var(--text-secondary)';
-    } else {
-        activeHostEl.textContent = "IDLE";
-        activeHostEl.style.color = 'var(--text-secondary)';
-    }
+// State
+let activeCrystal: any = null;
 
-    // Average SRI score from recent runs
-    if (res && res.runs && res.runs.length > 0) {
-        const avg = res.runs.reduce((acc: number, r: any) => acc + (r.score || 0), 0) / res.runs.length;
-        fidelityEl.textContent = `${Math.round(avg * 100)}%`;
-        fidelityEl.style.color = avg >= 0.85 ? 'var(--accent-green)' : (avg >= 0.5 ? 'var(--accent-amber)' : 'var(--accent-red)');
-    } else {
-        fidelityEl.textContent = "--"; // Honest state: No data yet
-        fidelityEl.style.color = 'var(--text-secondary)';
-    }
-    // Strict Mode Toggle
-    const toggleStrict = document.getElementById("toggleStrict") as HTMLInputElement;
-    const strictStorage = await chrome.storage.local.get(['nb_strict_mode']);
-    toggleStrict.checked = !!strictStorage.nb_strict_mode;
+// Tab Switching
+function switchTab(tab: 'live' | 'storage') {
+    tabs.live.classList.remove('active');
+    tabs.storage.classList.remove('active');
+    views.live.style.display = 'none';
+    views.storage.style.display = 'none';
 
-    toggleStrict.addEventListener("change", async () => {
-        await chrome.storage.local.set({ nb_strict_mode: toggleStrict.checked });
-        // Notify active tab to update agent config immediately
-        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-        if (tabs[0]?.id) {
-            chrome.tabs.sendMessage(tabs[0].id, { 
-                type: "NB_UPDATE_CONFIG", 
-                config: { strictMode: toggleStrict.checked } 
-            });
+    tabs[tab].classList.add('active');
+    views[tab].style.display = 'block';
+}
+
+tabs.live.onclick = () => switchTab('live');
+tabs.storage.onclick = () => switchTab('storage');
+
+// Live Metrics
+async function updateMetrics() {
+    try {
+        const res = await chrome.runtime.sendMessage({ type: "NB_GET_STATE" });
+        if (res && res.runs && res.runs.length > 0) {
+            const run = res.runs[0];
+            const score = Math.round((run.score || 0) * 100);
+
+            document.getElementById('val-fidelity')!.textContent = `${score}%`;
+            document.getElementById('bar-fidelity')!.style.width = `${score}%`;
+
+            // Store for copy
+            activeCrystal = run;
         }
-    });
-    // Identity & Reputation Logic
-    const identityPanel = document.getElementById("identity-panel")!;
-    const registerCta = document.getElementById("register-cta")!;
-    
-    // Check if author is registered
-    const authRes = await chrome.runtime.sendMessage({ type: "NB_GET_AUTHOR_IDENTITY" });
-    
-    if (authRes && authRes.ok && authRes.author) {
-        // Show Identity Panel
-        identityPanel.style.display = "block";
-        registerCta.style.display = "none";
-        
-        document.getElementById("author-handle")!.textContent = authRes.author.handle || "Anonymous";
-        document.getElementById("author-tier")!.textContent = (authRes.author.tier || "Community").toUpperCase();
-        document.getElementById("author-rep")!.textContent = (authRes.author.reputation || 0).toFixed(2);
-    } else {
-        // Show Registration CTA
-        identityPanel.style.display = "none";
-        registerCta.style.display = "block";
-        
-        // Setup Register Button
-        const btnRegister = document.getElementById("btnRegister");
-        if (btnRegister) {
-            btnRegister.onclick = () => {
-                // Simple inline form for MVP
-                registerCta.innerHTML = `
-                    <div class="card-label" style="margin-bottom: 8px;">Create Identity</div>
-                    <input id="reg-name" type="text" placeholder="Display Name" style="width: 100%; padding: 8px; margin-bottom: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 4px;">
-                    <input id="reg-handle" type="text" placeholder="@handle" style="width: 100%; padding: 8px; margin-bottom: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 4px;">
-                    <button id="btnSubmitReg" class="btn-primary" style="width: 100%; padding: 8px;">Create</button>
-                `;
-                
-                document.getElementById("btnSubmitReg")!.onclick = async () => {
-                    const name = (document.getElementById("reg-name") as HTMLInputElement).value;
-                    const handle = (document.getElementById("reg-handle") as HTMLInputElement).value;
-                    
-                    if (!name || !handle) return;
-                    
-                    const regRes = await chrome.runtime.sendMessage({ 
-                        type: "NB_REGISTER_AUTHOR", 
-                        name, 
-                        handle 
-                    });
-                    
-                    if (regRes && regRes.ok) {
-                        void refresh(); // Reload state
-                    }
-                };
-            };
-        }
+    } catch (e) {
+        console.log("Not connected");
     }
 }
 
-document.getElementById("btnRefresh")!.addEventListener("click", () => {
-    const btn = document.getElementById("btnRefresh") as HTMLButtonElement;
-    btn.textContent = "Mounting...";
-    setTimeout(() => {
-        void refresh();
-        btn.textContent = "Knowledge Crystal Mounted";
-        setTimeout(() => btn.textContent = "Mount Knowledge Crystal", 2000);
-    }, 800);
-});
+// Storage Logic
+document.getElementById('btn-inject')!.onclick = async () => {
+    const input = (document.getElementById('crystal-input') as HTMLTextAreaElement).value;
+    try {
+        const crystal = JSON.parse(input);
+        // Send to content script for injection
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (tab?.id) {
+            await chrome.tabs.sendMessage(tab.id, {
+                type: "NB_INJECT_CRYSTAL",
+                crystal
+            });
+            alert("Crystal Injected Successfully!");
+        }
+    } catch (e) {
+        alert("Invalid Crystal Format");
+    }
+};
 
-void refresh();
-// Auto-refresh popup every second for "live" feel
-setInterval(refresh, 1000);
+document.getElementById('btn-copy')!.onclick = () => {
+    if (activeCrystal) {
+        navigator.clipboard.writeText(JSON.stringify(activeCrystal, null, 2));
+        const btn = document.getElementById('btn-copy')!;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = "COPIED!";
+        setTimeout(() => btn.innerHTML = originalText, 1500);
+    } else {
+        alert("No active crystal to copy.");
+    }
+};
+
+document.getElementById('open-dashboard')!.onclick = () => {
+    chrome.tabs.create({ url: 'http://localhost:3000/dashboard' }); // Assuming dashboard is served here
+};
+
+// Init
+setInterval(updateMetrics, 1000);
+updateMetrics();

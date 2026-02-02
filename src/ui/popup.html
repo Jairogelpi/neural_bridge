@@ -5,88 +5,89 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Neural Bridge</title>
-  <link rel="stylesheet" href="./popup_theme.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=Space+Mono&display=swap"
+  <link rel="stylesheet" href="./crystal_theme.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;700&display=swap"
     rel="stylesheet">
 </head>
 
 <body>
-  <header>
-    <h1>Neural Bridge</h1>
-    <div class="subtitle">Knowledge Governance OS</div>
-  </header>
 
-  <div class="pulse-container glass-panel">
-    <div class="pulse-ring"></div>
-    <div class="pulse-core"></div>
-    <div class="pulse-label">Neural Bridge ACTIVE</div>
+  <div class="header">
+    <div class="brand">
+      <div class="usb-icon"></div>
+      NEURAL BRIDGE
+    </div>
+    <div style="font-size: 10px; color: var(--crystal-cyan);">CONNECTED</div>
   </div>
 
-  <div class="metrics-grid">
-    <div class="glass-panel">
-      <div class="card-label">SRI FIDELITY</div>
-      <div id="fidelity" class="metric">--</div>
-    </div>
-    <div class="glass-panel">
-      <div class="card-label">KNOWLEDGE DOMAIN</div>
-      <div id="activeHost" class="metric">--</div>
-    </div>
+  <div class="tabs">
+    <div class="tab active" id="tab-live">Live Link</div>
+    <div class="tab" id="tab-storage">Crystal Storage</div>
   </div>
 
-  <div id="app">
-    <div class="glass-panel status-section">
-      <div class="card-label">Governance State</div>
-      <pre id="state">Synchronizing artifacts...</pre>
-    </div>
+  <!-- LIVE MODE: REALITY MATRIX (v2.0) -->
+  <div id="view-live">
 
-    <div class="glass-panel control-panel">
-      <div>
-        <div class="card-label">STRICT MODE</div>
-        <div class="description">Enable Adversarial Testing</div>
+    <!-- REALITY SENSOR (The Core Innovation) -->
+    <div class="crystal-viewer reality-sensor" id="sensor-container">
+      <div class="shard" id="reality-shard"></div>
+
+      <div class="sensor-readout">
+        <div class="readout-label">ONTOLOGY STATUS</div>
+        <div class="readout-value valid" id="uSID-status">VALID REALITY</div>
       </div>
-      <label class="switch">
-        <input type="checkbox" id="toggleStrict">
-        <span class="slider round"></span>
-      </label>
-    </div>
 
-    <!-- Identity & Reputation Section -->
-    <div class="glass-panel" id="identity-panel" style="padding: 12px; display: none;">
-      <div class="card-label">AUTHOR IDENTITY</div>
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <div id="author-avatar" style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #00d4ff, #005bea);"></div>
-          <div>
-            <div id="author-handle" style="font-weight: 700; font-size: 13px;">--</div>
-            <div id="author-tier" style="font-size: 10px; opacity: 0.7;">Community Tier</div>
-          </div>
+      <div class="sensor-details">
+        <div class="detail-row">
+          <span>DOMAIN:</span>
+          <span id="domain-scan" class="highlight">SCANNING...</span>
         </div>
-        <div style="text-align: right;">
-          <div style="font-size: 10px; opacity: 0.7;">REPUTATION</div>
-          <div id="author-rep" style="font-weight: 800; font-size: 16px; color: var(--accent-green);">--</div>
+        <div class="detail-row">
+          <span>INVARIANTS:</span>
+          <span id="invariant-count">--</span>
         </div>
       </div>
     </div>
 
-    <!-- Registration Call to Action -->
-    <div id="register-cta" class="glass-panel" style="padding: 12px; text-align: center; display: none;">
-      <div class="card-label" style="margin-bottom: 8px;">Join the Trust Network</div>
-      <div style="font-size: 11px; opacity: 0.8; margin-bottom: 12px;">Register to earn reputation for your crystals.</div>
-      <button id="btnRegister" class="btn-secondary" style="width: 100%; padding: 8px; font-size: 12px;">Register Identity</button>
-    </div>
+    <!-- METRICS GRID -->
+    <div class="metrics-panel">
+      <div class="metric-row">
+        <span>SEMANTIC FIDELITY (SRI)</span>
+        <span id="val-fidelity">--%</span>
+      </div>
+      <div class="metric-bar">
+        <div class="metric-fill" id="bar-fidelity"></div>
+      </div>
 
-    <button id="btnRefresh" class="btn-primary" style="padding: 14px;">Mount Knowledge Crystal</button>
+      <div style="margin-top: 12px;" class="metric-row">
+        <span>TOKEN EFFICIENCY</span>
+        <span id="val-tokens">--</span>
+      </div>
+    </div>
   </div>
 
-  <style>
-    /* Toggle Switch */
-    .switch { position: relative; display: inline-block; width: 34px; height: 20px; }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 34px; border: 1px solid rgba(255,255,255,0.1); }
-    .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
-    input:checked + .slider { background-color: var(--accent-blue); }
-    input:checked + .slider:before { transform: translateX(14px); }
-  </style>
+  <!-- STORAGE MODE (Paste/Copy) -->
+  <div id="view-storage" style="display: none; padding: 16px;">
+    <div style="font-size: 10px; margin-bottom: 8px; color: var(--text-muted);">INJECT CRYSTAL (JSON)</div>
+    <textarea id="crystal-input" placeholder="Paste Crystal JSON here..."></textarea>
+
+    <div class="action-grid">
+      <button class="cyber-btn" id="btn-inject">
+        <i>⚡</i>
+        Inject
+      </button>
+      <button class="cyber-btn" id="btn-copy">
+        <i>📋</i>
+        Copy Active
+      </button>
+    </div>
+  </div>
+
+  <div style="padding: 10px; text-align: center;">
+    <a href="#" id="open-dashboard" style="font-size: 10px; color: var(--text-muted); text-decoration: none;">OPEN FULL
+      DASHBOARD -></a>
+  </div>
 
   <script type="module" src="./popup.ts"></script>
 </body>

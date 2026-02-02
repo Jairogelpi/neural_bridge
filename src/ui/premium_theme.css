@@ -1,0 +1,207 @@
+:root {
+    --bg-obsidian: #050507;
+    --glass-surface: rgba(20, 20, 25, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --accent-cyan: #00f2ff;
+    --accent-purple: #bd00ff;
+    --accent-green: #00ff9d;
+    --accent-red: #ff2a6d;
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.6);
+
+    --font-ui: 'Inter', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Space Mono', monospace;
+}
+
+body {
+    background-color: var(--bg-obsidian);
+    color: var(--text-primary);
+    font-family: var(--font-ui);
+    margin: 0;
+    width: 360px;
+    height: 520px;
+    overflow: hidden;
+    background-image:
+        radial-gradient(circle at 10% 20%, rgba(189, 0, 255, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(0, 242, 255, 0.05) 0%, transparent 40%);
+}
+
+/* Glass Panel */
+.glass-panel {
+    background: var(--glass-surface);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+}
+
+/* Hero Section */
+.hero {
+    height: 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.core-ring {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 2px solid var(--accent-cyan);
+    box-shadow: 0 0 15px var(--accent-cyan);
+    position: relative;
+    animation: pulse-ring 3s infinite ease-in-out;
+}
+
+.core-inner {
+    width: 30px;
+    height: 30px;
+    background: var(--accent-purple);
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 20px var(--accent-purple);
+    animation: items-float 4s infinite ease-in-out;
+}
+
+.system-status {
+    position: absolute;
+    bottom: 12px;
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--accent-green);
+    letter-spacing: 1px;
+    text-shadow: 0 0 5px var(--accent-green);
+}
+
+/* Main Grid */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 16px;
+}
+
+.metric-card {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: transform 0.2s;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+}
+
+.value {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.value.cyan {
+    color: var(--accent-cyan);
+    text-shadow: 0 0 10px rgba(0, 242, 255, 0.4);
+}
+
+.value.purple {
+    color: var(--accent-purple);
+}
+
+.value.green {
+    color: var(--accent-green);
+}
+
+/* Activity Log */
+.activity-log {
+    margin: 0 16px 16px;
+    height: 140px;
+    overflow-y: auto;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 10px;
+}
+
+.log-entry {
+    margin-bottom: 6px;
+    border-left: 2px solid var(--glass-border);
+    padding-left: 8px;
+    opacity: 0.8;
+}
+
+.log-entry.new {
+    border-color: var(--accent-cyan);
+    opacity: 1;
+    animation: slide-in 0.3s ease-out;
+}
+
+.timestamp {
+    color: var(--text-secondary);
+    margin-right: 6px;
+}
+
+/* Animations */
+@keyframes pulse-ring {
+    0% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+}
+
+@keyframes items-float {
+
+    0%,
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    50% {
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+}
+
+@keyframes slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Header */
+header {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-secondary);
+}

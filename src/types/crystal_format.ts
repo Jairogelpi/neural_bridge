@@ -227,6 +227,26 @@ export interface CrystalDependency {
     reason?: string;
 }
 
+export interface RealityProof {
+    /** The domain of reality (e.g., 'legal_spain', 'physics_newtonian') */
+    domain: string;
+
+    /** The specific constraints that were checked */
+    constraints: string[];
+
+    /** Validation status - output is BLOCKED if not 'valid' */
+    status: 'valid' | 'invalid' | 'unchecked';
+
+    /** Confidence score of the proof (0-1) */
+    confidence: number;
+
+    /** ID of the attestation record */
+    attestation_id?: string;
+
+    /** Timestamp of reality check */
+    checked_at: string;
+}
+
 // ============================================
 // CRYSTAL ROOT INTERFACE
 // ============================================
@@ -284,6 +304,14 @@ export interface Crystal {
 
     /** Dependencies on other Crystals */
     dependencies?: CrystalDependency[];
+
+    // ========== REALITY PROOF (RCI) ==========
+
+    /** 
+     * Proof of Reality (PoR) 
+     * The AI cannot produce this output unless it is valid within the domain.
+     */
+    reality_proof?: RealityProof;
 
     // ========== GOVERNANCE & ECONOMY ==========
 

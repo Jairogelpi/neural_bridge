@@ -1,52 +1,84 @@
 import { SCPService } from './llm';
 
 export interface ConsensusResult {
-    consensus_score: number; // 0-1
-    model_responses: Array<{ model: string; agreement: number; reasoning: string }>;
-    final_decision: 'STABLE' | 'UNSTABLE';
+    final_decision: 'CONSENSUS_REACHED' | 'DISSENT' | 'UNCERTAIN';
+    consensus_score: number; // 0.0 to 1.0 (Percentage of agreement)
+    participants: {
+        model: string;
+        vote: 'AGREE' | 'DISAGREE';
+        reason: string;
+    }[];
 }
 
 /**
- * Multi-Model Consensus Engine
- * Ensures that critical claims are verified by different LLM architectures
- * to eliminate single-model bias and hallucinations.
+ * CONSENSUS ENGINE (Universal Truth)
+ * Instead of trusting one AI, we form a "Jury" of diverse models.
+ * If they all agree, the reality is highly probable.
  */
 export class ConsensusEngine {
-    private static CONSENSUS_MODELS = [
-        'anthropic/claude-3.5-sonnet',
-        'google/gemini-pro-1.5',
-        'meta-llama/llama-3.3-70b-instruct:free'
+
+    private static JURY_MODELS = [
+        'anthropic/claude-3.5-sonnet',  // The Logician
+        'google/gemini-pro-1.5',        // The Creative
+        'meta-llama/llama-3-70b-instruct' // The Open Standard
     ];
 
-    /**
-     * Verify a claim across multiple models and return a consensus score.
-     */
-    static async verify(claim: string, context: string): Promise<ConsensusResult> {
-        const results = await Promise.all(
-            this.CONSENSUS_MODELS.map(async (model) => {
-                const systemPrompt = `You are a strict Consensus Arbiter. 
-Verify the claim against the provided context. 
-Return JSON: {"agreement": 0.0-1.0, "reasoning": "..."}`;
-                
-                const prompt = `Context: ${context}\nClaim to verify: ${claim}`;
-                
-                try {
-                    const response = await SCPService.resilientCallLLM(prompt, model, systemPrompt);
-                    const parsed = JSON.parse(response.content.replace(/```json|```/g, '').trim());
-                    return { model, agreement: parsed.agreement, reasoning: parsed.reasoning };
-                } catch (e) {
-                    return { model, agreement: 0, reasoning: 'Model failed or returned invalid JSON' };
-                }
-            })
-        );
+    static async verify(fact: string, context: string): Promise<ConsensusResult> {
+        console.log(`[Consensus] Convening Jury for fact: "${fact.substring(0, 50)}..."`);
 
-        const totalAgreement = results.reduce((acc, r) => acc + r.agreement, 0);
-        const averageAgreement = totalAgreement / results.length;
+        const tasks = this.JURY_MODELS.map(model => this.getVote(model, fact, context));
+
+        // Run parallel votes
+        const votes = await Promise.all(tasks);
+
+        const agreeCount = votes.filter(v => v.vote === 'AGREE').length;
+        const score = agreeCount / votes.length;
+
+        let decision: ConsensusResult['final_decision'] = 'UNCERTAIN';
+        if (score > 0.66) decision = 'CONSENSUS_REACHED';
+        if (score < 0.33) decision = 'DISSENT';
 
         return {
-            consensus_score: averageAgreement,
-            model_responses: results,
-            final_decision: averageAgreement >= 0.8 ? 'STABLE' : 'UNSTABLE'
+            final_decision: decision,
+            consensus_score: score,
+            participants: votes
         };
+    }
+
+    private static async getVote(model: string, fact: string, context: string): Promise<{ model: string; vote: 'AGREE' | 'DISAGREE'; reason: string }> {
+        const prompt = `
+        You are a FACT JUROR.
+        
+        CONTEXT:
+        "${context.substring(0, 1000)}"
+
+        CLAIM TO VERIFY:
+        "${fact}"
+        
+        Do you AGREE that this claim is supported by the context and logical reality?
+        Return JSON: {"vote": "AGREE" | "DISAGREE", "reason": "brief explanation"}
+        `;
+
+        try {
+            // We use 'callLLM' asking for specific models. 
+            // Note: In a real env, we'd fallback if a specific model isn't active, but here we try.
+            const res = await SCPService.resilientCallLLM(prompt, model, 'You are a strict logical juror.');
+
+            // Heuristic Parsing if JSON fails
+            let parsed;
+            try {
+                parsed = JSON.parse(res.content);
+            } catch {
+                const text = res.content.toUpperCase();
+                parsed = {
+                    vote: text.includes('AGREE') && !text.includes('DISAGREE') ? 'AGREE' : 'DISAGREE',
+                    reason: "Parsed from text"
+                };
+            }
+            return { model, vote: parsed.vote, reason: parsed.reason };
+        } catch (e) {
+            console.warn(`Jury member ${model} failed to vote.`);
+            return { model, vote: 'DISAGREE', reason: 'Jury member failed to appear' };
+        }
     }
 }

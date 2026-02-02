@@ -1,9 +1,13 @@
 import { Attestation } from './attestation';
 import { type Crystal, CrystalStatus, ConstraintRule } from '../types/crystal_format';
 import { DecisionReceipts, type DecisionReceipt } from './decision_receipts';
+import { UsidEngine } from './usid_engine';
 
 const OPENROUTER_API_KEY = (import.meta as any).env?.VITE_OPENROUTER_API_KEY || (globalThis as any).process?.env?.VITE_OPENROUTER_API_KEY || '';
 const OPENROUTER_BASE = 'https://openrouter.ai/api/v1';
+
+// Dynamic model selection from environment
+const ENV_MODEL = (import.meta as any).env?.OPENAI_MODEL || (globalThis as any).process?.env?.OPENAI_MODEL;
 
 export interface LLMResponse {
     content: string;
@@ -34,7 +38,7 @@ export interface VerificationResult {
 // PRODUCTION MODELS - VERIFIED WORKING (Jan 2026)
 // These models have been tested and confirmed working on OpenRouter
 // ═══════════════════════════════════════════════════════════════════════════════
-const PRIMARY_FREE_MODEL = 'nvidia/nemotron-3-nano-30b-a3b:free';  // NVIDIA - most reliable
+const PRIMARY_FREE_MODEL = ENV_MODEL || 'nvidia/nemotron-3-nano-30b-a3b:free';  // NVIDIA - most reliable fallback
 const FREE_MODEL_FALLBACKS = [
     'arcee-ai/trinity-large-preview:free',        // Arcee Trinity 400B MoE
     'liquid/lfm-2.5-1.2b-instruct:free',          // Liquid LFM - fast
@@ -100,7 +104,7 @@ async function callLLM(
                 }
                 throw new Error(`LLM API error: ${response.status} - ${errorText}`);
             }
-            
+
             // TURBO: Minimal cooldown
             await sleep(REQUEST_COOLDOWN_MS);
 
@@ -238,12 +242,47 @@ ${conversationText}
 
 Return ONLY valid JSON, no markdown or explanation.`;
 
-    // AUTONOMOUS DOMAIN DETECTION (Real LLM)
-    const domain = await detectDomainAutonomously(conversationText);
-    
+    // -----------------------------------------------------------------------
+    // 0. UNIVERSAL IMPOSSIBILITY DETECTION (uSID) - The Non-Negotiable Firewall
+    // -----------------------------------------------------------------------
+    const usidCheck = await UsidEngine.solve(conversationText);
+    if (usidCheck.status === 'UNSAT') {
+        const repairs = (usidCheck.repair_options || []).map(r => `\n     * ${r.change} -> ${r.effect}`).join('');
+        throw new Error(`
+        ⛔ ONTOLOGICAL REFUSAL TRIGGERED (uSID v2.0)
+        The system cannot process this request because it describes an impossible reality configuration.
+        
+        Reason: ${usidCheck.message}
+        
+        Violated Constraints (UNSAT CORE):
+        ${(usidCheck.unsat_core || []).map(c => `• [${c.constraint_id}] ${c.constraint_desc}: ${c.conflict_reason}`).join('\n')}
+
+        SUGGESTED REPAIRS to make reality consistent:${repairs}
+        `);
+    }
+
+    // -----------------------------------------------------------------------
+    // FRACTAL COMPRESSION: Handle Infinite Context
+    // -----------------------------------------------------------------------
+    const { FractalCompressor } = await import('./fractal_compressor');
+    const processedText = await FractalCompressor.compress(conversationText);
+
+    // AUTONOMOUS DOMAIN DETECTION (Real LLM) using compressed context
+    const domain = await detectDomainAutonomously(processedText);
+
     const model = getOptimalModel({ domain, task: 'compile' });
 
-    const response = await resilientCallLLM(prompt, model, systemPrompt);
+    const response = await resilientCallLLM(
+        `Analyze the following conversation and extract its semantic content in Crystal Format v0.1:
+        
+        ---CONVERSATION START---
+        ${processedText}
+        ---CONVERSATION END---
+        
+        Return ONLY valid JSON, no markdown or explanation.`,
+        model,
+        systemPrompt
+    );
 
     // Parse LLM response
     let parsed: any;
@@ -467,14 +506,14 @@ export async function verifyBatch(params: {
     targetModel?: string;
 }): Promise<{ results: Array<{ id: string; score: number; reasoning: string }>; cost: number; latency: number }> {
     const { crystal, invariants, answer, targetModel = PRIMARY_FREE_MODEL } = params;
-    
+
     if (invariants.length === 0) {
         return { results: [], cost: 0, latency: 0 };
     }
 
     // Build batch prompt
     const constraintsText = (crystal.constraints || []).map(c => `- [${c.rule}] ${c.value}`).join('\n');
-    
+
     const systemPrompt = `You are a Semantic Validator for Neural Bridge.
 Validate the answer against multiple verification questions.
 
@@ -487,7 +526,7 @@ Return a JSON array with scores for EACH question:
   {"id": "inv_002", "score": 0.0-1.0, "reasoning": "brief explanation"}
 ]`;
 
-    const questionsText = invariants.map((inv, i) => 
+    const questionsText = invariants.map((inv, i) =>
         `${i + 1}. [${inv.id}] ${inv.prompt}`
     ).join('\n');
 
@@ -507,10 +546,10 @@ Return ONLY a JSON array with scores for each question ID.`;
         let jsonStr = response.content;
         const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
         if (jsonMatch && jsonMatch[1]) jsonStr = jsonMatch[1];
-        
+
         const parsed = JSON.parse(jsonStr.trim());
         const resultsArray = Array.isArray(parsed) ? parsed : [parsed];
-        
+
         // Map results to invariant IDs
         const results = invariants.map(inv => {
             const found = resultsArray.find((r: any) => r.id === inv.id);

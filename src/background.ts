@@ -11,7 +11,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
                 const session = await getSession();
                 const installId = await getOrCreateInstallId();
                 const storage = await getStorage("nb_author_id");
-                
+
                 sendResponse({
                     ok: true,
                     tenant_id: installId,
@@ -58,10 +58,10 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
                     handle: msg.handle,
                     extensionVersion: EXT_VERSION
                 });
-                
+
                 // Save author_id locally
                 await setStorage({ nb_author_id: res.author_id });
-                
+
                 sendResponse({ ok: true, author_id: res.author_id, status: res.status });
                 return;
             }
@@ -72,18 +72,50 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
                     sendResponse({ ok: false, error: "no_author_linked" });
                     return;
                 }
-                
+
                 const author = await getAuthor({
                     authorId: storage.nb_author_id,
                     extensionVersion: EXT_VERSION
                 });
-                
+
                 sendResponse({ ok: true, author });
+                return;
+            }
+
+            if (msg?.type === "NB_TRIGGER_CHECK") {
+                console.log("[Background] 🧠 Neural Bridge TRIGGERED by User UI.");
+
+                const text = msg.text;
+
+                // 1. GENERATE CRYSTAL (Local Intelligence)
+                // We use the local SCPService directly.
+                const { SCPService } = await import("./services/llm");
+                const { crystal } = await SCPService.generateCrystal(text, "browser-user");
+
+                // 2. ORACLE OPTIMIZATION (Pre-Cognition)
+                const { Oracle } = await import("./services/oracle");
+                const prophecy = await Oracle.predictAndOptimize(crystal);
+
+                // 3. REHYDRATE (The Bridge)
+                const { RehydrationEngine } = await import("./services/rehydration");
+                const transferPrompt = RehydrationEngine.rehydrate(crystal);
+
+                // 4. RESPOND TO UI
+                sendResponse({
+                    ok: true,
+                    result: {
+                        crystal_id: crystal.context_id,
+                        quality: "PLATINUM", // If Oracle passed
+                        oracle_intervention: prophecy.intervention,
+                        transfer_package: transferPrompt
+                    }
+                });
                 return;
             }
 
             sendResponse({ ok: false, error: "unknown_message" });
         } catch (e: any) {
+            console.error("[Background Error]", e);
             sendResponse({ ok: false, error: e?.message ?? "error", details: e });
         }
     })();

@@ -8,9 +8,10 @@ dist/
 *.tsbuildinfo
 
 # Environment files (IMPORTANT: contains API keys)
-.env
-.env.local
-.env.*.local
+# Environment files - EXPOSED AS REQUESTED
+# .env
+# .env.local
+# .env.*.local
 
 # Debug/test outputs
 *.log

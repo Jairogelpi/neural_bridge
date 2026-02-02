@@ -83,6 +83,29 @@ create table if not exists reputation_ledger (
   created_at timestamptz not null default now()
 );
 
+-- Key-Value Store for Poly-Storage Fallback
+create table if not exists kv_store (
+  key text primary key,
+  value jsonb not null,
+  updated_at timestamptz not null default now()
+);
+
+-- Enable Row Level Security (RLS)
+alter table kv_store enable row level security;
+
+-- Allow access (Adjust policy as needed for your specific security model)
+create policy "Allow all access to authenticated users"
+on kv_store for all
+to authenticated
+using (true)
+with check (true);
+
+create policy "Allow all access to service role"
+on kv_store for all
+to service_role
+using (true)
+with check (true);
+
 -- Indices
 create index if not exists crystals_author_idx on crystals(author_id);
 create index if not exists reputation_ledger_author_idx on reputation_ledger(author_id, created_at desc);

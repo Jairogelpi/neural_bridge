@@ -2,11 +2,11 @@ export function buildManifest() {
     return {
         manifest_version: 3,
         name: "Neural Bridge",
-        version: "0.1.0",
+        version: "2.0.0",
         description: "Semantic Continuity Protocol (SCP) bridge with verifiable context transfer.",
         action: {
             default_title: "Neural Bridge",
-            default_popup: "ui/popup.html"
+            default_popup: "src/ui/popup.html"
         },
         icons: {
             "16": "icons/icon16.png",
