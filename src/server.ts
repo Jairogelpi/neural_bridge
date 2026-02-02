@@ -34,6 +34,7 @@ import { ZKAdvancedVerifier } from './services/zkv_advanced';
 import { ReputationSystem } from './services/reputation';
 import { ConsensusEngine } from './services/consensus';
 import { NeuralBridge } from './index';
+import { AuthService } from './services/auth';
 
 // Universal SDK Instance for API users
 const bridgeMap: Map<string, NeuralBridge> = new Map();
@@ -71,6 +72,38 @@ app.get('/sentinel', (req: Request, res: Response) => {
 app.use('/sentinel', express.static(path.join(process.cwd(), 'src/ui')));
 
 app.use('/sentinel', express.static(path.join(process.cwd(), 'src/ui')));
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// AUTHENTICATION ENDPOINTS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+app.post('/v1/auth/register', async (req: Request, res: Response) => {
+    try {
+        const { name, handle, email, password } = req.body;
+        if (!name || !handle || !email || !password) {
+            res.status(400).json({ error: 'Missing required fields' });
+            return;
+        }
+        const result = await AuthService.register(name, handle, email, password);
+        res.json({ success: true, ...result });
+    } catch (error) {
+        res.status(500).json({ error: (error as Error).message });
+    }
+});
+
+app.post('/v1/auth/login', async (req: Request, res: Response) => {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            res.status(400).json({ error: 'Missing email or password' });
+            return;
+        }
+        const result = await AuthService.login(email, password);
+        res.json({ success: true, ...result });
+    } catch (error) {
+        res.status(401).json({ error: (error as Error).message });
+    }
+});
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SCP EXTENSION ENDPOINTS (Real LLM Backend)

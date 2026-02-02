@@ -22,3 +22,15 @@ services:
       - key: JWT_SIGNING_KEY
         sync: false
     healthCheckPath: /health
+
+  - type: web
+    name: neural-bridge-dashboard
+    runtime: node
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    rootDirectory: dashboard
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://neural-bridge-backend.onrender.com
+      - key: NODE_ENV
+        value: production
