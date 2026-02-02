@@ -50,11 +50,15 @@ const PORT = process.env.PORT || 3000;
 
 console.log(`[BOOT] Starting server on port ${PORT}...`);
 
-// Health Check - AT THE VERY TOP (Before any middleware)
-app.get('/health', (req: Request, res: Response) => {
-    console.log('[HEALTH] Probe received at', new Date().toISOString());
+// Health Checks - AT THE VERY TOP
+const healthHandler = (req: Request, res: Response) => {
+    console.log(`[HEALTH] ${req.method} probe from ${req.ip} at ${new Date().toISOString()}`);
+    res.setHeader('Content-Type', 'text/plain');
     res.status(200).send('OK');
-});
+};
+
+app.get('/health', healthHandler);
+app.get('/', healthHandler); // Fallback for some load balancers
 
 app.use(cors({
     origin: '*',
