@@ -46,27 +46,15 @@ function getBridge(domain: string = 'general'): NeuralBridge {
 }
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
-console.log(`[BOOT] Starting server on port ${PORT}...`);
-
-// Request Logger (Debug)
-app.use((req, res, next) => {
-    if (req.path === '/health' || req.path === '/') {
-        console.log(`[HEALTH] ${req.method} ${req.path} from ${req.ip}`);
-    }
-    next();
+// Health Check - Absolute Priority
+app.get('/health', (req, res) => {
+    console.log(`[HEALTH] ${req.method} probe from ${req.ip} - Responding OK`);
+    res.status(200).send('OK');
 });
 
-// Health Checks
-const healthHandler = (req: Request, res: Response) => {
-    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
-};
-
-app.get('/health', healthHandler);
-app.get('/', healthHandler);
-app.head('/health', healthHandler);
-app.head('/', healthHandler);
+console.log(`[BOOT] Neural Bridge starting on port ${PORT}...`);
 
 app.use(cors({
     origin: '*',
