@@ -1,6 +1,6 @@
 import { Tool } from "@langchain/core/tools";
 import { NeuralBridge } from "../sdk";
-import { Crystal } from "../types/crystal_format";
+import type { Crystal } from "../types/crystal_format";
 
 export interface NeuralBridgeToolParams {
     apiKey: string;

@@ -1,0 +1,100 @@
+﻿
+> neural-bridge@0.1.0 lint
+> eslint "src/**/*.{ts,tsx}"
+
+
+C:\Users\jairo.gelpi\Desktop\neural_bridge\src\content\dom_conqueror.ts
+  8:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jairo.gelpi\Desktop\neural_bridge\src\content\overlay\overlay.ts
+  220:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jairo.gelpi\Desktop\neural_bridge\src\content\pipeline_capture.ts
+  4:1   error  Imports "BridgeCard" are only used as type                                @typescript-eslint/consistent-type-imports
+  6:1   error  All imports in the declaration are only used as types. Use `import type`  @typescript-eslint/consistent-type-imports
+  9:23  error  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+  9:52  error  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+
+C:\Users\jairo.gelpi\Desktop\neural_bridge\src\content\runBridgeFlow.ts
+    4:10  error  'overlaySet' is defined but never used                 @typescript-eslint/no-unused-vars
+    5:10  error  'reportVerifyTelemetry' is defined but never used      @typescript-eslint/no-unused-vars
+    7:10  error  'extractFirstJSON' is defined but never used           @typescript-eslint/no-unused-vars
+   12:14  error  Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+   28:15  error  Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+   29:19  error  Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+   42:9   error  'invariants' is assigned a value but never used        @typescript-eslint/no-unused-vars
+   44:9   error  'acceptThreshold' is assigned a value but never used   @typescript-eslint/no-unused-vars
+   45:9   error  'platform' is assigned a value but never used          @typescript-eslint/no-unused-vars
+   46:9   error  'extensionVersion' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   59:32  error  Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+   94:21  error  Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+  114:56  error  Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+  130:14  error  'e' is defined but never used                          @typescript-eslint/no-unused-vars
+
+C:\Users\jairo.gelpi\Desktop\neural_bridge\src\content\silent_monitor.ts
+  55:44  error  'sender' is defined but never used. Allowed unused args must match /^_/u        @typescript-eslint/no-unused-vars
+  55:52  error  'sendResponse' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\jairo.gelpi\Desktop\neural_bridge\src\content\storage.ts
+  21:37  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  25:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  41:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jairo.gelpi\Desktop\neural_bridge\src\demo_irrefutable.test.ts
+  8:1  error  Imports "Crystal" and "SemanticInvariant" are only used as type  @typescript-eslint/consistent-type-imports
+
+C:\Users\jairo.gelpi\Desktop\neural_bridge\src\demo_unbiased_real.test.ts
+  95:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jairo.gelpi\Desktop\neural_bridge\src\features\truth_vault.test.ts
+   1:44  error  'afterEach' is defined but never used     @typescript-eslint/no-unused-vars
+   2:10  error  'TruthVault' is defined but never used    @typescript-eslint/no-unused-vars
+  15:10  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jairo.gelpi\Desktop\neural_bridge\src\features\truth_vault.ts
+   1:1   error  Imports "SemanticMerkleTree" are only used as type                        @typescript-eslint/consistent-type-imports
+   1:42  error  'SemanticHasher' is defined but never used                                @typescript-eslint/no-unused-vars
+   2:1   error  All imports in the declaration are only used as types. Use `import type`  @typescript-eslint/consistent-type-imports
+  91:15  error  'newSMT' is assigned a value but never used                               @typescript-eslint/no-unused-vars
+
+C:\Users\jairo.gelpi\Desktop\neural_bridge\src\formal\axioms.ts
+  327:5  error  'sourceModel' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  328:5  error  'targetModel' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\jairo.gelpi\Desktop\neural_bridge\src\formal\logic.ts
+  223:21  error  Unexpected lexical declaration in case block  no-case-declarations
+  250:13  error  Unexpected lexical declaration in case block  no-case-declarations
+  251:13  error  Unexpected lexical declaration in case block  no-case-declarations
+  272:13  error  Unexpected lexical declaration in case block  no-case-declarations
+  273:13  error  Unexpected lexical declaration in case block  no-case-declarations
+
+C:\Users\jairo.gelpi\Desktop\neural_bridge\src\formal\mathematics.ts
+    4:15  error  'Expected' is defined but never used      @typescript-eslint/no-unused-vars
+  186:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jairo.gelpi\Desktop\neural_bridge\src\integrations\langchain.ts
+   3:1   error  All imports in the declaration are only used as types. Use `import type`  @typescript-eslint/consistent-type-imports
+  41:18  error  'e' is defined but never used                                             @typescript-eslint/no-unused-vars
+
+C:\Users\jairo.gelpi\Desktop\neural_bridge\src\integrations\vercel.ts
+  1:1  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  2:1  error  Imports "CoreMessage" are only used as type                                                                          @typescript-eslint/consistent-type-imports
+  4:1  error  All imports in the declaration are only used as types. Use `import type`                                             @typescript-eslint/consistent-type-imports
+
+C:\Users\jairo.gelpi\Desktop\neural_bridge\src\omega_engine_test.ts
+   3:10  error  'CrystalStatus' is defined but never used  @typescript-eslint/no-unused-vars
+  31:44  error  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  32:52  error  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  34:21  error  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  34:51  error  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  37:36  error  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  37:77  error  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  38:94  error  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  44:21  error  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+C:\Users\jairo.gelpi\Desktop\neural_bridge\src\pck\pck_runtime.ts
+  8:1  error  Imports "ProofCarryingKnowledge" and "VerificationResult" are only used as type  @typescript-eslint/consistent-type-imports
+  9:8  error  'crypto' is defined but never used                                               @typescript-eslint/no-unused-vars
+
+C:\Users\jairo.gelpi\Desktop\neural_bridge\src\production_integration.test.ts
+  14:10  error  'CrystalRuntime' is defined but never used        @typescript-eslint/no-unused-vars

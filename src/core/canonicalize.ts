@@ -11,10 +11,10 @@ export function canonicalize(text: string): string {
  * Computes a deterministic hash of the crystal content.
  * Recursively canonicalizes keys and values for SCP sealing.
  */
-export async function computeCanonicalHash(crystal: any): Promise<string> {
+export async function computeCanonicalHash(crystal: unknown): Promise<string> {
     const parts: string[] = [];
 
-    function walk(obj: any) {
+    function walk(obj: unknown) {
         if (obj === null || obj === undefined) return;
         if (typeof obj !== "object") {
             parts.push(canonicalize(String(obj)));
@@ -28,11 +28,12 @@ export async function computeCanonicalHash(crystal: any): Promise<string> {
         }
 
         // Sort keys for deterministic object representation
-        const keys = Object.keys(obj).sort();
+        const typedObj = obj as Record<string, unknown>;
+        const keys = Object.keys(typedObj).sort();
         for (const k of keys) {
             if (k === "verification") continue; // Result field, skip to avoid recursion
             parts.push(k);
-            walk(obj[k]);
+            walk(typedObj[k]);
         }
     }
 

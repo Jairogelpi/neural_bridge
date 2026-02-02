@@ -5,9 +5,9 @@
  * Extract the first JSON object or array from a string
  * Handles markdown fences, extra text, and nested structures
  */
-export function extractFirstJSON(text: string): any {
+export function extractFirstJSON(text: string): unknown {
     // Remove markdown code fences
-    let cleaned = text
+    const cleaned = text
         .replace(/```json\s*/gi, "")
         .replace(/```\s*/g, "")
         .trim();

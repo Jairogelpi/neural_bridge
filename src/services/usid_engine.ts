@@ -1,11 +1,13 @@
 import { SCPService } from './llm';
-import {
+import type {
     UniversalConstraint,
     uSidResult,
     SystemCapabilities,
-    DEFAULT_CAPABILITIES,
     UnsatCoreItem,
     ConflictRepair
+} from '../types/usid';
+import {
+    DEFAULT_CAPABILITIES
 } from '../types/usid';
 
 export class UsidEngine {

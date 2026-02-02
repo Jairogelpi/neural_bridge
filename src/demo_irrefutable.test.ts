@@ -5,7 +5,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { CrystalRuntime } from './services/crystal_runtime';
-import { Crystal, CrystalStatus, ConstraintRule, SemanticInvariant } from './types/crystal_format';
+import type { Crystal, SemanticInvariant } from './types/crystal_format';
+import { CrystalStatus, ConstraintRule } from './types/crystal_format';
 import crypto from 'crypto';
 
 // ═══════════════════════════════════════════════════════════════════════════════

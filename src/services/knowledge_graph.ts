@@ -1,7 +1,7 @@
 // Multi-Crystal Knowledge Graph
 // Versioned dependencies creating a Knowledge OS
 
-import { Crystal } from '../types/crystal_format';
+import type { Crystal } from '../types/crystal_format';
 
 export interface CrystalReference {
     crystal_id: string;

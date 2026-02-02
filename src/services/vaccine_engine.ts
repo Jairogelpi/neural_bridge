@@ -1,5 +1,5 @@
 import { SCPService } from './llm';
-import { Crystal } from '../types/crystal_format';
+import type { Crystal } from '../types/crystal_format';
 import { supabase } from '../db/supabase';
 
 

@@ -1,4 +1,4 @@
-import { DecisionReceipt } from './services/decision_receipts';
+import type { DecisionReceipt } from './services/decision_receipts';
 
 /**
  * Visualizer for Neural Bridge Decision Receipts.

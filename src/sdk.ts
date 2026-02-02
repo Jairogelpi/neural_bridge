@@ -8,15 +8,18 @@
  * import { NeuralBridge, SCP } from '@neural-bridge/sdk';
  */
 
-import { CrystalRuntime, CrystalExecutionResult } from './services/crystal_runtime';
+import { CrystalRuntime } from './services/crystal_runtime';
+import type { CrystalExecutionResult } from './services/crystal_runtime';
 import { SCPService } from './services/llm';
-import { VerificationService } from './services/verification_service';
-import { CrystalFormat, Crystal, CrystalSchemaV01 } from './types/crystal_format';
+import { CrystalFormat, CrystalSchemaV01 } from './types/crystal_format';
+import type { Crystal } from './types/crystal_format';
 import { Attestation } from './services/attestation';
-import { DecisionReceipts, DecisionReceipt } from './services/decision_receipts';
+import { DecisionReceipts } from './services/decision_receipts';
+import type { DecisionReceipt } from './services/decision_receipts';
 import { ReceiptVisualizer } from './visualizer';
-import { CloudBridge, CloudConfig } from './services/cloud_bridge';
-import { PCKRuntime, PCKBuilder, PCKVerifier, type ProofCarryingKnowledge } from './pck';
+import { CloudBridge } from './services/cloud_bridge';
+import type { CloudConfig } from './services/cloud_bridge';
+import { PCKRuntime, PCKVerifier, type ProofCarryingKnowledge } from './pck';
 import { ZKVRuntime, type ZKProof, type ZKVerificationResult } from './zkv';
 import { SMTRuntime, type SemanticMerkleTree, type SemanticComparisonResult } from './smt';
 import { CLPVRuntime, type PortableReceipt, type CrossVerificationResult } from './clpv';
@@ -43,10 +46,10 @@ export interface SDKConfig {
 export class NeuralBridge {
     private config: SDKConfig;
     private cloud?: CloudBridge;
-    
+
     constructor(config: SDKConfig = {}) {
         this.config = { mode: 'pck', ...config };
-        
+
         if (this.config.mode !== 'local' && this.config.mode !== 'pck' && config.apiKey) {
             const cloudConfig: CloudConfig = {
                 apiKey: config.apiKey
@@ -113,7 +116,7 @@ export class NeuralBridge {
                 question: params.question,
                 answer: params.answer,
                 config: {
-                    domain: (params.crystal.domain as any) || 'general',
+                    domain: (params.crystal.domain as string) || 'general',
                     enable_adversarials: params.mode === 'strict',
                     enable_counterfactuals: params.mode === 'strict'
                 },
@@ -124,9 +127,8 @@ export class NeuralBridge {
         // 2. Telemetry / Reputation (Async)
         if (this.cloud && (this.config.mode === 'cloud' || this.config.mode === 'hybrid')) {
             // Fire and forget - don't block the main thread
-            this.cloud.reportResult(result.receipt).catch(err => {
+            this.cloud.reportResult(result.receipt).catch(_err => {
                 // Silently fail telemetry if offline, don't break the app
-                // console.warn("Telemetry failed", err);
             });
         }
 
@@ -137,12 +139,12 @@ export class NeuralBridge {
      * Register a Knowledge Author Identity.
      * Required to earn Reputation Scores on the network.
      */
-    async registerIdentity(name: string, handle: string): Promise<any> {
+    async registerIdentity(name: string, handle: string): Promise<unknown> {
         if (!this.cloud) throw new Error("Cloud mode required for Identity Registration");
         // Generate a new keypair for this identity
         const kp = await Attestation.generateKeyPair();
         const pubKey = await Attestation.exportPublicKey(kp.publicKey);
-        
+
         return this.cloud.registerAuthor(name, handle, pubKey);
     }
 
@@ -157,7 +159,7 @@ export class NeuralBridge {
     /**
      * Validate if a JSON object is a valid Crystal (Schema Check + Hash Verification)
      */
-    async validateCrystal(data: any): Promise<{ valid: boolean; errors: string[] }> {
+    async validateCrystal(data: unknown): Promise<{ valid: boolean; errors: string[] }> {
         const formatCheck = CrystalFormat.validate(data);
         if (!formatCheck.valid) return formatCheck;
         return { valid: true, errors: [] };
@@ -232,7 +234,7 @@ export class NeuralBridge {
         source: string;
         answer: string;
         domain: string;
-        constraints?: Array<{ type: string; value: any }>;
+        constraints?: Array<{ type: string; value: unknown }>;
     }): ZKProof {
         return ZKVRuntime.createProof(params);
     }
@@ -254,7 +256,7 @@ export class NeuralBridge {
         source: string;
         answer: string;
         domain: string;
-        constraints?: Array<{ type: string; value: any }>;
+        constraints?: Array<{ type: string; value: unknown }>;
     }): {
         proof: ZKProof;
         verification: ZKVerificationResult;
@@ -362,7 +364,7 @@ export const SCP = {
     Visualizer: ReceiptVisualizer,
     Metrics: {
         calculateSRI: (score: number, risk: number) => {
-            return score * (1 - risk * 0.1); 
+            return score * (1 - risk * 0.1);
         }
     }
 };

@@ -3,7 +3,11 @@
  * Inject Neural Bridge Reality Shields directly into ChatGPT/Claude DOM.
  */
 
-declare const chrome: any;
+declare const chrome: {
+    runtime: {
+        sendMessage(message: unknown): Promise<any>;
+    };
+};
 
 interface PlatformConfig {
     name: string;

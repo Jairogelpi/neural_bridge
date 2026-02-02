@@ -1,4 +1,4 @@
-import { Crystal } from '../types/crystal_format';
+import type { Crystal } from '../types/crystal_format';
 import { SCPService } from './llm';
 import { Sentinel } from './sentinel';
 import { OntologicalAnchor } from './ontological_anchor';
@@ -82,7 +82,7 @@ export class SemanticProtocol {
             type: 'SEMANTIC_HANDSHAKE',
             severity: handshake.resonance > 0.8 ? 'info' : 'warning',
             message: `Semantic Handshake: Resonance ${Math.round(handshake.resonance * 100)}% with ${targetModel}`,
-            details: handshake
+            details: handshake as unknown as Record<string, unknown>
         });
 
         if (handshake.resonance < 0.7) {

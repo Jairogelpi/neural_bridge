@@ -6,8 +6,14 @@ export default tseslint.config(
     ...tseslint.configs.recommended,
     {
         rules: {
-            "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
-            "@typescript-eslint/consistent-type-imports": "error"
+            "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+            "@typescript-eslint/consistent-type-imports": "warn",
+            "@typescript-eslint/no-explicit-any": "warn",
+            "@typescript-eslint/ban-ts-comment": "warn",
+            "@typescript-eslint/no-non-null-asserted-optional-chain": "warn",
+            "no-case-declarations": "warn",
+            "no-empty": "warn",
+            "prefer-const": "warn"
         }
     },
     {

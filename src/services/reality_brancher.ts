@@ -1,4 +1,4 @@
-import { Crystal } from '../types/crystal_format';
+import type { Crystal } from '../types/crystal_format';
 import { Sentinel } from './sentinel';
 
 export interface RealityBranch {

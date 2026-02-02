@@ -1,4 +1,5 @@
 import { supabase } from '../db/supabase';
+import { SMTRuntime } from '../smt';
 
 export interface SentinelEvent {
     type: 'VACCINE_SYNTHESIS' | 'ORACLE_DREAM' | 'JURY_ESCALATION' | 'FRACTAL_COMPRESSION' | 'ECONOMIC_ROUTING' | 'CRYSTAL_FUSION' | 'ENTROPY_PURIFICATION' | 'CHAOS_EVOLUTION' | 'SEMANTIC_HANDSHAKE' | 'SOVEREIGN_CONSENSUS';
@@ -54,8 +55,9 @@ export class Sentinel {
 
         let healedCount = 0;
         for (const crystal of crystals) {
-            // Check if crystal already has this vaccine (simulation of deep scan)
-            const isVulnerable = Math.random() > 0.7; // 30% chance for simulation
+            // REAL SEMANTIC SCAN: Check if crystal is affected by the vaccine's fallacy
+            const comparison = SMTRuntime.compare(JSON.stringify(crystal), String(vaccine.meta_invariant || ""));
+            const isVulnerable = comparison.contradiction_detected || (comparison.semantic_similarity > 0.4);
 
             if (isVulnerable) {
                 console.log(`[Sentinel] 🩹 Healing Crystal ${crystal.context_id}: Applying retroactive vaccine armor.`);

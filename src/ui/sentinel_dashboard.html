@@ -17,7 +17,8 @@
         <header class="sentinel-header">
             <div class="sentinel-brand">SENTINEL ENGINE v4.0</div>
             <div class="system-status">
-                <span style="color: #666">Purity:</span> <span style="color: var(--sentinel-cyan)">99.98%</span>
+                <span style="color: #666">Purity:</span> <span id="purity-value"
+                    style="color: var(--sentinel-cyan)">100.00%</span>
                 <span style="margin-left: 20px; color: #666">Status:</span> <span
                     style="color: var(--sentinel-cyan)">OMEGA ACTIVE</span>
             </div>
@@ -128,9 +129,10 @@
 
                 document.getElementById('stat-latency').textContent = avgLatency + "ms";
                 document.getElementById('stat-entropy').textContent = avgEntropy.toFixed(3);
-                document.getElementById('stat-evolutions').textContent = logs.filter(l => l.type === 'CHAOS_EVOLUTION').length;
+                document.getElementById('stat-evolutions').textContent = stats.active_evolutions || 0;
                 document.getElementById('stat-consensus').textContent = avgConsensus.toFixed(1) + "%";
                 document.getElementById('consensus-bar').style.width = avgConsensus + "%";
+                document.getElementById('purity-value').textContent = avgConsensus.toFixed(2) + "%";
                 // REAL RETURN ON INTELLIGENCE (ROI) CALCULATION
                 // Each vaccine prevents future token waste. Avg cost of error = $0.05. Avg cost of vaccine = $0.001. ROI = 50x.
                 const estimatedSavings = stats.total_vaccines * 50;

@@ -4,12 +4,13 @@
 const TAP_FLAG = "__NB_TAP_INSTALLED__";
 
 export async function installNetworkTap(): Promise<void> {
-    // Avoid double install
-    if ((window as any)[TAP_FLAG]) return;
-    (window as any)[TAP_FLAG] = true;
+  // Avoid double install
+  const win = window as unknown as { [TAP_FLAG]?: boolean };
+  if (win[TAP_FLAG]) return;
+  win[TAP_FLAG] = true;
 
-    const script = document.createElement("script");
-    script.textContent = `
+  const script = document.createElement("script");
+  script.textContent = `
 (() => {
   if (window.__NB_FETCH_TAP__) return;
   window.__NB_FETCH_TAP__ = { last: null };
@@ -55,6 +56,6 @@ export async function installNetworkTap(): Promise<void> {
 })();
 `;
 
-    (document.documentElement || document.head).appendChild(script);
-    script.remove();
+  (document.documentElement || document.head).appendChild(script);
+  script.remove();
 }

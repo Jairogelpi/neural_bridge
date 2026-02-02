@@ -58,7 +58,7 @@ export async function compileCrystalRLM(params: {
     let usedCalls = 0;
 
     // 1) create
-    let prompt = buildCrystalizePrompt({ transcriptSlice: slice, mode: "create" });
+    const prompt = buildCrystalizePrompt({ transcriptSlice: slice, mode: "create" });
     let resp = await llm.call({ prompt, maxTokens: budget.maxTokensPerCall, temperature: 0 });
     usedCalls++;
 

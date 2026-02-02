@@ -16,9 +16,9 @@ import type {
 } from "./types";
 
 function idempotencyKey(): string {
-    const hasRandomUUID = typeof crypto !== 'undefined' && 'randomUUID' in crypto && typeof (crypto as any).randomUUID === 'function';
+    const hasRandomUUID = typeof crypto !== 'undefined' && 'randomUUID' in crypto && typeof (crypto as unknown as { randomUUID: () => string }).randomUUID === 'function';
     return hasRandomUUID
-        ? (crypto as any).randomUUID()
+        ? (crypto as unknown as { randomUUID: () => string }).randomUUID()
         : `idem_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
 

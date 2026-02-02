@@ -1,5 +1,5 @@
-import { RealityBranch } from './reality_brancher';
-import { Crystal } from '../types/crystal_format';
+import type { RealityBranch } from './reality_brancher';
+import type { Crystal } from '../types/crystal_format';
 import { SCPService } from './llm';
 import { Sentinel } from './sentinel';
 

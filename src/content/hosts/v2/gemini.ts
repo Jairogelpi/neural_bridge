@@ -2,7 +2,7 @@
 // Robust multi-selector with network tap fallback
 
 import type { HostAdapterV2, HostDebugSnapshot } from "./types";
-import { qsa, firstVisible, textContentSafe, normalizeWS, trySelectors } from "./dom";
+import { qsa, textContentSafe, normalizeWS, trySelectors } from "./dom";
 import { makeTextareaHandle, makeContentEditableHandle } from "./input";
 import { waitForStableText } from "./wait";
 import { installNetworkTap } from "../../networkTap/installTap";

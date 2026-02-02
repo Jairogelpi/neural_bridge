@@ -5,7 +5,8 @@
  * Enables zero-cost verification in production.
  */
 
-import { PCKBuilder, PCKVerifier, ProofCarryingKnowledge, VerificationResult } from './proof_carrying_knowledge';
+import type { ProofCarryingKnowledge, VerificationResult } from './proof_carrying_knowledge';
+import { PCKBuilder, PCKVerifier } from './proof_carrying_knowledge';
 import crypto from 'crypto';
 
 // ═══════════════════════════════════════════════════════════════════════════════

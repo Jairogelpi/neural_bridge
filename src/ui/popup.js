@@ -39,7 +39,7 @@ function updateUI(state) {
         elements.trust.textContent = score > 80 ? 'VERIFIED' : 'CAUTION';
         elements.trust.className = score > 80 ? 'value green' : 'value purple';
         // Latency
-        elements.latency.textContent = `${Math.floor(Math.random() * 40 + 20)}ms`; // Simulate slight jitter
+        elements.latency.textContent = `${latest.latency_ms || 0}ms`;
         log('evt', `Verified context ${latest.context_id?.substring(0, 6)}...`);
     }
 }
@@ -53,23 +53,7 @@ function log(source, msg) {
         elements.log.lastElementChild?.remove();
     }
 }
-// Idle Animation / Simulation so it never looks "dead"
-function simulateIdle() {
-    elements.sri.textContent = "--";
-    elements.trust.textContent = "STANDBY";
-    elements.latency.textContent = "0ms";
-    setInterval(() => {
-        const events = [
-            "Scanning active tab content...",
-            "Verifying security signatures...",
-            "Syncing with ZK-Rollup node...",
-            "Heartbeat check: OK"
-        ];
-        const randomEvt = events[Math.floor(Math.random() * events.length)];
-        if (Math.random() > 0.7)
-            log('sys', randomEvt);
-    }, 3000);
-}
+// Idle Animation removed for Production
 // Listen for live updates
 chrome.runtime.onMessage.addListener((msg) => {
     if (msg.type === 'NB_STATE_UPDATE') {

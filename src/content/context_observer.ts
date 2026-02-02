@@ -1,6 +1,10 @@
 import { DomainHeuristics } from '../services/domain_heuristics';
 import { FirewallOverlay } from '../ui/firewall_overlay';
 
+interface ObservedElement extends HTMLElement {
+    _nb_observed?: boolean;
+}
+
 /**
  * CONTEXT OBSERVER
  * Watches the user's input in ChatGPT, Claude, and Gemini.
@@ -37,11 +41,11 @@ export class ContextObserver {
             document.querySelector('.input-area textarea');
     }
 
-    private attachListener(input: HTMLElement) {
-        if ((input as any)._nb_observed) return;
-        (input as any)._nb_observed = true;
+    private attachListener(input: ObservedElement) {
+        if (input._nb_observed) return;
+        input._nb_observed = true;
 
-        input.addEventListener('input', (e) => {
+        input.addEventListener('input', (_e) => {
             const text = (input instanceof HTMLTextAreaElement) ? input.value : input.innerText;
             if (text.length < 30) return; // Ignore short fragments
 

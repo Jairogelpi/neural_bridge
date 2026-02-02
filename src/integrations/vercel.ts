@@ -1,7 +1,9 @@
 // @ts-ignore - Vercel AI SDK types (optional peer dependency)
-import { CoreMessage, generateText, streamText } from "ai";
+import type { CoreMessage } from "ai";
+// @ts-ignore
+import { generateText, streamText } from "ai";
 import { NeuralBridge } from "../sdk";
-import { Crystal } from "../types/crystal_format";
+import type { Crystal } from "../types/crystal_format";
 
 export interface NeuralBridgeVercelParams {
     apiKey: string;
@@ -17,10 +19,10 @@ export async function generateTextWithBridge(
     params: Parameters<typeof generateText>[0] & { bridge: NeuralBridgeVercelParams }
 ) {
     const { bridge, ...aiParams } = params;
-    
+
     // 1. Generate Content
     const result = await generateText(aiParams);
-    
+
     // 2. Verify
     const nb = new NeuralBridge({ apiKey: bridge.apiKey });
     const lastUserMessage = (aiParams.messages as CoreMessage[])
@@ -65,7 +67,7 @@ export async function streamTextWithAudit(
 ) {
     const { bridge, ...aiParams } = params;
     const result = await streamText(aiParams);
-    
+
     // Async verification in background
     (async () => {
         const fullText = await result.text;

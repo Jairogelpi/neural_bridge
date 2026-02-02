@@ -1,15 +1,19 @@
-import { HostAdapterV2 } from "./hosts/v2/types";
+import type { HostAdapterV2 } from "./hosts/v2/types";
 import { ChatGPTV2 } from "./hosts/v2/chatgpt";
 import { ClaudeV2 } from "./hosts/v2/claude";
 import { GeminiV2 } from "./hosts/v2/gemini";
-import { DomainHeuristics, KnowledgeDomain } from "../services/domain_heuristics";
-import { loadCrystal, loadCards } from "./storage";
+import { DomainHeuristics, type KnowledgeDomain } from "../services/domain_heuristics";
 import { VerificationService } from "../services/verification_service";
-import { PCKRuntime, type ProofCarryingKnowledge } from "../pck";
-import { ZKVRuntime, type ZKProof } from "../zkv";
-import { SMTRuntime, type SemanticMerkleTree } from "../smt";
-import { CLPVRuntime, type PortableReceipt } from "../clpv";
+import { PCKRuntime } from "../pck";
+import type { ProofCarryingKnowledge } from "../pck";
+import { ZKVRuntime } from "../zkv";
+import type { ZKProof } from "../zkv";
+import { SMTRuntime } from "../smt";
+import type { SemanticMerkleTree } from "../smt";
+import { CLPVRuntime } from "../clpv";
+import type { PortableReceipt } from "../clpv";
 import { truthVault } from "../features/truth_vault";
+import type { Crystal } from "../api/types";
 
 export type TrustState = 'idle' | 'scanning' | 'verified' | 'warning' | 'blocked';
 
@@ -18,7 +22,7 @@ export interface FirewallVerdict {
     sri: number;
     reason?: string | undefined;
     invariants?: Array<{ id: string; passed: boolean; reason?: string }>;
-    
+
     // Revolutionary Features Status
     features?: {
         pck: { enabled: boolean; llm_calls_saved: number; cost_saved: string };
@@ -36,7 +40,7 @@ export interface FirewallVerdict {
     } | undefined;
 
     verification_time_ms?: number;
-    
+
     // Legacy fields for backwards compatibility
     pck_enabled?: boolean;
     llm_calls_saved?: number;
@@ -46,15 +50,15 @@ export interface FirewallVerdict {
 export class FirewallAgent {
     private host: HostAdapterV2 | null = null;
     private activeDomain: KnowledgeDomain = 'general';
-    private mountedCrystals: any[] = [];
+    private mountedCrystals: Crystal[] = [];
     private mountedPCKs: Map<string, ProofCarryingKnowledge> = new Map();
     private lastProcessedText: string = "";
-    private checkInterval: any = null;
+    private checkInterval: ReturnType<typeof setInterval> | null = null;
     private strictMode: boolean = false;
     private pckMode: boolean = true;  // PCK enabled by default - zero cost!
     private zkvMode: boolean = true;   // ZKV enabled - enterprise privacy
     private smtMode: boolean = true;   // SMT enabled - semantic analysis
-    
+
     // Stats tracking
     private totalLLMCallsSaved: number = 0;
     private totalCostSaved: number = 0;
@@ -119,8 +123,11 @@ export class FirewallAgent {
             text: initialText || document.title
         });
 
-        if (this.mountedCrystals.length > 0) {
-            chrome.storage.local.set({ nb_active_crystal_id: this.mountedCrystals[0].context_id });
+        if (this.mountedCrystals && this.mountedCrystals.length > 0) {
+            const first = this.mountedCrystals[0];
+            if (first) {
+                chrome.storage.local.set({ nb_active_crystal_id: first.context_id });
+            }
         }
     }
 
@@ -159,20 +166,20 @@ export class FirewallAgent {
         // REVOLUTIONARY VERIFICATION PIPELINE (PCK + ZKV + SMT + CLPV + VAULT)
         // All five features working together for maximum protection
         // ═══════════════════════════════════════════════════════════════════════
-        
+
         const startTime = Date.now();
         let pckResult = null;
         let smtResult = null;
         let zkProof = null;
         let contradictionsFound = 0;
-        
+
         // 1. PCK: Zero-cost verification
         if (this.pckMode) {
             pckResult = await this.verifyWithPCK(currentText);
             this.totalLLMCallsSaved++;
             this.totalCostSaved += 0.002;
         }
-        
+
         // 2. SMT: Semantic analysis (contradiction detection)
         if (this.smtMode) {
             smtResult = this.analyzeWithSMT(currentText);
@@ -181,14 +188,14 @@ export class FirewallAgent {
             contradictionsFound = smtResult.contradictions;
             this.totalContradictionsFound += contradictionsFound;
         }
-        
+
         // 3. ZKV: Generate privacy-preserving proof (for enterprise users)
         if (this.zkvMode && pckResult) {
             zkProof = this.generateZKProof(currentText, pckResult.valid);
             this.lastZKProof = zkProof;
             this.totalZKProofs++;
         }
-        
+
         // 4. CLPV: Generate cross-LLM portable receipt
         if (this.clpvMode) {
             this.lastPortableReceipt = this.generatePortableReceipt(currentText);
@@ -203,7 +210,7 @@ export class FirewallAgent {
         if (realityCheck.is_conflict) {
             console.log(`[NeuralFirewall] 🛑 REALITY CONFLICT DETECTED: ${realityCheck.contradiction_reason}`);
             contradictionsFound++; // Treat as contradiction
-            
+
             healing = {
                 needed: true,
                 corrected_text: truthVault.healReality(currentText, realityCheck),
@@ -223,27 +230,27 @@ export class FirewallAgent {
                 }).catch(e => console.error("Failed to crystallize truth:", e));
             }
         }
-        
+
         const verificationTime = Date.now() - startTime;
-        
+
         // Determine final state
         const hasContradictions = (pckResult?.contradictions?.length || 0) > 0 || contradictionsFound > 0;
         const isValid = pckResult?.valid ?? true;
-        
+
         // If healing is needed, we flag as warning/blocked but offer the fix
         const finalState: TrustState = hasContradictions ? 'blocked' : (isValid ? 'verified' : 'idle');
         const finalSri = pckResult?.confidence ?? 0;
-        
+
         onVerdict({
             state: finalState,
             sri: finalSri,
-            reason: hasContradictions ? 
+            reason: hasContradictions ?
                 (healing?.reason || pckResult?.contradictions?.[0] || 'Semantic contradiction detected') : undefined,
-            invariants: pckResult?.supported_claims?.map(c => ({ 
-                id: c.substring(0, 30), 
-                passed: true 
+            invariants: pckResult?.supported_claims?.map(c => ({
+                id: c.substring(0, 30),
+                passed: true
             })) || [],
-            
+
             // All Revolutionary Features Status
             features: {
                 pck: {
@@ -269,13 +276,13 @@ export class FirewallAgent {
             },
             healing,
             verification_time_ms: verificationTime,
-            
+
             // Legacy fields
             pck_enabled: this.pckMode,
             llm_calls_saved: this.totalLLMCallsSaved,
             cost_saved: `$${this.totalCostSaved.toFixed(4)}`
         });
-        
+
         // Skip legacy mode if revolutionary features are enabled
         if (this.pckMode || this.smtMode || this.zkvMode) {
             return;
@@ -293,8 +300,9 @@ export class FirewallAgent {
         let minSri = 1.0;
 
         for (const crystal of this.mountedCrystals) {
+            const crystalObj = crystal as unknown as Record<string, unknown>;
             const result = await VerificationService.verify({
-                context_id: crystal.context_id,
+                context_id: String(crystalObj.context_id || ""),
                 domain: this.activeDomain,
                 question: "Contextual Interception",
                 answer: currentText,
@@ -304,12 +312,12 @@ export class FirewallAgent {
 
             if (!result) continue;
 
-            const currentInvariants = [
-                ...result.invariants_failed.map(id => ({ id, passed: false, reason: "Constraint violated" })),
-                ...result.invariants_passed.map(id => ({ id, passed: true }))
+            const currentInvariants: Array<{ id: string; passed: boolean; reason?: string }> = [
+                ...((result.invariants_failed || []) as unknown[]).map(id => ({ id: String(id), passed: false, reason: "Constraint violated" })),
+                ...((result.invariants_passed || []) as unknown[]).map(id => ({ id: String(id), passed: true }))
             ];
             aggregatedInvariants = [...aggregatedInvariants, ...currentInvariants];
-            
+
             if (result.sri < minSri) minSri = result.sri;
 
             if (!result.passed) {
@@ -324,8 +332,8 @@ export class FirewallAgent {
             }
         }
 
-        onVerdict({ 
-            state: 'verified', 
+        onVerdict({
+            state: 'verified',
             sri: minSri === 1.0 && aggregatedInvariants.length === 0 ? 0 : minSri,
             invariants: aggregatedInvariants.length > 0 ? aggregatedInvariants : [{ id: "active_monitoring", passed: true }],
             pck_enabled: false
@@ -346,12 +354,12 @@ export class FirewallAgent {
     }> {
         // Get or create PCK for current domain
         let pck = this.mountedPCKs.get(this.activeDomain);
-        
+
         if (!pck) {
             // Create PCK from page context (domain-specific knowledge)
             const pageContext = this.extractPageContext();
             pck = PCKRuntime.compile(pageContext, {
-                domain: this.activeDomain as any,
+                domain: this.activeDomain as KnowledgeDomain,
                 extract_numbers: true,
                 extract_entities: true,
                 extract_temporals: true
@@ -375,7 +383,7 @@ export class FirewallAgent {
     } {
         // Build semantic tree from current text
         const tree = SMTRuntime.build(text);
-        
+
         // Compare with previous content if available
         let contradictions = 0;
         if (this.lastSMT) {
@@ -384,12 +392,12 @@ export class FirewallAgent {
                 text
             );
             contradictions = comparison.contradictions.length;
-            
+
             if (contradictions > 0) {
                 console.log(`[NeuralFirewall] SMT detected ${contradictions} contradiction(s)`);
             }
         }
-        
+
         return {
             semantic_hash: tree.document.semantic_hash,
             tree,
@@ -401,17 +409,17 @@ export class FirewallAgent {
      * ZKV Proof Generation - Zero-Knowledge proof for enterprise privacy
      * Proves verification happened WITHOUT revealing source data
      */
-    private generateZKProof(text: string, isValid: boolean): ZKProof {
+    private generateZKProof(text: string, _isValid: boolean): ZKProof {
         const pageContext = this.extractPageContext();
-        
+
         // Generate ZK proof - source never leaves the browser
         const proof = ZKVRuntime.createProof({
             source: pageContext,  // NEVER sent externally
             answer: text,
-            domain: this.activeDomain as any,
+            domain: this.activeDomain as KnowledgeDomain,
             constraints: []
         });
-        
+
         console.log(`[NeuralFirewall] ZK Proof generated: ${proof.proof_id}`);
         return proof;
     }
@@ -423,13 +431,13 @@ export class FirewallAgent {
     private generatePortableReceipt(text: string): PortableReceipt {
         // Detect LLM from host
         const llmName = this.host?.name || 'unknown';
-        
+
         const receipt = CLPVRuntime.createReceipt({
             question: 'Contextual verification',
             answer: text,
             llm: llmName
         });
-        
+
         console.log(`[NeuralFirewall] Portable receipt: ${receipt.receipt_id} (${llmName})`);
         return receipt;
     }
@@ -441,10 +449,10 @@ export class FirewallAgent {
         // Get page title and any visible authoritative content
         const title = document.title || '';
         const metaDescription = document.querySelector('meta[name="description"]')?.getAttribute('content') || '';
-        
+
         // Get any structured data on the page
         const ldJson = document.querySelector('script[type="application/ld+json"]')?.textContent || '';
-        
+
         // Combine into context
         return `${title}\n${metaDescription}\n${ldJson}`.trim() || 'General knowledge context';
     }

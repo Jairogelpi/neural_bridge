@@ -19,7 +19,6 @@ export async function runComparativeStudy() {
 
     const results = [];
     let neural_bridge_wins = 0;
-    let traditional_wins = 0;
 
     for (const prompt of scenarios) {
         // Neural Bridge Run

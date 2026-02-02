@@ -5,7 +5,7 @@ export type ExpectedType = "boolean" | "enum" | "set" | "regex" | "short_text";
 
 export interface Expected {
     type: ExpectedType;
-    value: any; // boolean | string | string[] | (regex string)
+    value: unknown; // boolean | string | string[] | (regex string)
 }
 
 export interface Invariant {
@@ -25,16 +25,16 @@ export interface VerifyResult {
     perInvariant: Array<{ id: string; score: number; reason: string }>;
 }
 
-function normalizeString(s: any): string {
+function normalizeString(s: unknown): string {
     if (s == null) return "";
     return String(s).trim().toLowerCase();
 }
 
-function isNullish(v: any): boolean {
+function isNullish(v: unknown): boolean {
     return v === null || v === undefined;
 }
 
-function scoreBoolean(expected: boolean, got: any): { s: number; reason: string } {
+function scoreBoolean(expected: boolean, got: unknown): { s: number; reason: string } {
     if (typeof got === "boolean") {
         return got === expected ? { s: 1, reason: "boolean_exact" } : { s: 0, reason: "boolean_mismatch" };
     }
@@ -48,7 +48,7 @@ function scoreBoolean(expected: boolean, got: any): { s: number; reason: string 
     return { s: 0, reason: "boolean_unparseable" };
 }
 
-function scoreEnum(expected: string, got: any): { s: number; reason: string } {
+function scoreEnum(expected: string, got: unknown): { s: number; reason: string } {
     const e = normalizeString(expected);
     const g = normalizeString(got);
     if (!g) return { s: 0, reason: "enum_missing" };
@@ -58,7 +58,7 @@ function scoreEnum(expected: string, got: any): { s: number; reason: string } {
     return { s: 0, reason: "enum_mismatch" };
 }
 
-function scoreSet(expected: string[], got: any): { s: number; reason: string } {
+function scoreSet(expected: string[], got: unknown): { s: number; reason: string } {
     const E = (expected ?? []).map(normalizeString).filter(Boolean);
     if (E.length === 0) return { s: 1, reason: "set_empty_expected" };
 
@@ -85,7 +85,7 @@ function scoreSet(expected: string[], got: any): { s: number; reason: string } {
     return { s: 0, reason: "set_mismatch" };
 }
 
-function scoreRegex(pattern: string, got: any): { s: number; reason: string } {
+function scoreRegex(pattern: string, got: unknown): { s: number; reason: string } {
     const g = String(got ?? "");
     if (!g) return { s: 0, reason: "regex_missing" };
     try {
@@ -96,7 +96,7 @@ function scoreRegex(pattern: string, got: any): { s: number; reason: string } {
     }
 }
 
-function scoreShortText(expected: string, got: any): { s: number; reason: string } {
+function scoreShortText(expected: string, got: unknown): { s: number; reason: string } {
     const e = normalizeString(expected);
     const g = normalizeString(got);
     if (!g) return { s: 0, reason: "short_text_missing" };
@@ -123,9 +123,9 @@ function scoreShortText(expected: string, got: any): { s: number; reason: string
  */
 export function verifyAnswers(params: {
     invariants: Invariant[];
-    parsed: any;
+    parsed: Record<string, unknown>;
 }): VerifyResult {
-    const answers = params.parsed?.answers ?? {};
+    const answers = (params.parsed?.answers ?? {}) as Record<string, unknown>;
     const invs = params.invariants ?? [];
 
     let weighted = 0;

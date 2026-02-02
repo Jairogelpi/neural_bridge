@@ -9,7 +9,7 @@ interface JuryVote {
         domain: string;
     };
 }
-import { Crystal } from '../types/crystal_format';
+import type { Crystal } from '../types/crystal_format';
 
 export interface JuryEscalation {
     case_id?: string;

@@ -1,7 +1,7 @@
 // MDL-Based Intelligent Compression
 // Finds the Minimum Description Length - the smallest core that maintains counterfactual pass rate
 
-import { Crystal, SemanticInvariant } from '../types/crystal_format';
+import type { Crystal, SemanticInvariant } from '../types/crystal_format';
 
 export interface CompressionResult {
     original_tokens: number;

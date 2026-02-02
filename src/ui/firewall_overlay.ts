@@ -1,4 +1,4 @@
-import { TrustState } from "../content/firewall_agent";
+import type { TrustState } from "../content/firewall_agent";
 
 export interface RevolutionaryFeatures {
     pck: { enabled: boolean; llm_calls_saved: number; cost_saved: string };

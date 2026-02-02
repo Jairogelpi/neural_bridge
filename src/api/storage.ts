@@ -10,8 +10,9 @@ const _memStorage: Record<string, unknown> = {};
 
 function uuid(): string {
     const c = typeof crypto !== 'undefined' ? crypto : (globalThis as unknown as { crypto?: Crypto }).crypto;
-    return (c && 'randomUUID' in c && typeof (c as any).randomUUID === 'function')
-        ? (c as any).randomUUID()
+    const hasRandomUUID = c && 'randomUUID' in c && typeof (c as unknown as { randomUUID: () => string }).randomUUID === 'function';
+    return hasRandomUUID
+        ? (c as unknown as { randomUUID: () => string }).randomUUID()
         : `id_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
 

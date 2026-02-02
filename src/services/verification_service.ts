@@ -1,10 +1,12 @@
-import { CrystalRuntime, CrystalRuntimeConfig, CrystalExecutionResult } from "../services/crystal_runtime";
+import type { CrystalRuntimeConfig, CrystalExecutionResult } from "../services/crystal_runtime";
+import { CrystalRuntime } from "../services/crystal_runtime";
 import { loadCrystal, loadCards, getActiveContextId } from "../content/storage";
-import { DomainHeuristics, KnowledgeDomain } from "../services/domain_heuristics";
+import type { KnowledgeDomain } from "../services/domain_heuristics";
+import { DomainHeuristics } from "../services/domain_heuristics";
 import { SCPService } from './llm';
-import { Crystal } from "../types/crystal_format";
-import { Platform } from "../api/types";
-import { DecisionReceipt } from "./decision_receipts";
+import type { Crystal } from "../types/crystal_format";
+import type { Platform } from "../api/types";
+import type { DecisionReceipt } from "./decision_receipts";
 
 export interface VerificationRequest {
     context_id?: string;

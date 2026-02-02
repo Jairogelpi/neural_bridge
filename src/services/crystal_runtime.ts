@@ -4,10 +4,12 @@
 import { Attestation } from './attestation';
 import { AntiGaming } from './anti_gaming';
 import { ScientificMetrics } from './scientific_metrics';
-import { DecisionReceipts, DecisionReceipt } from './decision_receipts';
+import type { DecisionReceipt } from './decision_receipts';
+import { DecisionReceipts } from './decision_receipts';
 import type { Invariant, VerifyResult } from '../content/verifier/verifier';
 import { verifyAnswers } from '../content/verifier/verifier';
-import { Crystal, SemanticInvariant } from '../types/crystal_format';
+import type { Crystal} from '../types/crystal_format';
+import { SemanticInvariant } from '../types/crystal_format';
 
 export interface CrystalRuntimeConfig {
     domain: string;
@@ -131,8 +133,8 @@ export async function executeCrystal(params: {
 
     let adversarial_families_tested = 0;
     let adversarial_pass_rate = 1.0;
-    let counterfactuals_passed: string[] = [];
-    let counterfactuals_failed: string[] = [];
+    const counterfactuals_passed: string[] = [];
+    const counterfactuals_failed: string[] = [];
     let counterfactuals_total = 0;
 
     if (shouldEarlyExit) {

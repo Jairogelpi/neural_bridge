@@ -1,5 +1,6 @@
-import { SemanticMerkleTree, SMTRuntime, SemanticHasher } from '../smt';
-import { ProofCarryingKnowledge } from '../pck';
+import type { SemanticMerkleTree} from '../smt';
+import { SMTRuntime, SemanticHasher } from '../smt';
+import type { ProofCarryingKnowledge } from '../pck';
 
 /**
  * ╔══════════════════════════════════════════════════════════════════════════════╗
@@ -19,15 +20,15 @@ export interface VaultEntry {
     id: string;
     timestamp: string;
     domain: string;
-    
+
     // The Truth
     content: string;
     semantic_hash: string;
-    
+
     // The Proof
     smt: SemanticMerkleTree;
     pck: ProofCarryingKnowledge | undefined;
-    
+
     // Metadata
     source_url: string;
     verification_score: number;
@@ -60,8 +61,8 @@ export class TruthVault {
         pck: ProofCarryingKnowledge | undefined;
         score: number;
     }): Promise<string> {
-        const id = `truth_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-        
+        const id = `truth_${typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : Date.now().toString(36)}`;
+
         const entry: VaultEntry = {
             id,
             timestamp: new Date().toISOString(),
@@ -77,7 +78,7 @@ export class TruthVault {
         this.memory.set(id, entry);
         this.indexEntry(entry);
         await this.persist();
-        
+
         console.log(`[TruthVault] 💎 Crystallized truth: ${id}`);
         return id;
     }
@@ -89,14 +90,14 @@ export class TruthVault {
     public checkReality(text: string): VaultConflict {
         // 1. Build semantic model of new text
         const newSMT = SMTRuntime.build(text);
-        
+
         // 2. Scan the Vault for relevant truths
         // (In a full version, we'd use vector search, here we use semantic claims)
-        
+
         for (const entry of this.memory.values()) {
             // A. Direct Contradiction Check using SMT logic
             const comparison = SMTRuntime.compare(entry.content, text);
-            
+
             if (comparison.contradiction_detected) {
                 // FOUND A LIE! The new text contradicts a known truth
                 return {
@@ -106,12 +107,12 @@ export class TruthVault {
                     confidence: 0.95
                 };
             }
-            
+
             // B. Numeric Consistency Check
             // If we have verified numbers in the vault, ensure new numbers match
             // (Handled by SMTRuntime.compare)
         }
-        
+
         return { is_conflict: false, confidence: 0 };
     }
 
@@ -121,7 +122,7 @@ export class TruthVault {
      */
     public healReality(text: string, conflict: VaultConflict): string {
         if (!conflict.is_conflict || !conflict.conflicting_entry) return text;
-        
+
         return `⚠️ CORRECTION FROM TRUTH VAULT:\n${conflict.conflicting_entry.content}\n(Contradicted: "${text.substring(0, 50)}...")`;
     }
 
@@ -139,14 +140,14 @@ export class TruthVault {
 
     private async persist() {
         if (typeof chrome === 'undefined' || !chrome.storage) return;
-        
+
         const serialized = JSON.stringify(Array.from(this.memory.entries()));
         await chrome.storage.local.set({ [TruthVault.STORAGE_KEY]: serialized });
     }
 
     private async load() {
         if (typeof chrome === 'undefined' || !chrome.storage) return;
-        
+
         const result = await chrome.storage.local.get(TruthVault.STORAGE_KEY);
         if (result[TruthVault.STORAGE_KEY]) {
             try {

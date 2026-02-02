@@ -16,7 +16,8 @@
  */
 
 import 'dotenv/config';
-import express, { Request, Response, NextFunction } from 'express';
+import express from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import crypto from 'crypto';
 
@@ -25,9 +26,11 @@ import { ZKVRuntime } from './zkv';
 import { SMTRuntime } from './smt';
 import { CLPVRuntime } from './clpv';
 import { SCPService } from './services/llm';
+import { type Crystal } from './types/crystal_format';
 import { saveCrystal } from './content/storage';
+import type { ContextCrystal } from './core/scp_types';
 import { TruthVault } from './services/truth_vault';
-import { ZKVerifier } from './services/zkv_advanced';
+import { ZKAdvancedVerifier } from './services/zkv_advanced';
 import { ReputationSystem } from './services/reputation';
 import { ConsensusEngine } from './services/consensus';
 
@@ -70,7 +73,7 @@ app.post('/v1/compile', async (req: Request, res: Response) => {
         );
 
         // PERSIST TO SUPABASE
-        await saveCrystal(crystal as any);
+        await saveCrystal(crystal as unknown as ContextCrystal);
 
         // SELF-HEALING: Scan for contradictions in the Truth Vault
         const contradictions = await TruthVault.scanForContradictions(crystal);
@@ -80,18 +83,18 @@ app.post('/v1/compile', async (req: Request, res: Response) => {
 
             // Penalize reputation if critical contradiction found
             if (contradictions.some(c => c.severity === 'critical')) {
-                await ReputationSystem.penalize(crystal.author.id, 'Critical contradiction detected in Truth Vault');
+                await ReputationSystem.penalize(String(crystal.context_id), 'Critical contradiction detected in Truth Vault');
             }
         } else {
             // Reward reputation for clean, high-quality knowledge
-            await ReputationSystem.rewardQuality(crystal as any);
+            await ReputationSystem.rewardQuality(crystal);
         }
 
         // ENHANCED PRIVACY: Generate ZKP Receipt for the Crystal
-        const zkpReceipt = await ZKVerifier.generateZKPReceipt(crystal.intent.primary);
+        const zkpReceipt = await ZKAdvancedVerifier.generateZKPReceipt(String(crystal.intent.primary || ""));
 
         // CONSENSUS: Verify critical intent stability across multiple models
-        const consensus = await ConsensusEngine.verify(crystal.intent.primary, text);
+        const consensus = await ConsensusEngine.verify(String(crystal.intent.primary || ""), text);
         console.log(`[CONSENSUS] Stability for ${crystal.context_id}: ${consensus.final_decision} (${(consensus.consensus_score * 100).toFixed(1)}%)`);
 
         const elapsed = Date.now() - startTime;
@@ -99,7 +102,7 @@ app.post('/v1/compile', async (req: Request, res: Response) => {
         res.json({
             success: true,
             context_crystal: crystal,
-            invariants: crystal.verification.semantic_invariants,
+            invariants: (crystal as unknown as Record<string, any>).verification.semantic_invariants,
             zkp_proof: zkpReceipt,
             consensus: {
                 status: consensus.final_decision,
@@ -114,7 +117,7 @@ app.post('/v1/compile', async (req: Request, res: Response) => {
         });
     } catch (error) {
         console.error('Compile Error:', error);
-        res.status(500).json({ error: (error as any).message });
+        res.status(500).json({ error: (error as Error).message });
     }
 });
 
@@ -125,7 +128,7 @@ app.post('/v1/singularity/fuse', async (req: Request, res: Response) => {
         const master = await CrystalFuser.fuse(crystals);
         res.json({ success: true, master_crystal: master });
     } catch (error) {
-        res.status(500).json({ error: (error as any).message });
+        res.status(500).json({ error: (error as Error).message });
     }
 });
 
@@ -136,7 +139,7 @@ app.post('/v1/singularity/purify', async (req: Request, res: Response) => {
         const purified = await EntropyShield.purify(crystal);
         res.json({ success: true, purified_crystal: purified });
     } catch (error) {
-        res.status(500).json({ error: (error as any).message });
+        res.status(500).json({ error: (error as Error).message });
     }
 });
 
@@ -151,7 +154,7 @@ app.post('/v1/genesis/branch', async (req: Request, res: Response) => {
         const branch = await RealityBrancher.createBranch(parent_crystal, branch_name);
         res.json({ success: true, branch });
     } catch (error) {
-        res.status(500).json({ error: (error as any).message });
+        res.status(500).json({ error: (error as Error).message });
     }
 });
 
@@ -162,7 +165,7 @@ app.post('/v1/genesis/simulate', async (req: Request, res: Response) => {
         const result = await RealitySimulator.simulate(branch, parent_crystal);
         res.json({ success: true, ...result });
     } catch (error) {
-        res.status(500).json({ error: (error as any).message });
+        res.status(500).json({ error: (error as Error).message });
     }
 });
 
@@ -173,7 +176,7 @@ app.post('/v1/genesis/merge', async (req: Request, res: Response) => {
         const master = await RealityBrancher.merge(branch, parent_crystal);
         res.json({ success: true, master_crystal: master });
     } catch (error) {
-        res.status(500).json({ error: (error as any).message });
+        res.status(500).json({ error: (error as Error).message });
     }
 });
 
@@ -188,7 +191,7 @@ app.post('/v1/horizon/commit', async (req: Request, res: Response) => {
         const receipt = await ConsensusEngine.reachConsensus(axiom, domain);
         res.json({ success: true, receipt });
     } catch (error) {
-        res.status(500).json({ error: (error as any).message });
+        res.status(500).json({ error: (error as Error).message });
     }
 });
 
@@ -206,21 +209,20 @@ app.post('/v1/verify', async (req: Request, res: Response) => {
         const { context_id, invariants, llm_response, threshold } = req.body;
 
         // Reconstruct partial crystal for verification context
-        const verificationContext: any = {
+        const verificationContext: unknown = {
             context_id,
-            domain: 'general', // Default, or pass from client
+            domain: 'general',
             verification: {
                 semantic_invariants: invariants
             },
             constraints: []
         };
 
-        const startTime = Date.now();
         // CALL REAL VERIFICATION
         // We use verifyBatch for efficiency if available, or verifyArbitrary loop
         // Here we map the extension's request to verifyBatch
         const batchResult = await SCPService.verifyBatch({
-            crystal: verificationContext,
+            crystal: verificationContext as Crystal,
             invariants: invariants,
             answer: llm_response
         });
@@ -241,7 +243,7 @@ app.post('/v1/verify', async (req: Request, res: Response) => {
 
     } catch (error) {
         console.error('Verify Error:', error);
-        res.status(500).json({ error: (error as any).message });
+        res.status(500).json({ error: (error as Error).message });
     }
 });
 
@@ -273,7 +275,7 @@ app.get('/v1/sentinel/logs', async (req: Request, res: Response) => {
         if (error) throw error;
         res.json({ success: true, logs: data });
     } catch (error) {
-        res.status(500).json({ error: (error as any).message });
+        res.status(500).json({ error: (error as Error).message });
     }
 });
 
@@ -299,7 +301,7 @@ app.get('/v1/sentinel/stats', async (req: Request, res: Response) => {
             }
         });
     } catch (error) {
-        res.status(500).json({ error: (error as any).message });
+        res.status(500).json({ error: (error as Error).message });
     }
 });
 
@@ -382,7 +384,7 @@ app.post('/api/pck/compile', (req: Request, res: Response) => {
             }
         });
     } catch (error) {
-        res.status(500).json({ error: (error as any).message });
+        res.status(500).json({ error: (error as Error).message });
     }
 });
 
@@ -415,7 +417,7 @@ app.post('/api/pck/verify', (req: Request, res: Response) => {
             }
         });
     } catch (error) {
-        res.status(500).json({ error: (error as any).message });
+        res.status(500).json({ error: (error as Error).message });
     }
 });
 
@@ -460,7 +462,7 @@ app.post('/api/zkv/proof', (req: Request, res: Response) => {
             }
         });
     } catch (error) {
-        res.status(500).json({ error: (error as any).message });
+        res.status(500).json({ error: (error as Error).message });
     }
 });
 
@@ -492,7 +494,7 @@ app.post('/api/zkv/verify', (req: Request, res: Response) => {
             }
         });
     } catch (error) {
-        res.status(500).json({ error: (error as any).message });
+        res.status(500).json({ error: (error as Error).message });
     }
 });
 
@@ -530,7 +532,7 @@ app.post('/api/smt/build', (req: Request, res: Response) => {
             }
         });
     } catch (error) {
-        res.status(500).json({ error: (error as any).message });
+        res.status(500).json({ error: (error as Error).message });
     }
 });
 
@@ -563,7 +565,7 @@ app.post('/api/smt/compare', (req: Request, res: Response) => {
             }
         });
     } catch (error) {
-        res.status(500).json({ error: (error as any).message });
+        res.status(500).json({ error: (error as Error).message });
     }
 });
 
@@ -605,7 +607,7 @@ app.post('/api/clpv/receipt', (req: Request, res: Response) => {
             }
         });
     } catch (error) {
-        res.status(500).json({ error: (error as any).message });
+        res.status(500).json({ error: (error as Error).message });
     }
 });
 
@@ -639,7 +641,7 @@ app.post('/api/clpv/cross-verify', (req: Request, res: Response) => {
             }
         });
     } catch (error) {
-        res.status(500).json({ error: (error as any).message });
+        res.status(500).json({ error: (error as Error).message });
     }
 });
 

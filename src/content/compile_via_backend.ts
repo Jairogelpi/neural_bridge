@@ -1,11 +1,11 @@
-import type { Transcript, CompileRequest, Platform } from "../api/types";
+import type { Transcript, CompileRequest, Platform, CompileResponse } from "../api/types";
 
 export async function compileViaBackend(params: {
     platform: Platform;
     transcript: Transcript;
     sourceUrl?: string;
     mode?: "auto" | "cheap_first" | "high_accuracy";
-}): Promise<any> {
+}): Promise<CompileResponse> {
     const req: CompileRequest = {
         scp_version: "1.0",
         source: {
@@ -22,7 +22,9 @@ export async function compileViaBackend(params: {
         },
     };
 
-    const idemKey = (crypto as any).randomUUID?.() ?? `idem_${Date.now()}`;
+    const idemKey = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
+        ? (crypto as unknown as { randomUUID: () => string }).randomUUID()
+        : `idem_${Date.now()}`;
 
     const r = await chrome.runtime.sendMessage({ type: "NB_COMPILE", req, idemKey });
     if (!r?.ok) throw new Error(r?.error ?? "compile_failed");

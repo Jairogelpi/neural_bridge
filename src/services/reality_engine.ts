@@ -1,5 +1,5 @@
 import { SCPService } from './llm';
-import { RealityProof } from '../types/crystal_format';
+import type { RealityProof } from '../types/crystal_format';
 
 export class RealityBreachError extends Error {
     constructor(message: string, public attemptedOutput: string) {

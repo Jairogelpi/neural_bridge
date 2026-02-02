@@ -217,12 +217,13 @@ export async function evaluateFormula(
                     if (!formula.operands[0]) return false;
                     return !(await evaluateFormula(formula.operands[0], bindings));
 
-                case "IMPLIES":
+                case "IMPLIES": {
                     // P → Q ≡ ¬P ∨ Q
                     if (!formula.operands[0] || !formula.operands[1]) return false;
                     const p = await evaluateFormula(formula.operands[0], bindings);
                     if (!p) return true; // false → anything is true
                     return await evaluateFormula(formula.operands[1], bindings);
+                }
 
                 default:
                     return false;
@@ -246,10 +247,11 @@ export async function evaluateFormula(
  */
 export function formulaToString(formula: FOLFormula): string {
     switch (formula.type) {
-        case "atomic":
+        case "atomic": {
             const predName = formula.predicate?.name ?? "?";
             const argsStr = formula.args?.map(a => String(a)).join(", ") ?? "";
             return `${predName}(${argsStr})`;
+        }
 
         case "compound":
             if (!formula.operands) return "?";
@@ -268,10 +270,11 @@ export function formulaToString(formula: FOLFormula): string {
                     return "?";
             }
 
-        case "quantified":
+        case "quantified": {
             const q = formula.quantifier === "FORALL" ? "∀" : "∃";
             const scopeStr = formula.scope ? formulaToString(formula.scope) : "?";
             return `${q}${formula.variable}. ${scopeStr}`;
+        }
 
         default:
             return "?";

@@ -1,7 +1,7 @@
 import { supabase } from '../db/supabase';
 import { SCPService } from './llm';
 import { Attestation } from './attestation';
-import { Crystal } from '../types/crystal_format';
+import type { Crystal } from '../types/crystal_format';
 
 export interface Contradiction {
     crystal_id_a: string;

@@ -1,5 +1,6 @@
 import { SCPService, type LLMResponse } from './llm';
-import { Crystal, ConstraintRule } from '../types/crystal_format';
+import type { Crystal} from '../types/crystal_format';
+import { ConstraintRule } from '../types/crystal_format';
 
 export interface OraclePrediction {
     original_timeline_outcome: 'SUCCESS' | 'FAILURE' | 'CONFUSION';

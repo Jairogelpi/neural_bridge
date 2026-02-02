@@ -1,4 +1,5 @@
-import { Crystal, ConstraintRule } from '../types/crystal_format';
+import type { Crystal} from '../types/crystal_format';
+import { ConstraintRule } from '../types/crystal_format';
 import { SCPService } from './llm';
 import { Sentinel } from './sentinel';
 

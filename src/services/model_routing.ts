@@ -1,7 +1,7 @@
 // Model-Agnostic Routing: Crystal Determines Model Fitness
 // Acts as a semantic firewall based on domain risk and complexity
 
-import { Crystal } from '../types/crystal_format';
+import type { Crystal } from '../types/crystal_format';
 
 export interface ModelRequirements {
     min_sri_threshold: number;

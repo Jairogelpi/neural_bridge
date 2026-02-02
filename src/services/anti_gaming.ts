@@ -1,7 +1,8 @@
 // Anti-Gaming Module: REAL DYNAMIC GENERATION FROM CRYSTAL
 // NO hardcoded templates - everything generated from actual Crystal content
 
-import { Crystal, SemanticInvariant, CrystalEntity, CrystalConstraint } from '../types/crystal_format';
+import type { Crystal, CrystalEntity, CrystalConstraint } from '../types/crystal_format';
+import { SemanticInvariant } from '../types/crystal_format';
 
 export interface AdversarialFamily {
     family_id: string;

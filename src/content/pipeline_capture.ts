@@ -1,12 +1,14 @@
 import type { Transcript } from "../transcript/transcript";
 import { captureTranscriptFromDOM } from "../transcript/capture_dom";
 import { computeCanonicalHash } from "../core/canonicalize";
-import { saveTranscript, saveCrystal, saveCard, BridgeCard } from "./storage";
+import { saveTranscript, saveCrystal, saveCard } from "./storage";
+import type { BridgeCard } from "./storage";
 
-import { SaaSClient } from "../rlm/saas_client";
+import type { SaaSClient } from "../rlm/saas_client";
 
 function uuid(): string {
-    return (crypto as any).randomUUID ? (crypto as any).randomUUID() : `card_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    const c = crypto as unknown as { randomUUID?: () => string };
+    return c.randomUUID ? c.randomUUID() : `card_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
 
 function summarizeTranscript(t: Transcript): { title: string; preview: string } {
@@ -49,17 +51,20 @@ export async function captureAndStoreSaaS(params: {
     // Even if SaaS compiles it, the local client re-hashes to ensure local consistency
     const canonical_hash = await computeCanonicalHash(crystal);
 
-    // Attach the local seal result to the crystal verification
-    const sealed = {
-        ...crystal,
+    // 4) Persist Locally
+    await saveTranscript(transcript);
+
+    // Create the sealed version with the new hash
+    const crystalObj = crystal as unknown as Record<string, unknown>;
+    const sealedObj: Record<string, unknown> = {
+        ...crystalObj,
         verification: {
-            ...crystal.verification,
+            ...(crystalObj.verification as Record<string, unknown> || {}),
             canonical_hash
         }
     };
 
-    // 4) Persist Locally
-    await saveTranscript(transcript);
+    const sealed = sealedObj as unknown as typeof crystal;
     await saveCrystal(sealed);
 
     // 5) Create Bridge Card
@@ -71,9 +76,9 @@ export async function captureAndStoreSaaS(params: {
         title,
         preview,
         transcript_id: transcript.transcript_id,
-        context_id: sealed.context_id
+        context_id: String(sealedObj.context_id || crystalObj.context_id || "unknown")
     };
     await saveCard(card);
 
-    return { transcript, context_id: sealed.context_id, notes };
+    return { transcript, context_id: String(sealedObj.context_id || "unknown"), notes };
 }

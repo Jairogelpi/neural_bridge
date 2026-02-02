@@ -18,35 +18,35 @@ const CRYSTAL_PREFIX = "nb_cc_";
 const MAX_CARDS = 30;
 
 // POLY-STORAGE ENGINE (100% REAL NODE/BROWSER/SUPABASE HYBRID)
-const memoryStorage: Record<string, any> = {};
+const memoryStorage: Record<string, unknown> = {};
 const isBrowser = typeof chrome !== 'undefined' && !!chrome.storage;
 
 const storage = {
-    get: async (key: string): Promise<any> => {
+    get: async (key: string): Promise<unknown> => {
         if (isBrowser) return chrome.storage.local.get(key);
-        
+
         // Server-side: Use Supabase
         const { data, error } = await supabase
             .from('kv_store')
             .select('value')
             .eq('key', key)
             .single();
-            
+
         if (error) {
             console.error(`Supabase error fetching ${key}:`, error.message);
             return { [key]: memoryStorage[key] };
         }
         return { [key]: data?.value };
     },
-    set: async (items: Record<string, any>): Promise<void> => {
+    set: async (items: Record<string, unknown>): Promise<void> => {
         if (isBrowser) return chrome.storage.local.set(items);
-        
+
         // Server-side: Use Supabase upsert
         for (const [key, value] of Object.entries(items)) {
             const { error } = await supabase
                 .from('kv_store')
                 .upsert({ key, value, updated_at: new Date().toISOString() });
-            
+
             if (error) {
                 console.error(`Supabase error saving ${key}:`, error.message);
                 memoryStorage[key] = value;
@@ -56,7 +56,7 @@ const storage = {
 };
 
 export async function loadCards(): Promise<BridgeCard[]> {
-    const res = await storage.get(CARDS_KEY);
+    const res = await storage.get(CARDS_KEY) as Record<string, unknown>;
     return (res[CARDS_KEY] ?? []) as BridgeCard[];
 }
 
@@ -71,8 +71,8 @@ export async function saveTranscript(t: Transcript): Promise<void> {
 }
 
 export async function loadTranscript(id: string): Promise<Transcript | null> {
-    const res = await storage.get(`${TRANSCRIPT_PREFIX}${id}`);
-    return res[`${TRANSCRIPT_PREFIX}${id}`] ?? null;
+    const res = await storage.get(`${TRANSCRIPT_PREFIX}${id}`) as Record<string, unknown>;
+    return (res[`${TRANSCRIPT_PREFIX}${id}`] ?? null) as Transcript | null;
 }
 
 export async function saveCrystal(c: ContextCrystal): Promise<void> {
@@ -80,12 +80,12 @@ export async function saveCrystal(c: ContextCrystal): Promise<void> {
 }
 
 export async function loadCrystal(id: string): Promise<ContextCrystal | null> {
-    const res = await storage.get(`${CRYSTAL_PREFIX}${id}`);
-    return res[`${CRYSTAL_PREFIX}${id}`] ?? null;
+    const res = await storage.get(`${CRYSTAL_PREFIX}${id}`) as Record<string, unknown>;
+    return (res[`${CRYSTAL_PREFIX}${id}`] ?? null) as ContextCrystal | null;
 }
 
 export async function getActiveContextId(): Promise<string | undefined> {
-    if (!isBrowser || typeof chrome.runtime === 'undefined') return memoryStorage['nb_active_crystal_id'];
+    if (!isBrowser || typeof chrome.runtime === 'undefined') return memoryStorage['nb_active_crystal_id'] as string | undefined;
     const res = await chrome.runtime.sendMessage({ type: "NB_GET_STATE" });
     return res?.state?.activeContextId as string | undefined;
 }

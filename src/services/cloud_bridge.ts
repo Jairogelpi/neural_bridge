@@ -4,8 +4,8 @@
  * Enables: Remote Verification, Shared Crystals, Reputation, and heavy-duty Compilation.
  */
 
-import { Crystal } from "../types/crystal_format";
-import { DecisionReceipt } from "./decision_receipts";
+import type { Crystal } from "../types/crystal_format";
+import type { DecisionReceipt } from "./decision_receipts";
 
 export interface CloudConfig {
     apiKey: string;

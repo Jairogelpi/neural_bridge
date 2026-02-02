@@ -98,7 +98,7 @@ export class ConsensusEngine {
             confidence: averageConfidence,
             votes,
             timestamp: new Date().toISOString(),
-            signature: `NB_SIG_${Math.random().toString(36).substring(7).toUpperCase()}`
+            signature: `NB_SIG_${axiom.substring(0, 8).toUpperCase()}_${Date.now().toString(36).toUpperCase()}`
         };
 
         // 3. LOG TO SENTINEL
@@ -106,7 +106,7 @@ export class ConsensusEngine {
             type: 'SOVEREIGN_CONSENSUS',
             severity: decision === 'TRUTH' ? 'info' : (decision === 'REJECTED' ? 'critical' : 'warning'),
             message: `Consensus Reached: ${decision} (Confidence: ${Math.round(averageConfidence * 100)}%)`,
-            details: receipt
+            details: receipt as unknown as Record<string, unknown>
         });
 
         return receipt;
@@ -131,14 +131,14 @@ export class ConsensusEngine {
             confidence: score,
             votes: [{ model: 'NeuralBridge_Local_Axiom_Router', response: proof, score }],
             timestamp: new Date().toISOString(),
-            signature: `NB_SOVEREIGN_${Math.random().toString(36).substring(7).toUpperCase()}`
+            signature: `NB_SOVEREIGN_${axiom.substring(0, 8).toUpperCase()}_${Date.now().toString(36).toUpperCase()}`
         };
 
         await Sentinel.emit({
             type: 'SOVEREIGN_CONSENSUS',
             severity: decision === 'TRUTH' ? 'info' : 'critical',
             message: `Sovereign Consensus reached in Isolation Mode for: "${axiom.substring(0, 30)}..."`,
-            details: receipt
+            details: receipt as unknown as Record<string, unknown>
         });
 
         return receipt;

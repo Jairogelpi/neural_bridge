@@ -67,9 +67,10 @@ async function runScenario(params: {
 
     console.log(`\n   [RESULT]: ${result.passed ? '✅ ACCEPTED' : '❌ REJECTED'}`);
     console.log(`   SRI: ${result.sri.toFixed(3)}`);
-    console.log(`   Reputation Impact: ${result.receipt.reputation_impact > 0 ? '+' : ''}${result.receipt.reputation_impact}`);
+    const impact = result.receipt.reputation_impact || 0;
+    console.log(`   Reputation Impact: ${impact > 0 ? '+' : ''}${impact}`);
 
-    if (result.receipt.reputation_impact < 0) {
+    if (impact < 0) {
         console.log(`   ⚠️ Heavy penalty applied for high-tier failure.`);
     }
 
