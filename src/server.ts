@@ -62,6 +62,11 @@ app.get('/sentinel', (req: Request, res: Response) => {
 });
 app.use('/sentinel', express.static(path.join(process.cwd(), 'src/ui')));
 
+// Health Check
+app.get('/health', (req: Request, res: Response) => {
+    res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // SCP EXTENSION ENDPOINTS (Real LLM Backend)
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -791,7 +796,7 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 // START SERVER
 // ═══════════════════════════════════════════════════════════════════════════════
 
-app.listen(PORT, () => {
+app.listen(Number(PORT), '0.0.0.0', () => {
     console.log(`
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                    NEURAL BRIDGE - PRODUCTION SERVER                         ║
