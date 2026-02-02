@@ -85,7 +85,11 @@ async function callLLM(
     }
     messages.push({ role: 'user', content: prompt });
 
-    if (!OPENROUTER_API_KEY) {
+    // Lazy load API Key to allow runtime injection (e.g. via dotenv)
+    const apiKey = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_OPENROUTER_API_KEY ||
+        (globalThis as unknown as { process?: { env: Record<string, string> } }).process?.env?.VITE_OPENROUTER_API_KEY;
+
+    if (!apiKey) {
         throw new Error('MISSING_API_KEY: VITE_OPENROUTER_API_KEY is not defined.');
     }
 
@@ -95,7 +99,7 @@ async function callLLM(
             const response = await fetch(`${OPENROUTER_BASE}/chat/completions`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                    'Authorization': `Bearer ${apiKey}`,
                     'Content-Type': 'application/json',
                     'HTTP-Referer': 'https://neural-bridge.ai',
                     'X-Title': 'Neural Bridge SCP'
@@ -773,7 +777,7 @@ export function getOptimalModel(params: {
     // but in a production refined version, this would be an async call to EconomicRouter.route()
     const { domain = 'general', isCritical = false, task = 'verify' } = params;
 
-    if (isCritical || domain === 'medicine' || domain === 'law') {
+    if (isCritical) {
         return 'anthropic/claude-3.5-sonnet'; // Maximum power for zero-risk failure
     }
 

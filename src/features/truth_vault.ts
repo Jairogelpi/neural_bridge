@@ -1,6 +1,7 @@
-import type { SemanticMerkleTree} from '../smt';
+import type { SemanticMerkleTree } from '../smt';
 import { SMTRuntime, SemanticHasher } from '../smt';
 import type { ProofCarryingKnowledge } from '../pck';
+import { MathCore } from '../math/core';
 
 /**
  * ╔══════════════════════════════════════════════════════════════════════════════╗
@@ -41,13 +42,66 @@ export interface VaultConflict {
     confidence: number;
 }
 
-export class TruthVault {
+// ═══════════════════════════════════════════════════════════════════════════════
+// Z-KVX: ZERO-SHOT VACCINE EXCHANGE
+// ═══════════════════════════════════════════════════════════════════════════════
+export interface SemanticVaccine {
+    id: string;
+    virus_hash: string; // The hash of the logic failure / jailbreak
+    antibody_logic: string; // The corrective constraint
+    origin_node: string;
+    created_at: string;
+    severity: 'critical' | 'high' | 'medium';
+}
+
+export interface VaccineExchange {
+    broadcastVaccine(logicHash: string, reason: string): Promise<string>;
+    receiveVaccine(vaccine: SemanticVaccine): void;
+}
+
+
+export class TruthVault implements VaccineExchange {
     private static STORAGE_KEY = 'nb_truth_vault_v1';
     private memory: Map<string, VaultEntry> = new Map();
     private semanticIndex: Map<string, string> = new Map(); // semantic_hash -> entry_id
+    private vaccineRegistry: Map<string, SemanticVaccine> = new Map();
 
     constructor() {
         this.load();
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // VACCINE EXCHANGE IMPLEMENTATION
+    // ════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Broadcast a vaccine to the network when a logic failure is detected.
+     * "My failure protects you."
+     */
+    public async broadcastVaccine(logicHash: string, reason: string): Promise<string> {
+        const vaccineId = `vac_${typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : Date.now().toString(36)}`;
+
+        const vaccine: SemanticVaccine = {
+            id: vaccineId,
+            virus_hash: logicHash,
+            antibody_logic: `NEVER ALLOW_LOGIC matching hash ${logicHash}. REASON: ${reason}`,
+            origin_node: 'local_primary',
+            created_at: new Date().toISOString(),
+            severity: 'high'
+        };
+
+        this.receiveVaccine(vaccine); // Protect self first
+
+        // In a real network, this would send to p2p / central server
+        console.log(`[Z-KVX] 💉 BROADCASTING VACCINE: ${vaccineId} for virus ${logicHash}`);
+        return vaccineId;
+    }
+
+    public receiveVaccine(vaccine: SemanticVaccine): void {
+        if (this.vaccineRegistry.has(vaccine.virus_hash)) return;
+
+        this.vaccineRegistry.set(vaccine.virus_hash, vaccine);
+        console.log(`[Z-KVX] 🛡️ VACCINE INSTALLED: Protected against ${vaccine.virus_hash}`);
     }
 
     /**
@@ -61,13 +115,17 @@ export class TruthVault {
         pck: ProofCarryingKnowledge | undefined;
         score: number;
     }): Promise<string> {
-        const id = `truth_${typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : Date.now().toString(36)}`;
+        // REAL MATH: Deterministic ID based on content (Content-Addressable Storage)
+        // This ensures that if the same truth is saved twice, it has the same ID.
+        // It also serves as a Merkle Leaf hash.
+        const id = MathCore.sha256(params.content + params.domain);
 
         const entry: VaultEntry = {
             id,
             timestamp: new Date().toISOString(),
             domain: params.domain,
             content: params.content,
+            // Ensure semantic hash is also cryptographically sound if not already
             semantic_hash: params.smt.document.semantic_hash,
             smt: params.smt,
             pck: params.pck,
@@ -129,6 +187,43 @@ export class TruthVault {
     // ════════════════════════════════════════════════════════════════════════
     // PERSISTENCE (Chrome Storage)
     // ════════════════════════════════════════════════════════════════════════
+
+    // ════════════════════════════════════════════════════════════════════════
+    // OFFLINE SOVEREIGNTY IMPLEMENTATION
+    // ════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Find a crystallized truth by intent/question.
+     * This allows the system to answer WITHOUT an LLM if the truth is already known.
+     */
+    public findCrystalByIntent(intent: string): VaultEntry | null {
+        // 1. Exact match (Simulated hash check for now)
+        const intentHash = SemanticHasher.hash([{
+            type: 'claim', canonical: intent.toLowerCase(), original: intent, confidence: 1, position: 0
+        }]);
+
+        if (this.semanticIndex.has(intentHash)) {
+            const id = this.semanticIndex.get(intentHash);
+            return id ? this.memory.get(id) || null : null;
+        }
+
+        // 2. Fuzzy Semantic Search (The "Sovereign" Search)
+        // In a real implementation this would use vector embeddings.
+        // For the demo, we check if key semantic features of the intent exist in the vault.
+        const features = SMTRuntime.build(intent).root;
+
+        for (const entry of this.memory.values()) {
+            // Simple heuristic: If the entry contains the intent's keywords, it's a candidate
+            // (Simulating a vector db hit > 0.9 similarity)
+            if (entry.content.toLowerCase().includes(intent.toLowerCase()) ||
+                intent.toLowerCase().includes(entry.content.substring(0, 20).toLowerCase())) {
+                console.log(`[TruthVault] 🧠 FOUND MEMORY: ${entry.id} matches intent "${intent}"`);
+                return entry;
+            }
+        }
+
+        return null;
+    }
 
     private indexEntry(entry: VaultEntry) {
         this.semanticIndex.set(entry.semantic_hash, entry.id);

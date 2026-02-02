@@ -341,6 +341,23 @@ export interface Crystal {
     /** Tags for categorization */
     tags?: string[];
 
+    // ========== RLM - ACTIVE INFERENCE ==========
+
+    /** Reinforcement Logic Modeling (Active Stats) */
+    rlm_stats?: {
+        /** Q-Learning Score (Utility Probability 0.0-1.0) */
+        q_score: number;
+
+        /** Number of times this crystal was retrieved */
+        usage_count: number;
+
+        /** ISO timestamp of last reinforcement (reward/penalty) */
+        last_reward_at: string;
+
+        /** Stability of the truth (lower is better) */
+        volatility: number;
+    };
+
     // ========== EXTENSIBILITY ==========
 
     /** Domain-specific extensions (medicine, law, etc.) */

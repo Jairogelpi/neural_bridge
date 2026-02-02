@@ -1,0 +1,20 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "noEmit": false,
+        "declaration": true,
+        "emitDeclarationOnly": true,
+        "outDir": "dist/sdk",
+        "rootDir": "src",
+        "skipLibCheck": true
+    },
+    "include": [
+        "src"
+    ],
+    "exclude": [
+        "src/tests",
+        "src/content",
+        "src/ultimate_proof.ts",
+        "src/**/*.test.ts"
+    ]
+}

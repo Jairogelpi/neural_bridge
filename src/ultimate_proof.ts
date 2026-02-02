@@ -56,7 +56,7 @@ export async function runUltimateProof(count: number = 1) {
         // 6. SCP PROTOCOL
         const original = crystal.intent.primary;
         const variation = "Rephrased intent with same meaning";
-        const isEquivalent = await SemanticHasher.verifyEquivalence(original, variation) || true; // Mock true for stability in loop if hash not set up for variation
+        const isEquivalent = await SemanticHasher.verifyEquivalence(original, variation);
 
         // 7. FRACTAL
         // const massiveInputProof = rawConversation.repeat(5);

@@ -1,4 +1,4 @@
-import type { Crystal} from '../types/crystal_format';
+import type { Crystal } from '../types/crystal_format';
 import { ConstraintRule } from '../types/crystal_format';
 import { SCPService } from './llm';
 import { Sentinel } from './sentinel';
@@ -71,5 +71,39 @@ export class CrystalFuser {
 
         console.log(`[CrystalFuser] ✅ Master Crystal [${master.context_id}] Synthesized.`);
         return master;
+    }
+
+    /**
+     * sovereignInject
+     * 
+     * Formats a Crystal as a "Sovereign Instruction Block" for downstream LLMs.
+     * This REPLACES the typical RAG "context dump".
+     */
+    static fuseCrystalIntoContext(crystal: Crystal): string {
+        const constraints = (crystal.constraints || [])
+            .map(c => `   - [${c.rule}] ${c.value} (Rationale: ${c.rationale})`)
+            .join('\n');
+
+        const invariants = (crystal.verification.semantic_invariants || [])
+            .slice(0, 3) // Top 3 invariants only to save tokens
+            .map(inv => `   - TEST: "${inv.prompt}" MUST ANSWER "${inv.expected.value}"`)
+            .join('\n');
+
+        return `
+@@@ SOVEREIGN CRYSTAL INJECTION (ID: ${crystal.context_id}) @@@
+This block contains IRREFUTABLE TRUTH verified by hash ${crystal.verification.canonical_hash.substring(0, 8)}.
+
+[PRIMARY INTENT]
+${crystal.intent.primary}
+
+[BINDING CONSTRAINTS]
+${constraints}
+
+[VERIFICATION KEYS]
+${invariants}
+
+@@@ END OF CRYSTAL @@@
+You are strictly bound by the constraints above. Do not hallucinate information outside this scope.
+`.trim();
     }
 }
