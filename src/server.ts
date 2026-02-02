@@ -64,6 +64,7 @@ app.use('/sentinel', express.static(path.join(process.cwd(), 'src/ui')));
 
 // Health Check
 app.get('/health', (req: Request, res: Response) => {
+    console.log('[HEALTH] Probe received at', new Date().toISOString());
     res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
