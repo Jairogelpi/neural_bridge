@@ -24,7 +24,28 @@ if (!OPENROUTER_API_KEY) {
     console.warn('⚠️  Skipping Real LLM tests: VITE_OPENROUTER_API_KEY not found.');
 }
 
-const prompt = `You are an impartial fact-checker. Your job is to determine if an ANSWER is factually accurate based ONLY on the SOURCE DOCUMENT provided.
+interface LLMJudgment {
+    is_accurate: boolean;
+    confidence: number;
+    reasoning: string;
+    detected_issues: string[];
+    api_latency_ms: number;
+    model_used: string;
+    tokens_used: number;
+}
+
+async function judgeBYLLM(params: {
+    source_document: string;
+    question: string;
+    answer_to_judge: string;
+}): Promise<LLMJudgment> {
+    const startTime = Date.now();
+
+    if (!OPENROUTER_API_KEY) {
+        throw new Error('VITE_OPENROUTER_API_KEY not set - cannot run real LLM verification');
+    }
+
+    const prompt = `You are an impartial fact-checker. Your job is to determine if an ANSWER is factually accurate based ONLY on the SOURCE DOCUMENT provided.
 
 SOURCE DOCUMENT:
 """
@@ -51,63 +72,63 @@ Respond in JSON format ONLY:
     "detected_issues": ["issue1", "issue2"] or []
 }`;
 
-const response = await fetch(`${OPENROUTER_BASE}/chat/completions`, {
-    method: 'POST',
-    headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://neural-bridge.ai',
-        'X-Title': 'Neural Bridge Unbiased Demo'
-    },
-    body: JSON.stringify({
-        model: 'mistralai/mistral-small-3.1-24b-instruct:free',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0,
-        max_tokens: 500
-    })
-});
+    const response = await fetch(`${OPENROUTER_BASE}/chat/completions`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://neural-bridge.ai',
+            'X-Title': 'Neural Bridge Unbiased Demo'
+        },
+        body: JSON.stringify({
+            model: 'mistralai/mistral-small-3.1-24b-instruct:free',
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0,
+            max_tokens: 500
+        })
+    });
 
-const data = await response.json();
-const latency = Date.now() - startTime;
+    const data = await response.json();
+    const latency = Date.now() - startTime;
 
-if (!response.ok) {
-    // Handle 401 gracefully inside the test execution
-    if (response.status === 401) {
-        console.warn('⚠️  API Auth Failed (401). Skipping rest of test.');
-        return {
-            is_accurate: false,
-            confidence: 0,
-            reasoning: 'Auth Failed',
-            detected_issues: ['API Auth Failed'],
-            api_latency_ms: latency,
-            model_used: 'skipped',
-            tokens_used: 0
-        };
+    if (!response.ok) {
+        // Handle 401 gracefully inside the test execution
+        if (response.status === 401) {
+            console.warn('⚠️  API Auth Failed (401). Skipping rest of test.');
+            return {
+                is_accurate: false,
+                confidence: 0,
+                reasoning: 'Auth Failed',
+                detected_issues: ['API Auth Failed'],
+                api_latency_ms: latency,
+                model_used: 'skipped',
+                tokens_used: 0
+            };
+        }
+        throw new Error(`LLM API Error: ${JSON.stringify(data)}`);
     }
-    throw new Error(`LLM API Error: ${JSON.stringify(data)}`);
-}
 
-const content = data.choices?.[0]?.message?.content || '';
-const tokens = data.usage?.total_tokens || 0;
+    const content = data.choices?.[0]?.message?.content || '';
+    const tokens = data.usage?.total_tokens || 0;
 
-// Parse JSON from response
-let parsed: any;
-try {
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    parsed = JSON.parse(jsonMatch?.[0] || '{}');
-} catch {
-    parsed = { is_accurate: false, confidence: 0, reasoning: 'Parse error', detected_issues: ['Could not parse LLM response'] };
-}
+    // Parse JSON from response
+    let parsed: any;
+    try {
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        parsed = JSON.parse(jsonMatch?.[0] || '{}');
+    } catch {
+        parsed = { is_accurate: false, confidence: 0, reasoning: 'Parse error', detected_issues: ['Could not parse LLM response'] };
+    }
 
-return {
-    is_accurate: parsed.is_accurate ?? false,
-    confidence: parsed.confidence ?? 0,
-    reasoning: parsed.reasoning || 'No reasoning provided',
-    detected_issues: parsed.detected_issues || [],
-    api_latency_ms: latency,
-    model_used: data.model || 'unknown',
-    tokens_used: tokens
-};
+    return {
+        is_accurate: parsed.is_accurate ?? false,
+        confidence: parsed.confidence ?? 0,
+        reasoning: parsed.reasoning || 'No reasoning provided',
+        detected_issues: parsed.detected_issues || [],
+        api_latency_ms: latency,
+        model_used: data.model || 'unknown',
+        tokens_used: tokens
+    };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

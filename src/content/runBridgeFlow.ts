@@ -49,7 +49,7 @@ export async function runBridgeFlow(params: BridgeFlowParams): Promise<BridgeFlo
         const answer = await host.readLastAssistantMessage();
 
         const result = await VerificationService.verify({
-            context_id: crystal.context_id || canonicalHash,
+            context_id: (crystal.context_id as string) || canonicalHash,
             domain: String((params.crystal as Record<string, unknown>).domain || 'general'),
             question: "Semantic Transfer Verification",
             answer: answer,
