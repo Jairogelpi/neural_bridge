@@ -3,6 +3,8 @@ services:
     name: neural-bridge-backend
     runtime: docker
     envVars:
+      - key: PORT
+        value: 10000
       - key: ENV
         value: production
       - key: NODE_ENV
