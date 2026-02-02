@@ -50,15 +50,23 @@ const PORT = process.env.PORT || 3000;
 
 console.log(`[BOOT] Starting server on port ${PORT}...`);
 
-// Health Checks - AT THE VERY TOP
+// Request Logger (Debug)
+app.use((req, res, next) => {
+    if (req.path === '/health' || req.path === '/') {
+        console.log(`[HEALTH] ${req.method} ${req.path} from ${req.ip}`);
+    }
+    next();
+});
+
+// Health Checks
 const healthHandler = (req: Request, res: Response) => {
-    console.log(`[HEALTH] ${req.method} probe from ${req.ip} at ${new Date().toISOString()}`);
-    res.setHeader('Content-Type', 'text/plain');
-    res.status(200).send('OK');
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 };
 
 app.get('/health', healthHandler);
-app.get('/', healthHandler); // Fallback for some load balancers
+app.get('/', healthHandler);
+app.head('/health', healthHandler);
+app.head('/', healthHandler);
 
 app.use(cors({
     origin: '*',
