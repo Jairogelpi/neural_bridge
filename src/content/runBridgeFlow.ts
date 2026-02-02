@@ -85,8 +85,9 @@ export async function runBridgeFlow(params: BridgeFlowParams): Promise<BridgeFlo
         // This removes duplicate entries in the Dashboard.
 
         return adapterResult;
-    } catch (error: any) {
-        overlay.error(error?.message ?? "Bridge flow failed");
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : "Bridge flow failed";
+        overlay.error(errorMessage);
         console.error("[NeuralBridge] Bridge flow error:", error);
 
         return {
@@ -121,7 +122,7 @@ export async function quickVerify(params: {
             passed: result.passed,
             details: result
         };
-    } catch (e) {
+    } catch (_e) {
         return {
             score: 0,
             passed: false,

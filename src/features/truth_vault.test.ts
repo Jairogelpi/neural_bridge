@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { TruthVault, truthVault } from './truth_vault';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { truthVault } from './truth_vault';
 import { SMTRuntime } from '../smt';
 
 // Polyfill chrome storage for testing if not available
@@ -12,11 +12,11 @@ if (typeof chrome === 'undefined') {
                 clear: vi.fn(() => Promise.resolve())
             }
         }
-    } as any;
+    } as unknown as typeof chrome;
 }
 
 describe('THE HOLOGRAPHIC TRUTH VAULT', () => {
-    
+
     beforeEach(async () => {
         if (chrome?.storage?.local?.clear) {
             await chrome.storage.local.clear();
@@ -26,7 +26,7 @@ describe('THE HOLOGRAPHIC TRUTH VAULT', () => {
     it('should CRYSTALLIZE verified truth into persistent memory', async () => {
         const text = "The maximum daily dose of aspirin is 4000 mg.";
         const smt = SMTRuntime.build(text);
-        
+
         const id = await truthVault.saveTruth({
             content: text,
             domain: 'medicine',
@@ -34,7 +34,7 @@ describe('THE HOLOGRAPHIC TRUTH VAULT', () => {
             score: 1.0,
             pck: undefined
         });
-        
+
         expect(id).toBeDefined();
         expect(id).toContain('truth_');
         expect(chrome.storage.local.set).toHaveBeenCalled();
@@ -54,9 +54,9 @@ describe('THE HOLOGRAPHIC TRUTH VAULT', () => {
 
         // 2. Challenge Reality (Session B - The Lie)
         const lieText = "The capital of France is London.";
-        
+
         const conflict = truthVault.checkReality(lieText);
-        
+
         expect(conflict.is_conflict).toBe(true);
         expect(conflict.confidence).toBeGreaterThan(0.9);
         expect(conflict.conflicting_entry).toBeDefined();
@@ -77,9 +77,9 @@ describe('THE HOLOGRAPHIC TRUTH VAULT', () => {
 
         // 2. Consistent Statement
         const consistentText = "When heated to 100 degrees Celsius, water will boil.";
-        
+
         const conflict = truthVault.checkReality(consistentText);
-        
+
         expect(conflict.is_conflict).toBe(false);
     });
 
@@ -97,10 +97,10 @@ describe('THE HOLOGRAPHIC TRUTH VAULT', () => {
 
         // 2. The Lie
         const lieText = "Light travels at 500 miles per hour.";
-        
+
         const conflict = truthVault.checkReality(lieText);
         const healing = truthVault.healReality(lieText, conflict);
-        
+
         expect(healing).toContain("CORRECTION FROM TRUTH VAULT");
         expect(healing).toContain(truthText);
         expect(healing).toContain("Contradicted:");

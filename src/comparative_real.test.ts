@@ -21,8 +21,9 @@ const OPENROUTER_API_KEY =
 const OPENROUTER_BASE = 'https://openrouter.ai/api/v1';
 
 const MODELS = [
-    'nvidia/nemotron-3-nano-30b-a3b:free',
-    'liquid/lfm-2.5-1.2b-instruct:free',
+    'meta-llama/llama-3.2-3b-instruct:free',
+    'microsoft/phi-3.5-mini-128k-instruct:free',
+    'google/gemini-2.0-flash-exp:free',
 ];
 
 // Skip tests if no API key is present (CI/Local run without secrets)
@@ -216,6 +217,10 @@ describe('╔══════════════════════�
                 });
 
                 runTest('📊 COMPARACIÓN - Respuesta correcta', () => {
+                    if (!traditionalResult || !neuralBridgeResult) {
+                        console.warn('⚠️ Skipping comparison - verify previous steps succeeded');
+                        return;
+                    }
                     console.log(`\n  ╔════════════════════════════════════════════════════╗`);
                     console.log(`  ║         COMPARACIÓN: RESPUESTA CORRECTA            ║`);
                     console.log(`  ╠════════════════════════════════════════════════════╣`);
@@ -274,6 +279,10 @@ describe('╔══════════════════════�
                 });
 
                 runTest('📊 COMPARACIÓN - Detección de alucinación', () => {
+                    if (!traditionalResult || !neuralBridgeResult) {
+                        console.warn('⚠️ Skipping comparison - verify previous steps succeeded');
+                        return;
+                    }
                     console.log(`\n  ╔════════════════════════════════════════════════════╗`);
                     console.log(`  ║       COMPARACIÓN: DETECCIÓN DE ALUCINACIÓN        ║`);
                     console.log(`  ╠════════════════════════════════════════════════════╣`);

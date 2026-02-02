@@ -31,8 +31,9 @@ describe('Neural Bridge vs Traditional: COMPARATIVE A/B PROOF', () => {
                 expect(r.neural_bridge.crystal_hash.length).toBeGreaterThanOrEqual(64);
                 expect(r.neural_bridge.crystal_id).toMatch(/^[0-9a-f-]+$/i);
             }
-        } catch (e: any) {
-            if (e.message === 'SOVEREIGN_REQUIRED' || e.message === 'MISSING_API_KEY' || e.message.includes('VITE_OPENROUTER_API_KEY')) {
+        } catch (e: unknown) {
+            const err = e as Error;
+            if (err.message === 'SOVEREIGN_REQUIRED' || err.message === 'MISSING_API_KEY' || err.message.includes('VITE_OPENROUTER_API_KEY')) {
                 console.warn('⚠️  Skipping Comparative Proof: SOVEREIGN_REQUIRED / Auth Failed');
                 return; // Skip test gracefully
             }

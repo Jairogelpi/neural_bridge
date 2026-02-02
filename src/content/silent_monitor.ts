@@ -33,8 +33,8 @@ export function initSilentMonitor() {
         FirewallOverlay.render();
         agent.startSilentMonitoring((verdict) => {
             FirewallOverlay.update(
-                verdict.state, 
-                verdict.sri, 
+                verdict.state,
+                verdict.sri,
                 verdict.reason,
                 verdict.invariants,
                 verdict.features,
@@ -52,7 +52,7 @@ export function initSilentMonitor() {
 }
 
 // Listen for config updates from Popup
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((msg, _sender, _sendResponse) => {
     if (msg.type === "NB_UPDATE_CONFIG" && agent) {
         agent.setConfig(msg.config);
         console.log("[NeuralBridge] Config updated:", msg.config);
