@@ -371,6 +371,18 @@ export class PCKVerifier {
 
         // 1. Verify Merkle root
         checks++;
+        if (!pck?.proof_tree?.nodes) {
+            console.error('[PCKVerifier] proof_tree or nodes is undefined!', pck);
+            failed_checks.push('malformed_pck_structure');
+            return {
+                valid: false,
+                confidence: 0,
+                checks_performed: checks,
+                failed_checks,
+                verification_time_ms: Date.now() - startTime,
+                external_calls_made: 0
+            };
+        }
         const computedMerkle = await this.recomputeMerkleRoot(pck.proof_tree.nodes);
         if (computedMerkle !== pck.merkle_root) {
             failed_checks.push('merkle_root_mismatch');
@@ -449,6 +461,8 @@ export class PCKVerifier {
     } {
         // Check if the claim matches any node in the proof tree
         const matchingNodes: ProofNode[] = [];
+
+        if (!pck?.proof_tree?.nodes) return { supported: false, proof_path: [], confidence: 0 };
 
         for (const node of pck.proof_tree.nodes.values()) {
             if (this.claimsMatch(node.claim, claim)) {

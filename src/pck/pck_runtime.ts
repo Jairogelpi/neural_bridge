@@ -106,7 +106,9 @@ export class PCKRuntime {
             options.domain
         );
 
-        return await builder.build(rootId);
+        const pck = await builder.build(rootId);
+        console.log('[PCKRuntime] Compiled PCK:', pck.pck_id, 'has nodes:', !!pck.proof_tree?.nodes);
+        return pck;
     }
 
     /**
@@ -116,6 +118,9 @@ export class PCKRuntime {
         const startTime = Date.now();
 
         // 1. First verify the PCK itself is valid
+        if (!pck || !pck.proof_tree) {
+            console.error('[PCKRuntime] Invalid PCK object passed to verifyAnswer:', pck);
+        }
         const proofVerification = await PCKVerifier.verify(pck);
 
         if (!proofVerification.valid) {
