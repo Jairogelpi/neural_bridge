@@ -18,7 +18,7 @@ services:
       - key: SUPABASE_ANON_KEY
         value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwb2VhZWNpcmZzemFpcHpobmdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1NTUzNjEsImV4cCI6MjA4NTEzMTM2MX0.T4jHWETAWBq2URhRPQVZe9TrkFchxkgUzaDGRRUqecU
       - key: DATABASE_URL
-        value: postgresql://postgres.bpoeaecirfszaipzhngl:Gusano2001@.@aws-1-eu-west-1.pooler.supabase.com:5432/postgres
+        value: postgresql://postgres.bpoeaecirfszaipzhngl:Gusano2001@aws-1-eu-west-1.pooler.supabase.com:5432/postgres
       - key: JWT_SIGNING_KEY
         value: 28857cd7b57d42328b4dcf34fd6982ee4f4fb9182b3
     healthCheckPath: /health
