@@ -21,7 +21,7 @@ export class OpenWebUIBridge {
 
         // 2. Filter by specified Crystals
         const relevantNodes = nodes.filter(n =>
-            crystalIds.includes(n.metadata.source_id) || n.metadata.is_crystallized
+            crystalIds.includes(n.node.metadata.source_id) || n.node.metadata.is_crystallized
         );
 
         if (relevantNodes.length === 0) {
@@ -32,7 +32,7 @@ export class OpenWebUIBridge {
         const groundingBlock = `
         --- NEURAL BRIDGE GROUNDING ---
         The following information is from your VERIFIED KNOWLEDGE BASE:
-        ${relevantNodes.map(n => `[Axiom]: ${n.metadata.preview}`).join("\n")}
+        ${relevantNodes.map(n => `[Axiom]: ${n.node.metadata.preview}`).join("\n")}
         --- END GROUNDING ---
         
         Note: Prioritize the axioms above for factual accuracy.

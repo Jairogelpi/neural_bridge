@@ -12,15 +12,15 @@ services:
       - key: OPENAI_MODEL
         value: google/gemini-2.0-flash-001
       - key: OPENROUTER_API_KEY
-        sync: false
+        value: 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
       - key: SUPABASE_URL
-        sync: false
+        value: https://bpoeaecirfszaipzhngl.supabase.co
       - key: SUPABASE_ANON_KEY
-        sync: false
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwb2VhZWNpcmZzemFpcHpobmdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1NTUzNjEsImV4cCI6MjA4NTEzMTM2MX0.T4jHWETAWBq2URhRPQVZe9TrkFchxkgUzaDGRRUqecU
       - key: DATABASE_URL
-        sync: false
+        value: postgresql://postgres.bpoeaecirfszaipzhngl:Gusano2001@.@aws-1-eu-west-1.pooler.supabase.com:5432/postgres
       - key: JWT_SIGNING_KEY
-        sync: false
+        value: 28857cd7b57d42328b4dcf34fd6982ee4f4fb9182b3
     healthCheckPath: /health
 
   - type: web
@@ -33,9 +33,9 @@ services:
       - key: NEXT_PUBLIC_API_URL
         value: https://neural-bridge-backend.onrender.com
       - key: NEXT_PUBLIC_SUPABASE_URL
-        sync: false
+        value: https://bpoeaecirfszaipzhngl.supabase.co
       - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
-        sync: false
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwb2VhZWNpcmZzemFpcHpobmdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1NTUzNjEsImV4cCI6MjA4NTEzMTM2MX0.T4jHWETAWBq2URhRPQVZe9TrkFchxkgUzaDGRRUqecU
       - key: NODE_ENV
         value: production
 

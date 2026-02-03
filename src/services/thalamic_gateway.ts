@@ -36,17 +36,17 @@ export class ThalamicGateway {
         const topNode = resonantNodes[0]!;
 
         // 2. Convergence Check
-        if (topNode.metadata.is_crystallized) {
+        if (topNode.node.metadata.is_crystallized) {
             console.log(`[ThalamicGateway] ✨ High-Fidelity Match found: Already Crystallized.`);
             // In a real system, we'd fetch the crystal from DB via context_id
-            return { contextPreview: topNode.metadata.preview, isLazyTriggered: false };
+            return { contextPreview: topNode.node.metadata.preview, isLazyTriggered: false };
         }
 
         // 3. LAZY CRYSTALLIZATION: Thinking on Demand
         // RAG just dumps text here. We generate an ACTUAL BINDING TRUTH.
         console.log(`[ThalamicGateway] ⏳ Shallow node identified. Triggering Lazy Crystallization...`);
 
-        const rawSourceText = topNode.metadata.preview;
+        const rawSourceText = topNode.node.metadata.preview;
 
         try {
             const { crystal } = await generateCrystal(rawSourceText, 'system_sigma', {
@@ -56,7 +56,7 @@ export class ThalamicGateway {
             });
 
             // Promote node status
-            TalamicIndex.setCrystallized(topNode.id);
+            TalamicIndex.setCrystallized(topNode.node.id);
 
             return {
                 bestCrystal: crystal,
@@ -65,7 +65,7 @@ export class ThalamicGateway {
             };
         } catch (e) {
             console.error(`[ThalamicGateway] 🛡️ Lazy Crystallization failed:`, e);
-            return { contextPreview: topNode.metadata.preview, isLazyTriggered: false };
+            return { contextPreview: topNode.node.metadata.preview, isLazyTriggered: false };
         }
     }
 }

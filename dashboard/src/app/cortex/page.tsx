@@ -38,7 +38,7 @@ export default function CortexPage() {
 
     // Canvas/SVG Refs
     const svgRef = useRef<SVGSVGElement>(null);
-    const animationRef = useRef<number>();
+    const animationRef = useRef<number | null>(null);
 
     // 1. Fetch Data
     useEffect(() => {
