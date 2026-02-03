@@ -49,6 +49,15 @@ export class DomConqueror {
         const host = window.location.hostname;
         if (host.includes('openai') || host.includes('chatgpt')) this.config = PLATFORMS['chatgpt'] || null;
         else if (host.includes('claude')) this.config = PLATFORMS['claude'] || null;
+        else {
+            // UNIVERSAL MODE (RAG Portable)
+            this.config = {
+                name: 'Universal Web',
+                messageSelector: 'p, article, .content, main', // Broad selector for reading
+                textSelector: 'body',
+                containerSelector: 'body'
+            };
+        }
 
         if (this.config) {
             console.log(`[NeuralBridge] ⚔️ Conquering ${this.config.name} UI...`);
@@ -72,38 +81,31 @@ export class DomConqueror {
         const fab = document.createElement('div');
         fab.id = 'nb-fab';
 
-        // FAB Style - Matching Identity Theme
+        // FAB Style - Icon Only
         Object.assign(fab.style, {
             position: 'fixed',
             bottom: '24px',
             left: '24px',
-            width: '48px',
-            height: '48px',
-            borderRadius: '12px',
-            background: 'linear-gradient(135deg, #2563eb, #06b6d4)', // Blue to Cyan gradient
-            boxShadow: '0 8px 30px rgba(37, 99, 235, 0.4)',
+            width: '64px',
+            height: '64px',
+            borderRadius: '50%',
+            background: 'transparent',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
             zIndex: '2147483647',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            border: '2px solid rgba(255,255,255,0.2)'
+            transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.3))'
         });
 
         // Icon
-        const iconUrl = chrome.runtime.getURL('icons/icon48.png');
-        fab.innerHTML = `<img src="${iconUrl}" style="width: 24px; height: 24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));" alt="NB">`;
+        const iconUrl = chrome.runtime.getURL('icons/icon128.png');
+        fab.innerHTML = `<img src="${iconUrl}" style="width: 100%; height: 100%; object-fit: contain;" alt="NB">`;
 
         // Hover Effect
-        fab.addEventListener('mouseenter', () => {
-            fab.style.transform = 'translateY(-2px) scale(1.05)';
-            fab.style.boxShadow = '0 12px 40px rgba(37, 99, 235, 0.6)';
-        });
-        fab.addEventListener('mouseleave', () => {
-            fab.style.transform = 'translateY(0) scale(1)';
-            fab.style.boxShadow = '0 8px 30px rgba(37, 99, 235, 0.4)';
-        });
+        fab.addEventListener('mouseenter', () => fab.style.transform = 'scale(1.1)');
+        fab.addEventListener('mouseleave', () => fab.style.transform = 'scale(1)');
 
         // Click Action - Open Iframe
         fab.addEventListener('click', () => {

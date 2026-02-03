@@ -31,12 +31,7 @@ export function buildManifest() {
         ],
         content_scripts: [
             {
-                matches: [
-                    "https://chatgpt.com/*",
-                    "https://chat.openai.com/*",
-                    "https://gemini.google.com/*",
-                    "https://claude.ai/*"
-                ],
+                matches: ["<all_urls>"],
                 js: ["content/index.js"],
                 run_at: "document_idle"
             },

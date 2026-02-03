@@ -30,7 +30,7 @@ export function initSilentMonitor() {
 
     if (!agent) {
         agent = new FirewallAgent();
-        FirewallOverlay.render();
+        // FirewallOverlay.render(); // Disabled to prefer FAB access
         agent.startSilentMonitoring((verdict) => {
             FirewallOverlay.update(
                 verdict.state,
