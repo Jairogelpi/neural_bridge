@@ -12,13 +12,10 @@ import { Button, Card, CardHeader, CardTitle, CardContent, Badge } from '@/desig
 import { motion } from 'framer-motion';
 import {
     Plus,
-    Zap,
-    TrendingUp,
     Clock,
     Users,
     Sparkles,
     ArrowRight,
-    Menu,
     ShieldAlert,
     Wallet,
     Target,
@@ -36,6 +33,7 @@ interface DashboardStats {
     fidelity: number;
     threatsBlocked: number;
     neuralDensity: number;
+    timeSavedHours: number;
 }
 
 export default function PremiumDashboard() {
@@ -48,15 +46,21 @@ export default function PremiumDashboard() {
         savingsUsd: 0,
         fidelity: 0.984,
         threatsBlocked: 0,
-        neuralDensity: 0.45
+        neuralDensity: 0.45,
+        timeSavedHours: 0
     });
 
     const [recentCrystals, setRecentCrystals] = useState<any[]>([]);
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     useEffect(() => {
+        const token = localStorage.getItem('nb_token');
+
         // Load stats from real backend
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/analytics/stats`)
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/analytics/stats`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.stats) {
@@ -68,7 +72,8 @@ export default function PremiumDashboard() {
                         savingsUsd: data.stats.estimated_savings_usd || 0,
                         fidelity: data.stats.truth_fidelity || 0.984,
                         threatsBlocked: data.stats.threats_neutralized || 0,
-                        neuralDensity: data.stats.neural_density || 0.45
+                        neuralDensity: data.stats.neural_density || 0.45,
+                        timeSavedHours: data.stats.time_saved_hours || 0
                     });
                 }
             })
@@ -87,40 +92,49 @@ export default function PremiumDashboard() {
 
     const statCards = [
         {
-            label: 'Sovereign Savings',
+            label: 'Money Saved',
             value: `$${stats.savingsUsd.toFixed(2)}`,
-            subValue: 'Tokens optimized by Bridge',
+            subValue: 'In API Credits',
             icon: Wallet,
             color: 'green',
             gradient: 'from-emerald-500 to-green-600',
-            description: 'Cumulative USD saved by using Semantic Cache instead of direct LLM calls.'
+            description: 'Real dollars you saved by using your own memory instead of renting AI.'
         },
         {
-            label: 'Truth Fidelity',
+            label: 'Time Saved',
+            value: `${stats.timeSavedHours.toFixed(1)}h`,
+            subValue: 'Productivity Gained',
+            icon: Clock,
+            color: 'amber',
+            gradient: 'from-amber-500 to-orange-600',
+            description: 'Hours you saved by not having to re-explain things to the AI.'
+        },
+        {
+            label: 'Accuracy',
             value: `${(stats.fidelity * 100).toFixed(1)}%`,
-            subValue: 'Network-wide truth index',
+            subValue: 'Proven Truth',
             icon: Target,
             color: 'blue',
             gradient: 'from-blue-500 to-indigo-600',
-            description: 'The overall mathematical certainty of your knowledge base across all crystals.'
+            description: 'The probability that your data is factually correct and free of hallucinations.'
         },
         {
-            label: 'Threats Neutralized',
+            label: 'Lies Blocked',
             value: stats.threatsBlocked.toString(),
-            subValue: 'Manipulations blocked',
+            subValue: 'Attempts Neutralized',
             icon: ShieldAlert,
             color: 'red',
             gradient: 'from-rose-500 to-red-600',
-            description: 'Count of logical fallacies and semantic threats detected and blocked by the Sentinel.'
+            description: 'Number of times the system stopped an AI from lying or hallucinating to you.'
         },
         {
-            label: 'Neural Density',
+            label: 'Brain Power',
             value: (stats.neuralDensity * 100).toFixed(0),
-            subValue: 'Knowledge connectivity',
+            subValue: 'Knowledge IQ',
             icon: Activity,
             color: 'purple',
             gradient: 'from-purple-500 to-fuchsia-600',
-            description: 'How deeply interconnected your ideas are. Higher density means stronger reasoning capabilities.'
+            description: 'A score representing how connected and powerful your personal knowledge base is.'
         },
     ];
 
@@ -161,7 +175,7 @@ export default function PremiumDashboard() {
             {/* Main Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-8">
                 {/* Stats Row - Responsive Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
                     {statCards.map((stat, idx) => {
                         const Icon = stat.icon;
                         return (

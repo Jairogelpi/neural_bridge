@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/Sidebar';
 import { Award, Shield, Fingerprint, Activity, TrendingUp, History, Star, Zap } from 'lucide-react';
-import { motion } from 'framer-motion';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 
@@ -53,9 +52,9 @@ export default function ExpertHubPage() {
     }, []);
 
     const stats = [
-        { label: 'Neural Reputation', value: profile?.reputation?.toFixed(3) || '0.500', icon: Star, color: 'text-yellow-500', bg: 'bg-yellow-50' },
-        { label: 'Contribution Tier', value: profile?.tier || 'Community', icon: Shield, color: 'text-blue-500', bg: 'bg-blue-50' },
-        { label: 'Truth Fidelity', value: '98.4%', icon: Zap, color: 'text-purple-500', bg: 'bg-purple-50' },
+        { label: 'My Score', value: profile?.reputation?.toFixed(3) || '0.500', icon: Star, color: 'text-yellow-500', bg: 'bg-yellow-50' },
+        { label: 'User Level', value: profile?.tier || 'Community', icon: Shield, color: 'text-blue-500', bg: 'bg-blue-50' },
+        { label: 'Accuracy', value: '98.4%', icon: Zap, color: 'text-purple-500', bg: 'bg-purple-50' },
     ];
 
     return (
@@ -69,7 +68,7 @@ export default function ExpertHubPage() {
                         <span className="text-[10px] font-bold uppercase tracking-widest text-yellow-700">Sovereign Expert Verified</span>
                     </div>
                     <h1 className="text-4xl md:text-5xl font-black italic tracking-tighter text-gray-900 mb-2">
-                        EXPERT <span className="text-yellow-600">IDENTITY.</span>
+                        MY <span className="text-yellow-600">REPUTATION.</span>
                     </h1>
                     <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Your cryptographic reputation and neural contribution matrix.</p>
                 </header>
@@ -116,7 +115,7 @@ export default function ExpertHubPage() {
                         <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm">
                             <div className="flex items-center justify-between mb-8">
                                 <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
-                                    <History size={14} /> Reputation Ledger
+                                    <History size={14} /> Activity History
                                 </h3>
                                 <div className="flex items-center gap-2 text-[10px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full uppercase tracking-wider">
                                     <TrendingUp size={12} />
@@ -148,7 +147,7 @@ export default function ExpertHubPage() {
                                 )) : (
                                     <div className="text-center py-20 bg-gray-50/30 rounded-[2rem] border border-dashed border-gray-200">
                                         <Award className="mx-auto text-gray-200 mb-4" size={48} />
-                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Your contribution history is empty.</p>
+                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">No activity yet. Start using Neural Bridge!</p>
                                     </div>
                                 )}
                             </div>

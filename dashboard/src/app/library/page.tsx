@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Database, Search, Plus, Filter } from 'lucide-react';
+import { Database, Search, Plus } from 'lucide-react';
 import { CrystalCard } from '@/components/CrystalCard';
 import { supabase } from '@/lib/supabase';
 import { Sidebar } from '@/components/Sidebar';
@@ -23,7 +22,7 @@ export default function LibraryPage() {
 
     useEffect(() => {
         const fetchCrystals = async () => {
-            const { data, error } = await supabase
+            const { data } = await supabase
                 .from('crystals')
                 .select('context_id, domain, intent, author')
                 .order('created_at', { ascending: false });
@@ -42,7 +41,7 @@ export default function LibraryPage() {
                 <header className="flex items-center justify-between mb-12">
                     <div>
                         <h1 className="text-4xl md:text-5xl font-black italic tracking-tighter text-gray-900 mb-2">
-                            LIBRARY OF <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">TRUTHS.</span>
+                            MY MEMORY <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">VAULT.</span>
                         </h1>
                         <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Your sovereign knowledge manifold, indexed and verified.</p>
                     </div>
@@ -90,7 +89,7 @@ export default function LibraryPage() {
                         <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg shadow-gray-100 mb-6">
                             <Database className="text-gray-300" size={32} />
                         </div>
-                        <h2 className="text-xl font-black italic tracking-tighter text-gray-900 mb-2">NO CRYSTALS SYNTHESIZED</h2>
+                        <h2 className="text-xl font-black italic tracking-tighter text-gray-900 mb-2">NO MEMORIES FOUND</h2>
                         <p className="text-xs font-bold uppercase tracking-widest text-gray-400 max-w-sm text-center">
                             Start a conversation or bridge knowledge from the web to populate your manifold.
                         </p>

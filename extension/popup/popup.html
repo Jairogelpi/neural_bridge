@@ -4,419 +4,428 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neural Bridge | Governance OS</title>
-    <link rel="stylesheet" href="../../src/ui/design_system.css">
+    <title>Neural Bridge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg: #ffffff;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --border: #e5e7eb;
+            --primary: #000000;
+            --primary-hover: #1f2937;
+            --accent: #6366f1;
+            --success: #10b981;
+            --surface: #f9fafb;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
         body {
-            width: 400px;
-            min-height: 520px;
+            width: 360px;
+            min-height: 500px;
+            background: var(--bg);
+            color: var(--text-primary);
             overflow-x: hidden;
-            padding: 16px;
         }
 
-        /* --- LAYOUT --- */
-        .app-container {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
+        /* HEADER */
         header {
+            padding: 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 4px 8px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         .brand {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 14px;
         }
 
-        .brand-logo {
-            width: 32px;
-            height: 32px;
-            background: var(--primary-gradient);
-            border-radius: 8px;
+        .brand-icon {
+            width: 24px;
+            height: 24px;
+            background: black;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
-            box-shadow: var(--shadow-glow);
-        }
-
-        .brand h1 {
-            font-size: 18px;
-            letter-spacing: -0.5px;
-        }
-
-        /* --- NAVIGATION --- */
-        nav {
-            display: flex;
-            background: rgba(255, 255, 255, 0.03);
-            border: var(--border-glass);
-            border-radius: 12px;
-            padding: 4px;
-        }
-
-        nav button {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            font-family: var(--font-display);
-            font-weight: 600;
+            color: white;
             font-size: 12px;
-            padding: 8px 0;
+        }
+
+        .settings-btn {
+            background: none;
+            border: none;
             cursor: pointer;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+
+        .settings-btn:hover {
+            color: var(--text-primary);
+        }
+
+        /* MAIN CONTENT */
+        main {
+            padding: 16px;
+        }
+
+        /* STATUS BAR */
+        .status-bar {
+            background: var(--surface);
             border-radius: 8px;
-            transition: all var(--transition-smooth);
-        }
-
-        nav button.active {
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff;
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-        }
-
-        /* --- METRICS --- */
-        .metrics-bento {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: auto auto;
-            gap: 10px;
-        }
-
-        .metric-item {
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .metric-value {
-            font-family: var(--font-display);
-            font-size: 24px;
-            font-weight: 700;
-            line-height: 1;
-            margin-bottom: 2px;
-        }
-
-        .metric-unit {
-            font-size: 10px;
-            color: var(--text-tertiary);
-            margin-left: 2px;
-        }
-
-        /* --- STATUS AREA --- */
-        .status-strip {
+            padding: 8px 12px;
             display: flex;
             align-items: center;
             gap: 8px;
             font-size: 11px;
             color: var(--text-secondary);
-            padding: 8px 12px;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 99px;
-            border: var(--border-glass);
+            font-weight: 500;
+            margin-bottom: 16px;
         }
 
         .status-dot {
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: var(--status-success);
-            box-shadow: 0 0 8px var(--status-success);
-            animation: pulse-status 2s infinite;
+            background: var(--success);
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
         }
 
-        @keyframes pulse-status {
-            0% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.4;
-            }
-
-            100% {
-                opacity: 1;
-            }
+        /* METRICS GRID */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
         }
 
-        /* --- CONTENT MODES --- */
-        .mode-content {
-            min-height: 200px;
+        .metric-card {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            transition: all 0.2s;
         }
 
-        .action-card {
-            text-align: center;
-            padding: 32px 20px;
+        .metric-card:hover {
+            border-color: #d1d5db;
+            background: var(--surface);
+        }
+
+        .metric-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .metric-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* TABS */
+        .tabs {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 16px;
+            background: var(--surface);
+            padding: 4px;
+            border-radius: 10px;
+            margin-bottom: 24px;
         }
 
-        .action-icon {
-            font-size: 40px;
-            margin-bottom: 8px;
+        .tab-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: none;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: var(--text-primary);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* ACTION AREA */
+        .action-area {
+            text-align: center;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        /* CRYSTAL DETAILS */
+        .crystal-details {
+            margin-top: 16px;
+            background: var(--surface);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: left;
+            border: 1px solid var(--border);
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+        }
+
+        .detail-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: var(--text-primary);
         }
 
         .hidden {
-            display: none !important;
+            display: none;
         }
 
-        /* --- SETTINGS OVERLAY --- */
+        /* SETTINGS OVERLAY */
         #settings-panel {
             position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--bg-obsidian);
-            z-index: 100;
-            padding: 24px;
+            width: 100%;
+            height: 100%;
+            background: white;
+            padding: 20px;
             transform: translateY(100%);
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 20;
         }
 
         #settings-panel.active {
             transform: translateY(0);
         }
 
-        .settings-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-
         .input-group {
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
-        .input-group label {
+        .input-label {
             display: block;
             font-size: 11px;
-            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 6px;
             color: var(--text-secondary);
-            margin-bottom: 8px;
         }
 
-        .nb-input {
+        .input-field {
             width: 100%;
-            background: rgba(255, 255, 255, 0.05);
-            border: var(--border-glass);
-            border-radius: 12px;
-            padding: 12px;
-            color: #fff;
-            font-family: var(--font-mono);
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
             font-size: 13px;
-        }
-
-        .nb-input:focus {
             outline: none;
-            border-color: var(--accent-indigo);
         }
 
-        /* --- RESULTS --- */
-        .result-view {
-            animation: slide-up 0.3s ease-out;
+        .input-field:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
         }
 
-        @keyframes slide-up {
-            from {
-                transform: translateY(10px);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
+        .footer-link {
+            display: block;
+            text-align: center;
+            margin-top: 16px;
+            font-size: 11px;
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
         }
     </style>
 </head>
 
 <body>
-    <div class="app-container">
-        <!-- Header -->
-        <header>
-            <div class="brand">
-                <div class="brand-logo">NB</div>
-                <h1 class="nb-gradient-text">Neural Bridge</h1>
-            </div>
-            <button class="nb-icon-btn" id="btn-settings">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path
-                        d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z">
-                    </path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-            </button>
-        </header>
+    <header>
+        <div class="brand">
+            <div class="brand-icon">NB</div>
+            <span>Neural Bridge</span>
+        </div>
+        <button class="settings-btn" id="btn-settings">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path
+                    d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z">
+                </path>
+                <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+        </button>
+    </header>
 
-        <!-- Connectivity Status -->
-        <div class="status-strip">
+    <main>
+        <div class="status-bar">
             <div class="status-dot"></div>
-            <span>Connected to <strong id="current-host">Detecting...</strong></span>
+            <span id="current-host">Detecting Active Strand...</span>
         </div>
 
-        <!-- Metrics Grid -->
-        <div class="metrics-bento">
-            <div class="nb-card metric-item">
-                <span class="nb-label">Stability (SRI)</span>
-                <div class="metric-value nb-primary-glow" id="stat-success">0<span class="metric-unit">%</span></div>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Money Saved</div>
+                <div class="metric-value" id="stat-cost">$0.00</div>
             </div>
-            <div class="nb-card metric-item">
-                <span class="nb-label">Real-time Cost</span>
-                <div class="metric-value" id="stat-cost">$0<span class="metric-unit">.00</span></div>
+            <div class="metric-card">
+                <div class="metric-label">Accuracy</div>
+                <div class="metric-value" id="stat-success">0%</div>
             </div>
-            <div class="nb-card metric-item" style="grid-column: span 2;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <span class="nb-label">Total Volume</span>
-                        <div class="metric-value" id="stat-tokens">0<span class="metric-unit">K Tokens</span></div>
-                    </div>
-                    <div style="text-align: right;">
-                        <span class="nb-label">Transfers</span>
-                        <div class="metric-value" id="stat-transfers">0</div>
-                    </div>
-                </div>
+            <div class="metric-card">
+                <div class="metric-label">Memories</div>
+                <div class="metric-value" id="stat-transfers">0</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Tokens</div>
+                <div class="metric-value" id="stat-tokens">0k</div>
             </div>
         </div>
 
-        <!-- Navigation -->
-        <nav>
-            <button id="mode-capture" class="active">CAPTURE</button>
-            <button id="mode-inject">TRANSFER</button>
-            <button id="mode-mesh">MESH</button>
-        </nav>
+        <div class="tabs">
+            <button class="tab-btn active" id="mode-capture">Capture</button>
+            <button class="tab-btn" id="mode-inject">Transfer</button>
+            <button class="tab-btn" id="mode-mesh">Mesh</button>
+        </div>
 
-        <!-- Mode Content -->
-        <div class="mode-content">
-            <!-- Capture Mode -->
-            <div id="capture-mode" class="action-card nb-card">
-                <div class="action-icon">💎</div>
-                <h3 class="nb-display">Knowledge Synthesis</h3>
-                <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">Compress current session
-                    into a high-fidelity Crystal.</p>
-                <button class="nb-btn nb-btn-primary" id="btn-capture" style="width: 100%;">Create Crystal</button>
-
-                <div id="crystal-section" class="hidden" style="width: 100%; margin-top: 16px; text-align: left;">
-                    <span class="nb-label">Crystal Metadata</span>
-                    <div id="crystal-details"
-                        style="font-size: 11px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; border: var(--border-glass);">
-                        <!-- Dynamic content -->
-                    </div>
-                    <button class="nb-btn" id="btn-copy" style="width: 100%; margin-top: 12px; font-size: 12px;">Copy
-                        Crystal Data</button>
-                </div>
+        <!-- CAPTURE VIEW -->
+        <div id="capture-mode" class="action-area">
+            <div style="margin-bottom: 20px">
+                <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Save Context</h3>
+                <p style="font-size: 12px; color: var(--text-secondary);">Turn this conversation into a permanent
+                    memory.</p>
             </div>
-
-            <!-- Inject Mode -->
-            <div id="inject-mode" class="action-card nb-card hidden">
-                <div class="action-icon">🚀</div>
-                <h3 class="nb-display">Crystalline Context</h3>
-                <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">Awaiting encrypted context
-                    for neural injection.</p>
-                <button class="nb-btn" id="btn-paste" style="width: 100%;">Paste from Clipboard</button>
-
-                <div id="transfer-section" class="hidden" style="width: 100%; margin-top: 16px;">
-                    <button class="nb-btn nb-btn-primary" id="btn-transfer" style="width: 100%;">Execute
-                        Injection</button>
-                </div>
-
-                <div id="result-section" class="hidden result-view"
-                    style="width: 100%; margin-top: 20px; text-align: left;">
-                    <div class="nb-card"
-                        style="padding: 12px; border-color: var(--status-success); background: rgba(16, 185, 129, 0.05);">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span class="nb-badge nb-badge-success">Success</span>
-                            <span id="result-score" style="font-weight: 800; font-size: 18px;">95%</span>
-                        </div>
-                        <div style="margin-top: 12px; font-size: 11px; color: var(--text-secondary);">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                                <span>Invariants Verified</span>
-                                <span id="result-invariants" style="color: #fff;">4/5</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between;">
-                                <span>Refinement Cost</span>
-                                <span id="result-cost-detail" style="color: var(--accent-cyan);">$0.0024</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Mesh Mode -->
-            <div id="mesh-mode" class="action-card nb-card hidden">
-                <div class="action-icon">🕸️</div>
-                <h3 class="nb-display">Live Pulse</h3>
-                <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">Synchronizing context mesh
-                    across active nodes.</p>
-
-                <div
-                    style="width: 100%; background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px; text-align: left;">
-                    <span class="nb-label">Active Mesh Nodes</span>
-                    <div id="mesh-nodes-list"
-                        style="margin-top: 8px; font-size: 11px; display: flex; flex-direction: column; gap: 6px;">
-                        <div style="display: flex; align-items: center; gap: 6px;">
-                            <div class="status-dot"
-                                style="width: 4px; height: 4px; background: var(--accent-indigo); box-shadow: 0 0 4px var(--accent-indigo);">
-                            </div>
-                            <span>ChatGPT (Node A) - Broadcast Active</span>
-                        </div>
-                    </div>
-                </div>
-
-                <button class="nb-btn" id="btn-new-checkpoint" style="width: 100%; margin-top: 12px;">Create
-                    Checkpoint</button>
+            <button class="btn-primary" id="btn-capture">
+                <span>Synthesize Crystal</span>
+            </button>
+            <div id="crystal-section" class="hidden crystal-details">
+                <div id="crystal-details"></div>
+                <button id="btn-copy"
+                    style="width: 100%; margin-top: 10px; padding: 6px; font-size: 11px; background: white; border: 1px solid var(--border); border-radius: 6px; cursor: pointer;">Copy
+                    Data</button>
             </div>
         </div>
 
-        <footer
-            style="text-align: center; padding: 8px; font-size: 10px; color: var(--text-tertiary); display: flex; justify-content: space-between; align-items: center;">
-            <span>v1.2.0 • SCP Protocol</span>
-            <a href="#" id="open-dashboard"
-                style="color: var(--accent-indigo); text-decoration: none; font-weight: 600;">Full Audit Log →</a>
-        </footer>
-    </div>
+        <!-- INJECT VIEW -->
+        <div id="inject-mode" class="action-area hidden">
+            <div style="margin-bottom: 20px">
+                <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Inject Knowledge</h3>
+                <p style="font-size: 12px; color: var(--text-secondary);">Paste a Crystal to bridge context here.</p>
+            </div>
+            <button class="btn-primary" id="btn-paste"
+                style="background: white; color: black; border: 1px solid var(--border); margin-bottom: 12px;">Paste
+                from Clipboard</button>
 
-    <!-- Settings Overlay -->
+            <div id="transfer-section" class="hidden">
+                <button class="btn-primary" id="btn-transfer">Execute Injection</button>
+            </div>
+
+            <div id="result-section" class="hidden crystal-details">
+                <div class="detail-row">
+                    <span>Result</span>
+                    <span class="detail-value" style="color: var(--success);" id="result-score">95%</span>
+                </div>
+                <div class="detail-row">
+                    <span>Invariants</span>
+                    <span class="detail-value" id="result-invariants">4/5</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MESH VIEW -->
+        <div id="mesh-mode" class="action-area hidden">
+            <div style="margin-bottom: 20px">
+                <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Live Mesh</h3>
+                <p style="font-size: 12px; color: var(--text-secondary);">Synchronize context across active nodes.</p>
+            </div>
+            <div class="crystal-details">
+                <div class="detail-row">
+                    <span>Active Node</span>
+                    <span class="detail-value">Current Tab</span>
+                </div>
+                <div class="detail-row" style="margin-top: 8px;">
+                    <div class="status-dot" style="background: var(--accent);"></div>
+                    <span style="font-size: 10px;">Broadcasting...</span>
+                </div>
+            </div>
+        </div>
+
+        <a href="#" id="open-dashboard" class="footer-link">Go to Full Dashboard →</a>
+    </main>
+
+    <!-- SETTINGS PANEL -->
     <div id="settings-panel">
-        <div class="settings-header">
-            <h2 class="nb-display">Settings</h2>
-            <button class="nb-icon-btn" id="btn-close-settings">✕</button>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 24px;">
+            <h2 style="font-size: 16px; font-weight: 700;">Settings</h2>
+            <button id="btn-close-settings"
+                style="background: none; border: none; font-size: 20px; cursor: pointer;">×</button>
         </div>
 
         <div class="input-group">
-            <label>OpenRouter API Key</label>
-            <input type="password" class="nb-input" id="api-key-input" placeholder="sk-or-v1-...">
+            <label class="input-label">OpenRouter API Key</label>
+            <input type="password" class="input-field" id="api-key-input" placeholder="sk-...">
         </div>
 
         <div class="input-group">
-            <label>Verification Model</label>
-            <select class="nb-input" id="compiler-model">
+            <label class="input-label">Verification Model</label>
+            <select class="input-field" id="compiler-model">
                 <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet</option>
                 <option value="openai/gpt-4o">GPT-4o</option>
-                <option value="google/gemini-pro-1.5">Gemini Pro 1.5</option>
             </select>
         </div>
 
         <div class="input-group">
-            <label>Infrastructure ID</label>
+            <label class="input-label">Identity Token</label>
             <div style="display: flex; gap: 8px;">
-                <input type="text" class="nb-input" id="session-token-display" readonly
-                    style="flex: 1; font-size: 10px;">
-                <button class="nb-btn" id="btn-bootstrap" style="padding: 0 16px;">Link</button>
+                <input type="text" class="input-field" id="session-token-display" readonly>
+                <button id="btn-bootstrap"
+                    style="padding: 0 12px; font-size: 11px; background: black; color: white; border: none; border-radius: 6px; cursor: pointer;">Link</button>
             </div>
         </div>
 
-        <button class="nb-btn nb-btn-primary" id="btn-save-settings" style="width: 100%; margin-top: 24px;">Apply
-            Configuration</button>
+        <button class="btn-primary" id="btn-save-settings">Save Changes</button>
     </div>
 
     <script type="module" src="./popup.ts"></script>

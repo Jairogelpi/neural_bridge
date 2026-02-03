@@ -1,5 +1,5 @@
-// Popup Script - Neural Bridge Governance OS v1.2
-// "Quantum Fabric" UI Integration
+// Popup Script - Neural Bridge Governance OS v2.0 Titan
+// "Titan" UI Integration
 
 interface Crystal {
     scp_version: string;
@@ -39,21 +39,22 @@ const btnBootstrap = document.getElementById('btn-bootstrap') as HTMLButtonEleme
 
 let currentCrystal: Crystal | null = null;
 
+// Backend Config
+const BACKEND_URL = 'https://neural-bridge-backend.onrender.com'; // Production Server
+// const BACKEND_URL = 'http://localhost:10000'; // Local Dev Fallback
+
 async function init() {
     setupEventListeners();
     await loadSettings();
     await updateSessionToken();
-    await loadMetrics();
+    await loadMetrics(); // Tries backend first, fallback to local
     await updateHost();
 
     // Sync live pricing immediately
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (tabs[0]?.id) {
             chrome.tabs.sendMessage(tabs[0].id, { action: 'GET_PRICING' }, (res) => {
-                if (chrome.runtime.lastError) {
-                    // Ignore error on unsupported pages
-                    return;
-                }
+                if (chrome.runtime.lastError) return;
                 if (res?.data) console.log('Live pricing synced:', Object.keys(res.data).length, 'models');
             });
         }
@@ -91,7 +92,7 @@ function setupEventListeners() {
 }
 
 function showMode(mode: string) {
-    // Buttons
+    // Buttons (using 'active' class for styling)
     [modeCaptureBtn, modeInjectBtn, modeMeshBtn].forEach(b => b.classList.remove('active'));
     document.getElementById(`mode-${mode}`)!.classList.add('active');
 
@@ -102,7 +103,7 @@ function showMode(mode: string) {
 
 async function handleCapture() {
     const btn = document.getElementById('btn-capture') as HTMLButtonElement;
-    const originalText = btn.textContent;
+    const originalText = btn.innerHTML;
     btn.textContent = 'Synthesizing...';
     btn.disabled = true;
 
@@ -111,12 +112,12 @@ async function handleCapture() {
         if (res.success) {
             currentCrystal = res.data;
             updateCrystalDisplay(res.data);
-            await loadMetrics();
+            await loadMetrics(); // Refresh stats
         } else {
             alert('Capture Failed: ' + (res.error || 'Unknown error'));
         }
     } finally {
-        btn.textContent = originalText;
+        btn.innerHTML = originalText;
         btn.disabled = false;
     }
 }
@@ -127,12 +128,10 @@ function updateCrystalDisplay(crystal: Crystal) {
 
     section.classList.remove('hidden');
     details.innerHTML = `
-        <div style="display: flex; flex-direction: column; gap: 4px;">
-            <div style="display: flex; justify-content: space-between;"><span>Context ID</span><span>${crystal.context_id.slice(0, 8)}...</span></div>
-            <div style="display: flex; justify-content: space-between;"><span>Tokens</span><span>${crystal.metadata.tokens_used}</span></div>
-            <div style="display: flex; justify-content: space-between;"><span>Compression</span><span>${(crystal.metadata.compression_ratio * 100).toFixed(1)}%</span></div>
-            <div style="display: flex; justify-content: space-between;"><span>Quality</span><span style="color: var(--status-success)">${Math.round(crystal.metadata.quality_score * 100)}%</span></div>
-        </div>
+        <div class="detail-row"><span>Context ID</span><span class="detail-value">${crystal.context_id.slice(0, 8)}...</span></div>
+        <div class="detail-row"><span>Tokens</span><span class="detail-value">${crystal.metadata.tokens_used}</span></div>
+        <div class="detail-row"><span>Compression</span><span class="detail-value">${(crystal.metadata.compression_ratio * 100).toFixed(1)}%</span></div>
+        <div class="detail-row"><span>Quality</span><span class="detail-value" style="color: var(--success)">${Math.round(crystal.metadata.quality_score * 100)}%</span></div>
     `;
 }
 
@@ -153,10 +152,11 @@ async function handlePaste() {
             document.getElementById('transfer-section')!.classList.remove('hidden');
             const btn = document.getElementById('btn-paste')!;
             btn.textContent = 'Crystal Loaded';
-            btn.classList.add('nb-badge-success');
+            btn.style.borderColor = 'var(--success)';
+            btn.style.color = 'var(--success)';
         }
     } catch (e) {
-        alert('Invalid Crystal Format');
+        alert('Invalid Crystal Format - Please copy a valid Neural Crystal');
     }
 }
 
@@ -171,7 +171,6 @@ async function handleTransfer() {
             document.getElementById('result-section')!.classList.remove('hidden');
             document.getElementById('result-score')!.textContent = `${Math.round(res.data.score * 100)}%`;
             document.getElementById('result-invariants')!.textContent = `${res.data.metrics.verified_invariants}/${res.data.metrics.total_invariants}`;
-            document.getElementById('result-cost-detail')!.textContent = `$${res.data.metrics.total_cost_usd.toFixed(4)}`;
 
             // Re-load global metrics to reflect life cost
             await loadMetrics();
@@ -222,21 +221,55 @@ async function saveSettings() {
     }, 1000);
 }
 
+/**
+ * Loads metrics. Tries Global Backend first (user's total stats), falls back to local.
+ */
 async function loadMetrics() {
-    const res = await chrome.storage.local.get(['scp_metrics']);
-    const metrics = res.scp_metrics || [];
-    const total = metrics.length;
-    const tokens = metrics.reduce((sum: number, m: any) => sum + (m.total_tokens || 0), 0);
-    const cost = metrics.reduce((sum: number, m: any) => sum + (m.total_cost_usd || 0), 0);
+    let globalStats = null;
+    const token = tokenDisplay.value;
 
-    // Calculate real success rate
-    const successful = metrics.filter((m: any) => m.transfer?.success).length;
-    const successRate = total > 0 ? Math.round((successful / total) * 100) : 0;
+    if (token) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 2000); // 2s timeout
+            const response = await fetch(`${BACKEND_URL}/v1/analytics/stats`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
 
-    statTransfers.textContent = String(total);
-    statSuccess.innerHTML = `${successRate}<span class="metric-unit">%</span>`;
-    statTokens.innerHTML = `${(tokens / 1000).toFixed(1)}<span class="metric-unit">K Tokens</span>`;
-    statCost.innerHTML = `$${cost.toFixed(2).split('.')[0]}<span class="metric-unit">.${cost.toFixed(2).split('.')[1]}</span>`;
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.stats) {
+                    globalStats = data.stats;
+                }
+            }
+        } catch (e) {
+            console.warn('Backend unavailable, using local stats.', e);
+        }
+    }
+
+    if (globalStats) {
+        // Use real backend data
+        statTransfers.textContent = String(globalStats.crystalsGenerated || 0);
+        statSuccess.innerHTML = `${Math.round((globalStats.averageFidelity || 0) * 100)}%`;
+        statTokens.innerHTML = `${((globalStats.totalTokens || 0) / 1000).toFixed(1)}k`;
+        statCost.innerHTML = `$${(globalStats.savingsUsd || 0).toFixed(2)}`;
+    } else {
+        // Use local fallback
+        const res = await chrome.storage.local.get(['scp_metrics']);
+        const metrics = res.scp_metrics || [];
+        const total = metrics.length;
+        const tokens = metrics.reduce((sum: number, m: any) => sum + (m.total_tokens || 0), 0);
+        const cost = metrics.reduce((sum: number, m: any) => sum + (m.total_cost_usd || 0), 0);
+        const successful = metrics.filter((m: any) => m.transfer?.success).length;
+        const successRate = total > 0 ? Math.round((successful / total) * 100) : 0;
+
+        statTransfers.textContent = String(total);
+        statSuccess.innerHTML = `${successRate}%`;
+        statTokens.innerHTML = `${(tokens / 1000).toFixed(1)}k`;
+        statCost.innerHTML = `$${cost.toFixed(2)}`;
+    }
 }
 
 // Helper for safe runtime messages
@@ -270,9 +303,8 @@ async function handleBootstrap() {
     if (res.success) {
         await updateSessionToken();
     } else {
-        btnBootstrap.textContent = 'Connection Failed';
+        btnBootstrap.textContent = 'Failed';
         btnBootstrap.disabled = false;
-        // Don't alert immediately on load, just log
         console.warn('Failed to connect to Neural Bridge Server via Background.');
     }
 }

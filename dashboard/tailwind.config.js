@@ -8,6 +8,10 @@ module.exports = {
     ],
     theme: {
         extend: {
+            fontFamily: {
+                sans: ['var(--font-inter)', 'sans-serif'],
+                display: ['var(--font-outfit)', 'sans-serif'],
+            },
             padding: {
                 'safe': 'env(safe-area-inset-bottom)',
             },

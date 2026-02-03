@@ -64,7 +64,7 @@ export const CrystalAuditor: React.FC<CrystalAuditorProps> = ({ isOpen, onClose,
                                     <Database size={14} /> Semantic Intent
                                 </h3>
                                 <p className="text-xl font-bold text-gray-900 leading-relaxed italic">
-                                    "{crystal.intent?.primary || 'Undisclosed'}"
+                                    &quot;{crystal.intent?.primary || 'Undisclosed'}&quot;
                                 </p>
                             </div>
 

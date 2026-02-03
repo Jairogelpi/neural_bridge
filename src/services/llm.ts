@@ -204,7 +204,8 @@ async function callLLM(
 async function resilientCallLLM(
     prompt: string,
     model: string,
-    systemPrompt?: string
+    systemPrompt?: string,
+    authorId?: string
 ): Promise<LLMResponse> {
     // CHECK CACHE FIRST (2ms vs 2000ms!)
     try {
@@ -212,11 +213,34 @@ async function resilientCallLLM(
         const cached = await CacheManager.getLLMResponse(prompt, model);
         if (cached) {
             console.log(`[LLM Cache] ⚡ HIT in 2ms (saved ~2000ms)`);
+
+            // TRACK HIT (for ROI calculation)
+            import('./analytics').then(({ AnalyticsService }) => {
+                AnalyticsService.track({
+                    event_name: 'cache_hit',
+                    event_data: {
+                        model,
+                        tokens_saved: cached.tokens?.total || 2000,
+                        latency_saved_ms: 2000
+                    },
+                    user_id: authorId || 'system'
+                });
+            });
+
             return cached;
         }
     } catch (e) {
         // Cache not available, proceed normally
     }
+
+    // TRACK MISS
+    import('./analytics').then(({ AnalyticsService }) => {
+        AnalyticsService.track({
+            event_name: 'cache_miss',
+            event_data: { model },
+            user_id: authorId || 'system'
+        });
+    });
 
     const modelsToTry = model.endsWith(':free')
         ? [model, ...FREE_MODEL_FALLBACKS.filter((m: string) => m !== model)]
@@ -267,7 +291,7 @@ Be precise. If it is a mix, choose the most critical one.`;
 Identify the domain. Return ONLY the domain name in lowercase (e.g. "medicine"). No explanation.`;
 
     try {
-        const response = await resilientCallLLM(prompt, PRIMARY_FREE_MODEL, systemPrompt);
+        const response = await resilientCallLLM(prompt, PRIMARY_FREE_MODEL, systemPrompt, 'system');
         const domain = response.content.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
 
         // 🌀 OMEGA ENGINE: If domain is 'general' or 'unknown', evolve it
@@ -454,7 +478,8 @@ Return ONLY valid JSON, no markdown or explanation.`;
             response = await resilientCallLLM(
                 currentMutationPrompt,
                 model,
-                systemPrompt
+                systemPrompt,
+                author?.id
             );
 
             if (!response) throw new Error("[SCPService] LLM call returned null response");
@@ -728,7 +753,8 @@ export async function verifyTransfer(
     const injectResponse = await resilientCallLLM(
         injectionPrompt,
         finalTarget,
-        'You are receiving context from a previous conversation. Acknowledge and internalize it.'
+        'You are receiving context from a previous conversation. Acknowledge and internalize it.',
+        crystal.author.id
     );
 
     results.tokens_used += injectResponse.tokens.total;
@@ -739,7 +765,8 @@ export async function verifyTransfer(
     const verifyResponse = await resilientCallLLM(
         verifyPrompt,
         finalTarget,
-        'Answer each verification question briefly and accurately based on the context received.'
+        'Answer each verification question briefly and accurately based on the context received.',
+        crystal.author.id
     );
 
     results.tokens_used += verifyResponse.tokens.total;
@@ -784,6 +811,19 @@ export async function verifyTransfer(
     const policy = crystal.verification?.policy;
     const accept_threshold = policy?.accept_threshold ?? 0.7;
     results.decision = (results.score >= accept_threshold) ? 'ACCEPT' : 'FAIL';
+
+    // TRACK VERIFICATION (for Fidelity calculation)
+    import('./analytics').then(({ AnalyticsService }) => {
+        AnalyticsService.track({
+            event_name: 'verification_complete',
+            event_data: {
+                score: results.score,
+                decision: results.decision,
+                crystal_id: crystal.context_id
+            },
+            user_id: crystal.author.id
+        });
+    });
 
     results.receipt = await DecisionReceipts.generateDecisionReceipt({
         crystal_refs: [{

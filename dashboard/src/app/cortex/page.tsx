@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 
 const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), { ssr: false });
 import { Sidebar } from '@/components/Sidebar';
-import { ZoomIn, ZoomOut, Share2, RefreshCcw, Loader2 } from 'lucide-react';
+import { ZoomIn, ZoomOut, Share2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { usePagination, useInfiniteScroll } from '@/hooks/usePagination';
 
@@ -93,7 +93,7 @@ export default function CortexPage() {
                         <span className="w-2 h-2 bg-purple-500 rounded-full animate-pulse mr-2" />
                         <span className="text-[10px] font-bold uppercase tracking-widest text-purple-700">Live Synaptic Activity</span>
                     </div>
-                    <h1 className="text-5xl font-black italic tracking-tighter text-gray-900">CORTEX <span className="text-purple-600">GRAPH.</span></h1>
+                    <h1 className="text-5xl font-black italic tracking-tighter text-gray-900">MY BRAIN <span className="text-purple-600">MAP.</span></h1>
                 </div>
 
                 {/* Controls */}

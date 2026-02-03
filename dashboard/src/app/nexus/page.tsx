@@ -95,7 +95,7 @@ export default function NexusPage() {
                         <span className="text-[10px] font-bold uppercase tracking-widest text-purple-700">Bridge Protocol Active</span>
                     </div>
                     <h1 className="text-4xl md:text-5xl font-black italic tracking-tighter text-gray-900 mb-2">
-                        SYSTEM <span className="text-purple-600">NEXUS.</span>
+                        LIVE <span className="text-purple-600">ACTIVITY.</span>
                     </h1>
                     <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Monitor external interfaces and neural bridges.</p>
                 </header>

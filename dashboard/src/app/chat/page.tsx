@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Bot, User, Sparkles, StopCircle, Menu } from 'lucide-react';
 import api from '@/lib/api';
@@ -9,7 +9,6 @@ import { Sidebar } from '@/components/Sidebar';
 import { ChatList } from '@/components/Chat/ChatList';
 import { CrystalContext } from '@/components/Chat/CrystalContext';
 import { CrystalPicker } from '@/components/Chat/CrystalPicker';
-import { supabase } from '@/lib/supabase';
 
 interface Message {
     id: string;

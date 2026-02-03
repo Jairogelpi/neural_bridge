@@ -35,6 +35,7 @@ export interface SystemStats {
     truth_fidelity: number;
     threats_neutralized: number;
     neural_density: number;
+    time_saved_hours: number;
 }
 
 export class AnalyticsService {
@@ -139,6 +140,7 @@ export class AnalyticsService {
         const crystalCountTarget = totalCrystals.count || 0;
         const densityFactor = Math.min(1, crystalCountTarget / 100);
         const neuralDensity = 0.45 + (densityFactor * 0.5);
+        const timeSavedHours = (crystalCountTarget * 12) / 60; // Est. 12 mins saved per crystallization
 
         return {
             total_crystals: crystalCountTarget,
@@ -152,7 +154,8 @@ export class AnalyticsService {
             estimated_savings_usd: parseFloat(savingsUsd.toFixed(4)),
             truth_fidelity: parseFloat(avgFidelity.toFixed(3)),
             threats_neutralized: threats.count || 0,
-            neural_density: neuralDensity
+            neural_density: neuralDensity,
+            time_saved_hours: parseFloat(timeSavedHours.toFixed(1))
         };
     }
 

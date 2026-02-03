@@ -1,148 +1,132 @@
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #020202;
-
-  /* Blue Accent Palette */
-  --bg-panel: #f8fafc;
-  --crystal-blue: #3b82f6;
-  --crystal-blue-dark: #1e40af;
-  --border-glow: rgba(59, 130, 246, 0.15);
-  --crystal-glass: rgba(255, 255, 255, 0.9);
-  --text-muted: #64748b;
-}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@500;700;800&display=swap');
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-outfit);
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+:root {
+  --background: #fdfdfd;
+  --foreground: #0a0a0a;
+
+  /* Titan Palette */
+  --titan-white: #ffffff;
+  --titan-mist: #f4f6f8;
+  --titan-border: #e2e8f0;
+
+  --titan-accent: #6366f1;
+  /* Indigo 500 */
+  --titan-accent-hover: #4f46e5;
+  /* Indigo 600 */
+  --titan-accent-light: #e0e7ff;
+  /* Indigo 100 */
+
+  /* Semantic Colors */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+
+  /* Glass */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: var(--foreground);
+  background: var(--background);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  /* Textured Background with Blue Gradients */
-  background:
-    radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.04) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 90% 10%, rgba(96, 165, 250, 0.02) 0%, transparent 50%),
-    repeating-linear-gradient(45deg,
-      transparent,
-      transparent 12px,
-      rgba(148, 163, 184, 0.015) 12px,
-      rgba(148, 163, 184, 0.015) 13px),
-    linear-gradient(180deg, #fafbfc 0%, #f8fafc 100%);
-  background-attachment: fixed;
-  min-height: 100vh;
 }
 
-/* Premium Typography */
+/* Headings */
 h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.025em;
+  color: #111827;
 }
 
-h1 {
-  font-size: 2.5rem;
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+/* Glass Card */
+.titan-card {
+  background: white;
+  border: 1px solid var(--titan-border);
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-h2 {
-  font-size: 2rem;
-  color: #1e293b;
+.titan-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.04), 0 4px 8px rgba(0, 0, 0, 0.02);
+  border-color: #cbd5e1;
 }
 
-h3 {
-  font-size: 1.5rem;
-  color: #334155;
-}
-
-/* Custom Selection */
-::selection {
-  background: rgba(59, 130, 246, 0.15);
-  color: #1e40af;
-}
-
-/* Glass Effect Utility */
-.glass-card {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(59, 130, 246, 0.08);
-  box-shadow:
-    0 4px 6px -1px rgba(59, 130, 246, 0.05),
-    0 2px 4px -1px rgba(59, 130, 246, 0.03);
-}
-
-.glass-card:hover {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(59, 130, 246, 0.15);
-  box-shadow:
-    0 10px 15px -3px rgba(59, 130, 246, 0.08),
-    0 4px 6px -2px rgba(59, 130, 246, 0.05);
-}
-
-/* Blue Gradient Button */
-.btn-blue {
-  background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+/* Buttons */
+.btn-primary {
+  background: #000000;
   color: white;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-primary:hover {
+  background: #222;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-secondary {
+  background: white;
+  color: #333;
+  border: 1px solid var(--titan-border);
+  padding: 10px 20px;
+  border-radius: 12px;
   font-weight: 500;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.75rem;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+  font-size: 14px;
   transition: all 0.2s ease;
 }
 
-.btn-blue:hover {
-  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
-  transform: translateY(-1px);
+.btn-secondary:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
 }
 
-/* Blue Text Gradient */
-.text-blue-gradient {
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+/* Feature Badge */
+.titan-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-/* Animated Grid Background (subtle) */
-.animated-grid-bg {
-  background-image:
-    linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
-  background-size: 60px 60px;
-  animation: grid-drift 30s linear infinite;
+.titan-badge-blue {
+  background: #eff6ff;
+  color: #3b82f6;
+  border: 1px solid #dbeafe;
 }
 
-@keyframes grid-drift {
-  0% {
-    background-position: 0 0;
-  }
-
-  100% {
-    background-position: 60px 60px;
-  }
-}
-
-/* Smooth transitions */
-* {
-  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
-  transition-duration: 200ms;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+.titan-badge-purple {
+  background: #f5f3ff;
+  color: #8b5cf6;
+  border: 1px solid #ede9fe;
 }
