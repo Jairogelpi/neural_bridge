@@ -74,15 +74,15 @@ export default function ExtensionPopup() {
                         <div className="w-4 h-4 rounded-sm bg-gradient-to-tr from-blue-600 to-cyan-400 rotate-45" />
                     </div>
                 </div>
-                <span className="text-[10px] font-black tracking-[0.3em] uppercase">NEURAL BRIDGE</span>
+                <span className="text-[10px] font-black tracking-[0.3em] uppercase">Memory Bridge</span>
             </div>
 
             <div className="flex-1">
-                <h1 className="text-2xl font-black italic tracking-tighter mb-1 uppercase">
-                    {authMode === 'login' ? 'IDENTITY' : 'INITIATE'}
+                <h1 className="text-2xl font-black tracking-tight mb-1 uppercase">
+                    {authMode === 'login' ? 'Welcome Back' : 'Start Today'}
                 </h1>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-8 italic">
-                    {authMode === 'login' ? 'Secure authorized access' : 'Enter the global cortex'}
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-8">
+                    {authMode === 'login' ? 'Log in to access your saved ideas.' : 'Create your private brain to start saving.'}
                 </p>
 
                 <form onSubmit={handleAuth} className="space-y-4">
@@ -139,7 +139,7 @@ export default function ExtensionPopup() {
                         disabled={isSubmitting}
                         className="w-full bg-[#020202] py-4 rounded-2xl text-white text-xs font-black uppercase tracking-widest hover:bg-blue-600 transition-all disabled:opacity-50 shadow-xl shadow-black/5"
                     >
-                        {isSubmitting ? 'PROCESSING' : (authMode === 'login' ? 'AUTHORIZE' : 'INITIALIZE')}
+                        {isSubmitting ? 'WORKING...' : (authMode === 'login' ? 'LOG IN' : 'GET STARTED')}
                     </button>
                 </form>
 
@@ -148,7 +148,7 @@ export default function ExtensionPopup() {
                         onClick={() => { setAuthMode(authMode === 'login' ? 'register' : 'login'); setError(''); }}
                         className="text-[10px] text-gray-400 font-black hover:text-blue-600 transition-colors uppercase tracking-widest"
                     >
-                        {authMode === 'login' ? 'CREATE IDENTITY' : 'AUTHORIZED LOGIN'}
+                        {authMode === 'login' ? 'CREATE PRIVATE BRAIN' : 'ALREADY HAVE AN ACCOUNT?'}
                     </button>
                 </div>
             </div>
@@ -167,7 +167,7 @@ export default function ExtensionPopup() {
                     <div className="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center">
                         <Shield className="w-4 h-4 text-white" />
                     </div>
-                    <span className="text-[10px] font-black tracking-[0.2em] text-[#020202]">NEURAL BRIDGE</span>
+                    <span className="text-[10px] font-black tracking-[0.2em] text-[#020202]">MEMORY BRIDGE</span>
                 </div>
                 <div className="flex items-center space-x-2 px-3 py-1 bg-emerald-50 border border-emerald-100 rounded-full">
                     <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
@@ -181,13 +181,13 @@ export default function ExtensionPopup() {
                     onClick={() => setView('live')}
                     className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${view === 'live' ? 'bg-white text-blue-600 shadow-md shadow-black/5' : 'text-gray-400 hover:text-black'}`}
                 >
-                    Live Sensor
+                    Status
                 </button>
                 <button
                     onClick={() => setView('storage')}
                     className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${view === 'storage' ? 'bg-white text-blue-600 shadow-md shadow-black/5' : 'text-gray-400 hover:text-black'}`}
                 >
-                    Registry
+                    Add Idea
                 </button>
             </div>
 
@@ -216,8 +216,8 @@ export default function ExtensionPopup() {
                                     <Zap className="w-10 h-10 text-white" />
                                 </motion.div>
                                 <div className="absolute bottom-4 text-center">
-                                    <div className="text-[9px] text-gray-400 font-black uppercase tracking-[0.3em] mb-1">Reality Index</div>
-                                    <div className="text-xs font-black text-blue-600 uppercase italic tracking-tighter">Verified Alignment</div>
+                                    <div className="text-[9px] text-gray-400 font-black uppercase tracking-[0.3em] mb-1">Brain Status</div>
+                                    <div className="text-xs font-black text-blue-600 uppercase tracking-tight">Syncing Perfectly</div>
                                 </div>
                             </div>
 
@@ -225,8 +225,8 @@ export default function ExtensionPopup() {
                             <div className="bg-white border border-gray-100 rounded-[2rem] p-6 shadow-xl shadow-black/5 space-y-5">
                                 <div>
                                     <div className="flex justify-between items-center mb-3">
-                                        <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest text-blue-600">Semantic Fidelity</span>
-                                        <span className="text-sm font-black italic tracking-tighter">{fidelity}%</span>
+                                        <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest text-blue-600">Knowledge Quality</span>
+                                        <span className="text-sm font-black tracking-tight">{fidelity}%</span>
                                     </div>
                                     <div className="h-2 bg-gray-50 rounded-full overflow-hidden">
                                         <motion.div
@@ -236,7 +236,7 @@ export default function ExtensionPopup() {
                                     </div>
                                 </div>
                                 <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                                    <span className="text-gray-300 italic">Latency</span>
+                                    <span className="text-gray-300">Sync Speed</span>
                                     <span className="text-black">124ms</span>
                                 </div>
                             </div>
@@ -249,19 +249,19 @@ export default function ExtensionPopup() {
                             exit={{ opacity: 0, y: -10 }}
                             className="space-y-5"
                         >
-                            <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest ml-1 italic font-bold">Register Crystal (JSON)</div>
+                            <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest ml-1 font-bold">Manual Save (Advanced)</div>
                             <textarea
                                 className="w-full h-36 bg-gray-50 border border-gray-100 rounded-3xl p-5 text-[11px] font-mono text-black outline-none focus:border-blue-600 transition-all resize-none shadow-inner"
-                                placeholder='{ "crystal_id": "...", "smt_hash": "..." }'
+                                placeholder='Paste data here if needed...'
                             />
                             <div className="grid grid-cols-2 gap-4">
                                 <button className="bg-[#020202] text-white rounded-2xl py-4 text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all flex flex-col items-center gap-1.5 shadow-xl shadow-black/5">
                                     <Activity className="w-5 h-5 text-cyan-400" />
-                                    Inject
+                                    Save Idea
                                 </button>
                                 <button className="bg-white border border-gray-200 rounded-2xl py-4 text-[10px] font-black uppercase tracking-widest hover:border-black transition-all flex flex-col items-center gap-1.5 shadow-sm">
                                     <Database className="w-5 h-5 text-blue-600" />
-                                    Sync Vault
+                                    Sync Brain
                                 </button>
                             </div>
                         </motion.div>

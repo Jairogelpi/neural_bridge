@@ -74,26 +74,36 @@ export class DomConqueror {
         }
 
         try {
-            if (!this.observer) {
-                this.observer = new MutationObserver(this.handleMutations.bind(this));
+            if (typeof window === 'undefined') return;
+            const ObserverClass = window.MutationObserver || (window as any).WebKitMutationObserver;
+
+            if (!ObserverClass) {
+                console.error('[NeuralBridge] MutationObserver not supported');
+                return;
             }
-            this.observer.observe(document.body, { childList: true, subtree: true });
-            this.scanExisting();
+
+            if (!this.observer) {
+                this.observer = new ObserverClass(this.handleMutations.bind(this));
+            }
+
+            if (this.observer && document.body) {
+                this.observer.observe(document.body, { childList: true, subtree: true });
+                this.scanExisting();
+            }
         } catch (e) {
             console.warn('[NeuralBridge] Observer failed to start:', e);
-            // Retry once after a short delay in case of weird DOM state
+            // Retry once after a short delay
             setTimeout(() => {
-                if (document.body) {
+                const ObserverClass = window.MutationObserver || (window as any).WebKitMutationObserver;
+                if (document.body && ObserverClass && !this.observer) {
                     try {
-                        if (!this.observer) {
-                            this.observer = new MutationObserver(this.handleMutations.bind(this));
-                        }
+                        this.observer = new ObserverClass(this.handleMutations.bind(this));
                         this.observer.observe(document.body, { childList: true, subtree: true });
                     } catch (retryError) {
                         console.error('[NeuralBridge] Observer retry failed:', retryError);
                     }
                 }
-            }, 500);
+            }, 1000);
         }
 
         // Always attempt to inject FAB, regardless of observer status

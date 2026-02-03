@@ -2,23 +2,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&family=Bebas+Neue&display=swap');
 
 :root {
-  --background: #050505;
-  --foreground: #ffffff;
+  --background: #ffffff;
+  --foreground: #0f172a;
 
-  /* Obsidian & Electric Indigo Palette */
-  --bg-obsidian: #050505;
-  --indigo-electric: #6366f1;
-  --indigo-glow: rgba(99, 102, 241, 0.2);
-  --border-glass: rgba(255, 255, 255, 0.05);
-  --text-muted: #94a3b8;
-  --accent-cyan: #22d3ee;
+  /* Solstice Light & Electric Indigo Palette */
+  --bg-solstice: #ffffff;
+  --surface-soft: #f8fafc;
+  --indigo-primary: #6366f1;
+  --indigo-soft: rgba(99, 102, 241, 0.05);
+  --border-glass: rgba(0, 0, 0, 0.05);
+  --text-muted: #64748b;
+  --accent-cyan: #06b6d4;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: 'Outfit', 'Inter', system-ui, sans-serif;
 }
 
 body {
@@ -28,17 +28,15 @@ body {
   background-color: var(--background);
   color: var(--foreground);
 
-  /* Quantum Mesh Background */
+  /* Subtle Premium Gradient Background */
   background-image:
-    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(34, 211, 238, 0.1) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, rgba(34, 211, 238, 0.05) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.03) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.02) 0px, transparent 50%);
   background-attachment: fixed;
   min-height: 100vh;
 }
 
-/* Premium Typography */
+/* Premium Typography Hierarchy */
 h1,
 h2,
 h3,
@@ -46,41 +44,44 @@ h4,
 h5,
 h6 {
   font-family: 'Outfit', sans-serif;
-  font-weight: 900;
-  letter-spacing: -0.04em;
-  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
 }
 
 .font-bebas {
   font-family: 'Bebas Neue', sans-serif;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.05em;
 }
 
+/* Clearer Hierarchy */
 h1 {
-  font-size: clamp(3rem, 10vw, 8rem);
-  line-height: 0.85;
-  font-style: italic;
-  background: linear-gradient(to bottom, #fff 30%, rgba(255, 255, 255, 0.3) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-size: clamp(2.5rem, 8vw, 6rem);
+  line-height: 1.1;
+  font-weight: 900;
 }
 
-/* Glassmorphism Evolution */
+h2 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.2;
+}
+
+/* Glassmorphism - Light Version */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
 }
 
 .glass-panel:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(99, 102, 241, 0.1);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
 }
 
-/* UI Noise Overlay */
+/* UI Noise Overlay - Minimal */
 body::before {
   content: "";
   position: fixed;
@@ -89,63 +90,46 @@ body::before {
   width: 100%;
   height: 100%;
   background-image: url("https://grainy-gradients.vercel.app/noise.svg");
-  opacity: 0.03;
+  opacity: 0.015;
   pointer-events: none;
   z-index: 9999;
 }
 
-/* Hide scrollbars but keep functionality */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+/* Premium Buttons - Minimalist & Visual */
+.btn-primary {
+  @apply relative px-8 py-4 rounded-2xl font-bold transition-all flex items-center gap-3 active:scale-95;
+  background: #0f172a;
+  color: #ffffff;
 }
 
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+.btn-primary:hover {
+  background: #1e293b;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
-/* Premium Buttons */
-.btn-premium {
-  @apply relative px-8 py-3 rounded-full font-black uppercase text-xs tracking-widest transition-all overflow-hidden flex items-center gap-3;
-  background: linear-gradient(90deg, #6366f1, #22d3ee);
-  color: #000;
+.btn-indigo {
+  @apply relative px-8 py-4 rounded-2xl font-bold transition-all flex items-center gap-3 active:scale-95 text-white;
+  background: var(--indigo-primary);
 }
 
-.btn-premium::after {
-  content: "";
-  @apply absolute inset-0 bg-white opacity-0 transition-opacity;
+.btn-indigo:hover {
+  background: #4f46e5;
+  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.2);
 }
 
-.btn-premium:hover::after {
-  @apply opacity-20;
+.btn-secondary {
+  @apply relative px-8 py-4 rounded-2xl font-bold transition-all flex items-center gap-3 active:scale-95 border border-slate-200;
+  background: #ffffff;
+  color: #0f172a;
 }
 
-.btn-premium:hover {
-  @apply scale-105 shadow-xl shadow-indigo-500/20 active:scale-95;
+.btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
 }
 
 /* Custom Selection */
 ::selection {
-  background: var(--indigo-electric);
-  color: #fff;
-}
-
-/* Animated Glow */
-.glow-card {
-  position: relative;
-}
-
-.glow-card::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  background: linear-gradient(135deg, var(--indigo-electric), var(--accent-cyan));
-  border-radius: inherit;
-  z-index: -1;
-  opacity: 0.2;
-  transition: opacity 0.3s;
-}
-
-.glow-card:hover::before {
-  opacity: 0.5;
+  background: #e0e7ff;
+  color: #4338ca;
 }

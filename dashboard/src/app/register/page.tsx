@@ -31,64 +31,64 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center p-6 selection:bg-indigo-500/30 selection:text-white font-sans overflow-hidden relative">
-            {/* QUANTUM MESH BACKGROUND */}
-            <div className="fixed inset-0 z-0 pointer-events-none opacity-40">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(99,102,241,0.1),transparent_50%)]" />
-                <div className="absolute top-0 left-0 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150" />
+        <div className="min-h-screen bg-white text-slate-900 flex items-center justify-center p-6 selection:bg-indigo-100 selection:text-indigo-700 font-sans relative overflow-hidden">
+            {/* SUBTLE BACKGROUND DECOR */}
+            <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-40">
+                <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-50 rounded-full blur-[120px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-cyan-50 rounded-full blur-[120px]" />
             </div>
 
             <div className="w-full max-w-lg relative z-10">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
                 >
                     <div className="flex flex-col items-center mb-12">
-                        <div className="w-20 h-20 bg-gradient-to-tr from-cyan-400 via-indigo-500 to-purple-500 rounded-3xl flex items-center justify-center mb-8 shadow-2xl shadow-indigo-500/20 rotate-12 group hover:rotate-0 transition-transform duration-500">
-                            <Shield className="w-10 h-10 text-white" />
+                        <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-xl shadow-indigo-500/20">
+                            <Shield className="w-6 h-6 text-white" />
                         </div>
-                        <h1 className="font-bebas text-6xl italic tracking-tighter text-white uppercase leading-none">INIT_PROTOCOL.</h1>
-                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 mt-4">Forge Sovereign Identity Matrix</p>
+                        <h2 className="text-3xl font-black tracking-tight mb-2">Create Identity.</h2>
+                        <p className="text-slate-500 font-medium">Initialize your sovereign bridge link.</p>
                     </div>
 
-                    <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-10 shadow-2xl">
-                        <form onSubmit={handleSubmit} className="space-y-8">
+                    <div className="bg-white border border-slate-100 rounded-[2.5rem] p-10 shadow-2xl shadow-indigo-500/5">
+                        <form onSubmit={handleSubmit} className="space-y-6">
                             {error && (
                                 <motion.div
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: 'auto' }}
-                                    className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-400 text-[10px] font-black uppercase tracking-widest text-center"
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 text-[11px] font-bold uppercase tracking-widest text-center"
                                 >
                                     {error}
                                 </motion.div>
                             )}
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-3">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 pl-4 block">Sovereign_Name</label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400 pl-4 block">Sovereign_Name</label>
                                     <div className="relative group">
-                                        <User className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-indigo-400 transition-colors" />
+                                        <User className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
                                         <input
                                             type="text"
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
-                                            className="w-full bg-white/5 border border-white/5 rounded-2xl py-5 pl-14 pr-6 text-sm font-bold text-white outline-none focus:bg-white/10 focus:border-indigo-500/50 transition-all placeholder:text-white/10"
+                                            className="w-full bg-slate-50 border border-slate-50 rounded-2xl py-5 pl-14 pr-6 text-sm font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-600/20 focus:ring-4 focus:ring-indigo-600/2 transition-all placeholder:text-slate-300"
                                             placeholder="Sentinel One"
                                             required
                                         />
                                     </div>
                                 </div>
 
-                                <div className="space-y-3">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 pl-4 block">Sovereign_Handle</label>
+                                <div className="space-y-2">
+                                    <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400 pl-4 block">Handle</label>
                                     <div className="relative group">
-                                        <User className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-indigo-400 transition-colors" />
+                                        <User className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
                                         <input
                                             type="text"
                                             value={handle}
                                             onChange={(e) => setHandle(e.target.value)}
-                                            className="w-full bg-white/5 border border-white/5 rounded-2xl py-5 pl-14 pr-6 text-sm font-bold text-white outline-none focus:bg-white/10 focus:border-indigo-500/50 transition-all placeholder:text-white/10"
+                                            className="w-full bg-slate-50 border border-slate-50 rounded-2xl py-5 pl-14 pr-6 text-sm font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-600/20 focus:ring-4 focus:ring-indigo-600/2 transition-all placeholder:text-slate-300"
                                             placeholder="@sentinel"
                                             required
                                         />
@@ -96,30 +96,30 @@ export default function RegisterPage() {
                                 </div>
                             </div>
 
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 pl-4 block">Identity_Hash (Email)</label>
+                            <div className="space-y-2">
+                                <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400 pl-4 block">Identity_Hash</label>
                                 <div className="relative group">
-                                    <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-indigo-400 transition-colors" />
+                                    <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
                                     <input
                                         type="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full bg-white/5 border border-white/5 rounded-2xl py-5 pl-14 pr-6 text-sm font-bold text-white outline-none focus:bg-white/10 focus:border-indigo-500/50 transition-all placeholder:text-white/10"
+                                        className="w-full bg-slate-50 border border-slate-50 rounded-2xl py-5 pl-14 pr-6 text-sm font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-600/20 focus:ring-4 focus:ring-indigo-600/2 transition-all placeholder:text-slate-300"
                                         placeholder="agent@neuralbridge.ai"
                                         required
                                     />
                                 </div>
                             </div>
 
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 pl-4 block">Secure_Passkey</label>
+                            <div className="space-y-2">
+                                <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400 pl-4 block">Secure_Passkey</label>
                                 <div className="relative group">
-                                    <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-indigo-400 transition-colors" />
+                                    <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
                                     <input
                                         type="password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full bg-white/5 border border-white/5 rounded-2xl py-5 pl-14 pr-6 text-sm font-bold text-white outline-none focus:bg-white/10 focus:border-indigo-500/50 transition-all placeholder:text-white/10"
+                                        className="w-full bg-slate-50 border border-slate-50 rounded-2xl py-5 pl-14 pr-6 text-sm font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-600/20 focus:ring-4 focus:ring-indigo-600/2 transition-all placeholder:text-slate-300"
                                         placeholder="••••••••"
                                         required
                                     />
@@ -129,21 +129,21 @@ export default function RegisterPage() {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full bg-indigo-500 text-white py-6 rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:bg-indigo-400 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-2xl shadow-indigo-500/20 flex items-center justify-center gap-3 group disabled:opacity-50 disabled:pointer-events-none"
+                                className="w-full btn-indigo justify-center py-5 shadow-xl shadow-indigo-500/10"
                             >
                                 {isLoading ? (
                                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                 ) : (
                                     <>
-                                        Initialize_Matrix <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                        Forge Matrix Identity <ArrowRight className="w-4 h-4" />
                                     </>
                                 )}
                             </button>
                         </form>
                     </div>
 
-                    <p className="text-center mt-12 text-[10px] font-black uppercase tracking-[0.3em] text-white/20">
-                        Already active? <Link href="/login" className="text-white hover:text-indigo-400 font-black ml-2 transition-colors">Identify yourself</Link>
+                    <p className="text-center mt-10 text-sm font-medium text-slate-500">
+                        Already active? <Link href="/login" className="text-indigo-600 hover:text-indigo-700 font-bold ml-1">Identify yourself</Link>
                     </p>
                 </motion.div>
             </div>

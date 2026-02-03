@@ -25,54 +25,49 @@ export const CrystalCard: React.FC<CrystalCardProps> = ({
 }) => {
     return (
         <motion.div
-            whileHover={{ scale: 1.02, translateY: -5 }}
+            whileHover={{ y: -8 }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            onClick={onClick}
             className={twMerge(
-                "relative overflow-hidden rounded-2xl border border-white/10 bg-black/40 p-6 backdrop-blur-xl transition-shadow hover:shadow-[0_0_20px_rgba(0,242,255,0.15)]",
+                "group relative overflow-hidden rounded-[2.5rem] border border-slate-100 bg-white p-8 shadow-xl shadow-slate-200/40 transition-all hover:shadow-2xl hover:shadow-indigo-500/5 cursor-pointer",
                 className
             )}
         >
-            {/* Decorative Gradient Glow */}
-            <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-cyan-500/10 blur-3xl" />
-
-            <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
+            <div className="flex items-start justify-between mb-8">
+                <div className="flex items-center gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 group-hover:scale-110 transition-transform">
                         <Brain size={20} />
                     </div>
                     <div>
-                        <h3 className="text-sm font-bold text-white uppercase tracking-wider">{domain}</h3>
-                        <p className="text-[10px] text-white/40 font-mono">{id.substring(0, 8)}...</p>
+                        <h3 className="text-[11px] font-black tracking-[0.2em] text-slate-900 uppercase">{domain}</h3>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{id.substring(0, 8)}</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-1 text-[10px] font-bold text-cyan-400 bg-cyan-400/5 px-2 py-1 rounded-full border border-cyan-400/20">
+                <div className="flex items-center gap-1.5 text-[9px] font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
                     <Shield size={10} />
                     <span>VERIFIED</span>
                 </div>
             </div>
 
-            <p className="text-sm text-white/70 leading-relaxed mb-6 line-clamp-3">
+            <p className="text-[13px] font-medium text-slate-500 leading-relaxed mb-8 line-clamp-3">
                 {intent}
             </p>
 
-            <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/5">
-                <div className="flex gap-4">
+            <div className="flex items-center justify-between mt-auto pt-6 border-t border-slate-50">
+                <div className="flex gap-6">
                     <div className="flex flex-col">
-                        <span className="text-[8px] text-white/30 uppercase">Fidelity</span>
-                        <span className="text-xs font-bold text-white">{(reputation * 100).toFixed(0)}%</span>
+                        <span className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">Fidelity</span>
+                        <span className="text-xs font-black text-slate-900">{(reputation * 100).toFixed(0)}%</span>
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-[8px] text-white/30 uppercase">Tier</span>
-                        <span className="text-xs font-bold text-cyan-400">Sovereign</span>
+                        <span className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">Tier</span>
+                        <span className="text-xs font-black text-indigo-600">Sovereign</span>
                     </div>
                 </div>
-                <button
-                    onClick={onClick}
-                    className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors"
-                >
-                    <ChevronRight size={16} />
-                </button>
+                <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-indigo-600 group-hover:text-white transition-all transform group-hover:translate-x-1">
+                    <ChevronRight size={18} />
+                </div>
             </div>
         </motion.div>
     );
