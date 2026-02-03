@@ -7,9 +7,10 @@ import { Network, Globe, Radio, Shield, Fingerprint, Activity } from 'lucide-rea
 import { motion } from 'framer-motion';
 
 interface SentinelStats {
-    total_crystals: number;
-    system_health: number;
-    total_jury_cases: number;
+    totalCrystals: number;
+    verifiedCrystals: number;
+    pendingVerifications: number;
+    avgFidelity: number;
 }
 
 export default function NexusPage() {
@@ -62,12 +63,12 @@ export default function NexusPage() {
         }, 5000);
 
         return () => {
-            supabase.removeChannel(channel);
+            // supabase.removeChannel(channel);
             clearInterval(pingInterval);
         };
     }, []);
 
-    const healthPercentage = stats ? Math.round(stats.system_health * 100) : 0;
+    const healthPercentage = stats ? Math.round(stats.avgFidelity * 100) : 0;
 
     return (
         <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-blue-100 selection:text-blue-900 flex">
@@ -121,7 +122,7 @@ export default function NexusPage() {
                                     initial={{ scale: 1.2, color: '#9333ea' }}
                                     animate={{ scale: 1, color: '#9333ea' }}
                                 >
-                                    {stats?.total_crystals || 0}
+                                    {stats?.totalCrystals || 0}
                                 </motion.span>
                             </div>
                         </div>
