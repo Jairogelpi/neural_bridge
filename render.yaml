@@ -26,9 +26,8 @@ services:
   - type: web
     name: neural-bridge-dashboard
     runtime: node
-    buildCommand: npm install && npm run build
-    startCommand: npm run start
-    rootDirectory: dashboard
+    buildCommand: cd dashboard && npm install && npm run build
+    startCommand: cd dashboard && npm run start
     envVars:
       - key: NEXT_PUBLIC_API_URL
         value: https://neural-bridge-backend.onrender.com
