@@ -25,7 +25,7 @@ export default function CortexPage() {
         fetchPage: async (page, pageSize) => {
             const { data } = await supabase
                 .from('crystals')
-                .select('context_id, domain, author, intent, metadata')
+                .select('context_id, domain, author:authors(name, handle), intent, crystal_jsonb')
                 .range(page * pageSize, (page + 1) * pageSize - 1)
                 .order('created_at', { ascending: false });
 
@@ -43,7 +43,8 @@ export default function CortexPage() {
 
         // Transform Crystals into Nodes
         const nodes = crystals.map((c: any) => {
-            const generation = c.metadata?.genealogy?.generation || 0;
+            const metadata = c.crystal_jsonb?.metadata || {};
+            const generation = metadata?.genealogy?.generation || 0;
             return {
                 id: c.context_id,
                 group: generation,

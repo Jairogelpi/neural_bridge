@@ -34,6 +34,10 @@ interface DashboardStats {
     threatsBlocked: number;
     neuralDensity: number;
     timeSavedHours: number;
+    // QUANTUM METRICS
+    dreamCycles: number;
+    fractalDepth: number;
+    entropyBlocked: number;
 }
 
 export default function PremiumDashboard() {
@@ -47,7 +51,10 @@ export default function PremiumDashboard() {
         fidelity: 0.984,
         threatsBlocked: 0,
         neuralDensity: 0.45,
-        timeSavedHours: 0
+        timeSavedHours: 0,
+        dreamCycles: 0,
+        fractalDepth: 1.0,
+        entropyBlocked: 0
     });
 
     const [recentCrystals, setRecentCrystals] = useState<any[]>([]);
@@ -73,7 +80,10 @@ export default function PremiumDashboard() {
                         fidelity: data.stats.truth_fidelity || 0.984,
                         threatsBlocked: data.stats.threats_neutralized || 0,
                         neuralDensity: data.stats.neural_density || 0.45,
-                        timeSavedHours: data.stats.time_saved_hours || 0
+                        timeSavedHours: data.stats.time_saved_hours || 0,
+                        dreamCycles: data.stats.dream_cycles || 0,
+                        fractalDepth: data.stats.fractal_depth || 1.0,
+                        entropyBlocked: data.stats.entropy_blocked || 0
                     });
                 }
             })
@@ -219,6 +229,49 @@ export default function PremiumDashboard() {
                             </motion.div>
                         );
                     })}
+                </div>
+
+                {/* QUANTUM METRICS ROW */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+                        <Card glass className="bg-gradient-to-br from-indigo-900/10 to-purple-900/10 border-indigo-500/20">
+                            <CardContent className="p-6 flex items-center justify-between">
+                                <div>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Dream Cycles</p>
+                                    <p className="text-3xl font-black text-indigo-900 mt-1">{stats.dreamCycles}</p>
+                                </div>
+                                <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center">
+                                    <Sparkles className="text-indigo-600" size={24} />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+                        <Card glass className="bg-gradient-to-br from-pink-900/10 to-rose-900/10 border-pink-500/20">
+                            <CardContent className="p-6 flex items-center justify-between">
+                                <div>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-pink-400">Fractal Depth</p>
+                                    <p className="text-3xl font-black text-pink-900 mt-1">{stats.fractalDepth.toFixed(2)}x</p>
+                                </div>
+                                <div className="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center">
+                                    <Activity className="text-pink-600" size={24} />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
+                        <Card glass className="bg-gradient-to-br from-green-900/10 to-emerald-900/10 border-green-500/20">
+                            <CardContent className="p-6 flex items-center justify-between">
+                                <div>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-green-400">Entropy Blocked</p>
+                                    <p className="text-3xl font-black text-green-900 mt-1">{stats.entropyBlocked}</p>
+                                </div>
+                                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                                    <ShieldAlert className="text-green-600" size={24} />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
                 </div>
 
                 {/* Recent Crystals */}

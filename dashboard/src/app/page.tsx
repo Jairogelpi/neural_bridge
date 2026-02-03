@@ -15,104 +15,81 @@ import {
   Binary,
   Globe,
   CheckCircle,
+  CheckCircle2,
+  Sparkles,
   XCircle,
   Brain,
-  Database
+  Database,
+  Cpu,
+  Network,
+  Fingerprint,
+  Scale
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
+import { LandingHeader } from '@/components/LandingHeader';
 
 export default function LandingPage() {
-  const { user } = useAuth();
-
   return (
-    <div className="min-h-screen bg-white text-[#020202] font-sans overflow-x-hidden selection:bg-indigo-100 selection:text-indigo-900">
-      {/* MINIMALIST NAV */}
-      <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-6 sm:px-8 py-4 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-500 p-[1.5px]">
-            <div className="w-full h-full bg-white rounded-[6px] flex items-center justify-center">
-              <div className="w-4 h-4 rounded-sm bg-gradient-to-tr from-indigo-600 to-violet-500 rotate-45" />
-            </div>
-          </div>
-          <span className="text-xs font-black tracking-[0.3em] uppercase">Neural Bridge</span>
-        </div>
+    <div className="min-h-screen bg-[#050505] text-white font-sans overflow-x-hidden selection:bg-purple-500/30 selection:text-purple-200">
+      <LandingHeader />
 
-        <div className="flex items-center space-x-4 sm:space-x-8">
-          {!user ? (
-            <>
-              <Link href="/login" className="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-black transition-colors hidden sm:inline-block">Login</Link>
-              <Link href="/register" className="px-5 sm:px-6 py-2.5 bg-[#020202] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-indigo-600 transition-all shadow-xl shadow-indigo-500/20">Get Started</Link>
-            </>
-          ) : (
-            <Link href="/dashboard" className="px-6 py-2.5 bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-indigo-100 transition-all">Go to App</Link>
-          )}
-        </div>
-      </nav>
+      {/* HERO SECTION - REVOLUTIONARY */}
+      <section className="relative min-h-screen flex flex-col items-center justify-center pt-32 px-6">
+        {/* Deep Space Background */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-900/20 via-[#050505] to-[#050505] -z-10" />
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-      {/* HERO SECTION */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center pt-24 px-6 overflow-hidden">
-        {/* Soft Background Accents - Floating Animation */}
-        <motion.div
-          animate={{
-            scale: [1, 1.1, 1],
-            opacity: [0.3, 0.5, 0.3],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-indigo-50/50 rounded-full blur-[120px] -z-10"
-        />
-
-        <div className="relative z-20 text-center max-w-4xl mx-auto">
+        <div className="relative z-20 text-center max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center px-4 py-1.5 bg-white border border-gray-100 rounded-full mb-8 shadow-sm"
+            className="inline-flex items-center px-4 py-1.5 bg-white/5 border border-white/10 rounded-full mb-8 backdrop-blur-md"
           >
-            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-3" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">System Online • Zero Token Cost</span>
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-3 shadow-[0_0_10px_#22c55e]" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Omega Protocol Active • Zero Hallucinations</span>
           </motion.div>
 
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="text-5xl sm:text-7xl md:text-8xl font-black tracking-tighter mb-8 leading-[0.9] text-gray-900"
+            className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-tighter mb-8 leading-[0.85] text-white"
           >
-            Don't Rent Your <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">Intelligence.</span>
+            Access <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-gray-500">Sovereign</span> <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 animate-gradient-x">Intelligence.</span>
           </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
-            className="text-lg sm:text-xl md:text-2xl text-gray-500 font-medium max-w-2xl mx-auto mb-12 leading-relaxed"
+            className="text-lg sm:text-xl md:text-2xl text-gray-400 font-medium max-w-3xl mx-auto mb-12 leading-relaxed"
           >
-            The first AI memory system that you actually own. Save 87% on API costs by remembering instead of regenerating.
+            The first self-evolving knowledge manifold. Beyond RAG. Beyond Vector DBs.
+            <br className="hidden md:block" />
+            <span className="text-gray-300">Infinite memory that you actually own.</span>
           </motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.8 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            className="flex flex-col sm:flex-row items-center justify-center gap-6"
           >
             <Link
               href="/register"
-              className="w-full sm:w-auto h-14 flex items-center justify-center px-8 bg-[#020202] text-white rounded-xl font-bold text-sm tracking-wide hover:bg-indigo-600 transition-all shadow-xl shadow-indigo-500/20 hover:scale-105 active:scale-95 duration-300"
+              className="group w-full sm:w-auto h-16 flex items-center justify-center px-10 bg-white text-black rounded-2xl font-black text-sm tracking-widest uppercase hover:bg-gray-200 transition-all shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:scale-105 active:scale-95 duration-300 relative overflow-hidden"
             >
-              Start for Free
+              <span className="relative z-10 flex items-center gap-2">
+                Initialize Node <ArrowRight size={16} />
+              </span>
             </Link>
 
             <a
               href="#"
-              className="w-full sm:w-auto h-14 flex items-center justify-center space-x-2 px-8 bg-white border border-gray-200 text-gray-900 rounded-xl font-bold text-sm tracking-wide hover:border-black transition-all hover:scale-105 active:scale-95 duration-300"
+              className="w-full sm:w-auto h-16 flex items-center justify-center space-x-2 px-10 bg-white/5 border border-white/10 text-white rounded-2xl font-black text-sm tracking-widest uppercase hover:bg-white/10 hover:border-white/20 transition-all hover:scale-105 active:scale-95 duration-300 backdrop-blur-sm"
             >
               <Chrome size={18} />
               <span>Add to Browser</span>
@@ -121,137 +98,291 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* PROBLEM / SOLUTION */}
-      <section className="py-24 px-6 bg-gray-50">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-indigo-600 mb-4">The Truth About AI</h2>
-            <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-gray-900">Why pay for the same answer twice?</h3>
+      {/* TECH DEEP DIVE - CRYSTALS & FRACTALS */}
+      <section id="tech" className="py-32 px-6 bg-[#080808] relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
+
+        <div className="max-w-7xl mx-auto">
+          <div className="md:grid md:grid-cols-2 gap-24 items-center mb-32">
+            <div>
+              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-indigo-500 mb-6">Unit of Logic</h2>
+              <h3 className="text-4xl md:text-6xl font-black tracking-tighter text-white mb-6">The Crystal.</h3>
+              <p className="text-xl text-gray-400 leading-relaxed mb-8">
+                Old AI systems store "text chunks." We store <strong className="text-white">Crystals</strong>.
+                An immutable, cryptographically signed unit of meaning. It contains the raw data, the logic, and the context—fused into a single verified block.
+              </p>
+              <ul className="space-y-4">
+                <ListItem text="Validated by PCK Protocols" />
+                <ListItem text="Immutable & Signatures" />
+                <ListItem text="Zero-Latency Retrieval" />
+              </ul>
+            </div>
+            <div className="relative h-[500px] w-full bg-gradient-to-tr from-indigo-900/20 to-purple-900/20 rounded-[3rem] border border-white/5 flex items-center justify-center backdrop-blur-3xl">
+              <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20" />
+              <div className="w-64 h-64 bg-indigo-500/20 rounded-full blur-[100px] animate-pulse" />
+              <Layers size={120} className="text-indigo-400 relative z-10 drop-shadow-[0_0_30px_rgba(99,102,241,0.5)]" />
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
-            {/* Old Way Card */}
+          <div className="md:grid md:grid-cols-2 gap-24 items-center">
+            <div className="order-2 md:order-1 relative h-[500px] w-full bg-gradient-to-tr from-pink-900/20 to-purple-900/20 rounded-[3rem] border border-white/5 flex items-center justify-center backdrop-blur-3xl">
+              <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20" />
+              <div className="w-64 h-64 bg-pink-500/20 rounded-full blur-[100px] animate-pulse" />
+              <Binary size={120} className="text-pink-400 relative z-10 drop-shadow-[0_0_30px_rgba(236,72,153,0.5)]" />
+            </div>
+            <div className="order-1 md:order-2">
+              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-pink-500 mb-6">Infinite Context</h2>
+              <h3 className="text-4xl md:text-6xl font-black tracking-tighter text-white mb-6">The Fractal.</h3>
+              <p className="text-xl text-gray-400 leading-relaxed mb-8">
+                How do you remember a million pages without cost? <strong className="text-white">Fractal Compression</strong>.
+                Using Topological Phase-Shift Analysis, we create a "Knowledge Hologram"—a massive reality condensed into a dense Axiomatic Core.
+              </p>
+              <ul className="space-y-4">
+                <ListItem text="Topological Phase-Shift Analysis" />
+                <ListItem text="Meta-Invariant Extraction" />
+                <ListItem text="Recursively Scalable Truth" />
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* MANIFESTO: RAG IS DEAD */}
+      <section className="py-24 md:py-32 px-6 bg-black relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150"></div>
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="bg-white p-8 md:p-12 rounded-[2rem] border border-gray-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow"
+              transition={{ duration: 0.8 }}
             >
-              <div className="absolute top-0 left-0 w-full h-1 bg-red-500" />
-              <div className="bg-red-50 w-12 h-12 rounded-xl flex items-center justify-center mb-6 text-red-500">
-                <XCircle size={24} />
+              <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-white mb-8 leading-none">
+                RAG IS <span className="text-gray-600 line-through decoration-red-600 decoration-4">DEAD.</span>
+                <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">CRYSTALS ARE ALIVE.</span>
+              </h2>
+              <div className="space-y-6 text-xl text-gray-300 font-light leading-relaxed">
+                <p>
+                  The old world relies on <strong>Vector Soup</strong>—fragmented, hallucinating chunks of text retrieved blindly. It costs you money every time you ask a question. It forgets context. It lies.
+                </p>
+                <p>
+                  <strong>Neural Bridge</strong> changes the physics of knowledge.
+                </p>
+                <p>
+                  We don't just "store" data. We <strong className="text-indigo-400">crystallize</strong> it into self-contained, immutable units of logic. A Crystal is not text—it's a verifiable proof of meaning.
+                </p>
               </div>
-              <h4 className="text-2xl font-bold mb-4 text-gray-900">The Old Way (RAG)</h4>
-              <ul className="space-y-4 text-gray-500 font-medium text-sm">
-                <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-red-400" /> Uploads your private files to cloud vectors</li>
-                <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-red-400" /> Pays API cost for EVERY question</li>
-                <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-red-400" /> AI "hallucinates" answers frequently</li>
-                <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-red-400" /> You own nothing. OpenRouter/OpenAI owns it.</li>
-              </ul>
+
+              <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex items-center gap-3 bg-white/5 p-4 rounded-xl border border-white/5">
+                  <CheckCircle2 className="text-green-500 shrink-0" />
+                  <span className="text-sm font-bold text-gray-200">Zero Hallucinations</span>
+                </div>
+                <div className="flex items-center gap-3 bg-white/5 p-4 rounded-xl border border-white/5">
+                  <CheckCircle2 className="text-green-500 shrink-0" />
+                  <span className="text-sm font-bold text-gray-200">Zero Retrieval Cost</span>
+                </div>
+                <div className="flex items-center gap-3 bg-white/5 p-4 rounded-xl border border-white/5">
+                  <CheckCircle2 className="text-green-500 shrink-0" />
+                  <span className="text-sm font-bold text-gray-200">Self-Evolving Logic</span>
+                </div>
+                <div className="flex items-center gap-3 bg-white/5 p-4 rounded-xl border border-white/5">
+                  <CheckCircle2 className="text-green-500 shrink-0" />
+                  <span className="text-sm font-bold text-gray-200">Sovereign Ownership</span>
+                </div>
+              </div>
             </motion.div>
 
-            {/* Neural Bridge Way Card */}
             <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-              className="bg-[#020202] p-8 md:p-12 rounded-[2rem] shadow-2xl relative overflow-hidden text-white transform hover:scale-[1.02] transition-transform duration-500"
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8 }}
+              className="relative bg-gradient-to-br from-[#0a0a0a] to-black border border-white/10 rounded-[3rem] p-8 md:p-12 shadow-2xl"
             >
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-violet-500" />
-              <div className="bg-white/10 w-12 h-12 rounded-xl flex items-center justify-center mb-6 text-indigo-400">
-                <CheckCircle size={24} />
+              <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+                <Sparkles size={120} className="text-white" />
               </div>
-              <h4 className="text-2xl font-bold mb-4">The Neural Bridge Way</h4>
-              <ul className="space-y-4 text-gray-300 font-medium text-sm">
-                <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /> <strong className="text-white">Crystal Storage:</strong> Data stays local & encrypted</li>
-                <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /> <strong className="text-white">Zero Cost:</strong> Remembers answers, doesn't regenerate</li>
-                <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /> <strong className="text-white">Mathematical Truth:</strong> 100% verified accuracy</li>
-                <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /> <strong className="text-white">Sovereign:</strong> You own your specialized brain</li>
-              </ul>
+
+              <h3 className="text-xs font-black uppercase tracking-[0.3em] text-gray-500 mb-8">Competitive Analysis</h3>
+
+              <div className="space-y-6">
+                <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                  <span className="text-lg font-bold text-gray-400">Knowledge Type</span>
+                  <div className="flex gap-8">
+                    <span className="text-red-500 font-bold line-through decoration-red-500/50">Loose Text</span>
+                    <span className="text-green-400 font-black">Immutable Crystal</span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                  <span className="text-lg font-bold text-gray-400">Verification</span>
+                  <div className="flex gap-8">
+                    <span className="text-red-500 font-bold">Vibe Check</span>
+                    <span className="text-green-400 font-black">Mathematical Proof</span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                  <span className="text-lg font-bold text-gray-400">Cost Model</span>
+                  <div className="flex gap-8">
+                    <span className="text-red-500 font-bold">Rent (Per Token)</span>
+                    <span className="text-green-400 font-black">Ownership (Free)</span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center pt-2">
+                  <span className="text-lg font-bold text-gray-400">Evolution</span>
+                  <div className="flex gap-8">
+                    <span className="text-red-500 font-bold">Static</span>
+                    <span className="text-green-400 font-black">Darwinian (RLM)</span>
+                  </div>
+                </div>
+              </div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* FEATURES SIMPLIFIED */}
-      <section className="py-24 px-6 border-t border-gray-100">
+      {/* PROTOCOL GRID */}
+      <section id="protocols" className="py-32 px-6 bg-[#050505] border-t border-white/5">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            <FeatureSimple
-              icon={Brain}
-              title="Crystal Memory"
-              desc="Like a zip file for ideas. We compress complex logic into 'Crystals' that any AI can understand instantly."
-            />
-            <FeatureSimple
+          <div className="text-center mb-20">
+            <h2 className="text-5xl font-black tracking-tighter text-white mb-6">The Omega Protocols</h2>
+            <p className="text-gray-400">The engine that makes Neural Bridge mathematically superior.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <ProtocolCard
+              title="PCK"
+              subtitle="Proof-Carrying Knowledge"
+              desc="Zero-Latency Verification. Embedding proofs directly into the data."
               icon={Shield}
-              title="Forensic Auditor"
-              desc="Our 'Sentinel' AI checks every answer for lies, fallacies, and errors before you even see it."
+              color="text-indigo-400"
             />
-            <FeatureSimple
-              icon={Database}
-              title="Expert Hub"
-              desc="Build your reputation. The more you contribute to the network, the more powerful your personal AI becomes."
+            <ProtocolCard
+              title="ZKV"
+              subtitle="Zero-Knowledge Verification"
+              desc="Enterprise Privacy. Prove correctness without revealing the source document."
+              icon={Lock}
+              color="text-purple-400"
             />
+            <ProtocolCard
+              title="SMT"
+              subtitle="Semantic Merkle Trees"
+              desc="Hash of Meaning. Detect paraphrasing and plagiarism instantly."
+              icon={Network}
+              color="text-blue-400"
+            />
+            <ProtocolCard
+              title="CLPV"
+              subtitle="Cross-LLM Portability"
+              desc="Universal Receipts. Verify an answer from GPT-4 using Claude's logic."
+              icon={Globe}
+              color="text-green-400"
+            />
+            <ProtocolCard
+              title="Hypervectors"
+              subtitle="Semantic Hashing"
+              desc="We treat meaning as a vector, not a string. Comparison is instant. Math, not Magic."
+              icon={Binary}
+              color="text-cyan-400"
+            />
+            <ProtocolCard
+              title="Vaccines"
+              subtitle="Cognitive Immunity"
+              desc="Injecting 'truth antibodies' to prevent logic viruses and hallucinations."
+              icon={Activity}
+              color="text-red-400"
+            />
+            <ProtocolCard
+              title="Omega"
+              subtitle="Sovereign Activation"
+              desc="You become the source of truth. Decentralized consensus."
+              icon={Fingerprint}
+              color="text-amber-400"
+            />
+            <ProtocolCard
+              title="RLM"
+              subtitle="Reinforcement Logic"
+              desc="Active Inference. Stability = Wisdom. Measured by Fisher Information."
+              icon={Brain}
+              color="text-pink-400"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* COMPARISON - OLD VS NEW */}
+      <section id="comparison" className="py-32 px-6 bg-white text-black relative">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-5xl font-black tracking-tighter text-black mb-16 text-center">Stop Renting. Start Owning.</h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="p-12 bg-gray-100 rounded-[3rem]">
+              <h3 className="text-2xl font-black uppercase text-gray-400 mb-8">The Old Way (RAG)</h3>
+              <ul className="space-y-6">
+                <BadItem text="You upload private files to someone else's cloud" />
+                <BadItem text="You pay API costs for EVERY question (0% Cache)" />
+                <BadItem text="Hallucinations are 'features' (No verification)" />
+                <BadItem text="Context is forgotten immediately" />
+              </ul>
+            </div>
+            <div className="p-12 bg-black text-white rounded-[3rem] relative overflow-hidden shadow-2xl">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500 overflow-hidden blur-[100px] opacity-30 rounded-full pointer-events-none" />
+              <h3 className="text-2xl font-black uppercase text-indigo-400 mb-8">The Neural Bridge Way</h3>
+              <ul className="space-y-6">
+                <GoodItem text="Data stays LOCAL. Encrypted. Sovereign." />
+                <GoodItem text="Zero Cost. Remember once, run forever." />
+                <GoodItem text="Mathematical Truth via PCK & ZKV." />
+                <GoodItem text="Evolving Intelligence via RLM." />
+              </ul>
+            </div>
           </div>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="py-12 px-6 border-t border-gray-100 bg-white">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-          <div className="md:col-span-2 space-y-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 rounded-md bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center">
-                <div className="w-3 h-3 bg-white rounded-[2px] rotate-45" />
-              </div>
-              <span className="text-sm font-black tracking-widest uppercase text-gray-900">Neural Bridge</span>
-            </div>
-            <p className="text-sm text-gray-500 max-w-xs leading-relaxed">
-              The first sovereign AI memory fabric. Own your intelligence, reduce api costs, and verify truth cryptographically.
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            <h5 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Platform</h5>
-            <ul className="space-y-3 text-sm font-medium text-gray-600">
-              <li><Link href="/login" className="hover:text-indigo-600 transition-colors">Sentinel Login</Link></li>
-              <li><Link href="/register" className="hover:text-indigo-600 transition-colors">Initialize Protocol</Link></li>
-              <li><Link href="#" className="hover:text-indigo-600 transition-colors">Download Extension</Link></li>
-              <li><Link href="/docs/api" className="hover:text-indigo-600 transition-colors">API Reference</Link></li>
-            </ul>
-          </div>
-
-          <div className="space-y-4">
-            <h5 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Legal & Privacy</h5>
-            <ul className="space-y-3 text-sm font-medium text-gray-600">
-              <li><Link href="/privacy" className="hover:text-indigo-600 transition-colors">Privacy Policy</Link></li>
-              <li><Link href="/terms" className="hover:text-indigo-600 transition-colors">Terms of Sovereignty</Link></li>
-              <li><Link href="#" className="hover:text-indigo-600 transition-colors">Data Audit</Link></li>
-            </ul>
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto pt-8 border-t border-gray-50 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs font-bold text-gray-300 uppercase tracking-widest">© 2026 Neural Bridge Systems</p>
-          <div className="flex items-center space-x-6">
-            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">System Functional</span>
-          </div>
-        </div>
+      <footer className="py-12 px-6 bg-black border-t border-white/10 text-gray-500 text-center">
+        <p className="text-xs font-bold uppercase tracking-widest">© 2026 Neural Bridge Systems • Sovereign Intelligence</p>
       </footer>
     </div>
   );
 }
 
-function FeatureSimple({ icon: Icon, title, desc }: any) {
+function ListItem({ text }: { text: string }) {
   return (
-    <div className="text-left">
-      <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6 text-indigo-600">
+    <li className="flex items-center gap-4 text-gray-300 font-medium">
+      <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full box-content border-2 border-indigo-500/30" />
+      {text}
+    </li>
+  );
+}
+
+function ProtocolCard({ title, subtitle, desc, icon: Icon, color }: any) {
+  return (
+    <div className="group p-8 bg-white/5 border border-white/5 hover:border-white/10 rounded-3xl transition-all hover:-translate-y-1">
+      <div className={`w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-6 ${color}`}>
         <Icon size={24} />
       </div>
-      <h4 className="text-xl font-bold text-gray-900 mb-3">{title}</h4>
-      <p className="text-sm text-gray-500 leading-relaxed font-medium">{desc}</p>
+      <h4 className="text-2xl font-bold text-white mb-1">{title}</h4>
+      <p className="text-xs font-black uppercase tracking-widest text-gray-500 mb-4">{subtitle}</p>
+      <p className="text-sm text-gray-400 leading-relaxed font-medium group-hover:text-gray-300 transition-colors">{desc}</p>
     </div>
+  );
+}
+
+function BadItem({ text }: { text: string }) {
+  return (
+    <li className="flex items-center gap-4 text-gray-500 font-bold">
+      <XCircle size={20} className="text-red-500 shrink-0" />
+      {text}
+    </li>
+  );
+}
+
+function GoodItem({ text }: { text: string }) {
+  return (
+    <li className="flex items-center gap-4 text-white font-bold">
+      <CheckCircle size={20} className="text-green-500 shrink-0" />
+      {text}
+    </li>
   );
 }

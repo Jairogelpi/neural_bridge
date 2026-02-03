@@ -36,16 +36,24 @@ const PLATFORMS: Record<string, PlatformConfig> = {
 };
 
 export class DomConqueror {
-    private observer: MutationObserver;
+    private observer: MutationObserver | undefined;
     private config: PlatformConfig | null = null;
     private processedNodes = new Set<HTMLElement>();
 
     constructor() {
-        this.observer = new MutationObserver(this.handleMutations.bind(this));
-        this.detectPlatform();
+        if (typeof MutationObserver !== 'undefined') {
+            this.observer = new MutationObserver(this.handleMutations.bind(this));
+        } else {
+            console.warn('[NeuralBridge] MutationObserver not supported in this environment.');
+        }
+
+        // Defer start to ensure 'this' is fully initialized
+        setTimeout(() => this.detectPlatform(), 0);
     }
 
     private detectPlatform() {
+        if (typeof window === 'undefined') return;
+
         const host = window.location.hostname;
         if (host.includes('openai') || host.includes('chatgpt')) this.config = PLATFORMS['chatgpt'] || null;
         else if (host.includes('claude')) this.config = PLATFORMS['claude'] || null;
@@ -66,6 +74,8 @@ export class DomConqueror {
     }
 
     private start() {
+        if (!this.observer) return;
+
         if (!document.body) {
             // Wait for body to be ready
             if (document.readyState === 'loading') {
@@ -78,13 +88,15 @@ export class DomConqueror {
         }
 
         try {
-            this.observer.observe(document.body, { childList: true, subtree: true });
-            this.scanExisting();
+            if (this.observer) {
+                this.observer.observe(document.body, { childList: true, subtree: true });
+                this.scanExisting();
+            }
         } catch (e) {
             console.warn('[NeuralBridge] Observer failed to start:', e);
             // Retry once after a short delay in case of weird DOM state
             setTimeout(() => {
-                if (document.body) {
+                if (document.body && this.observer) {
                     try {
                         this.observer.observe(document.body, { childList: true, subtree: true });
                     } catch (retryError) {

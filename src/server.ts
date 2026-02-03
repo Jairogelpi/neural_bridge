@@ -298,6 +298,23 @@ app.post('/v1/genesis/fractal-ingest', async (req: Request, res: Response) => {
     }
 });
 
+app.post('/v1/genesis/dream', async (req: Request, res: Response) => {
+    try {
+        const { loop, interval_ms } = req.body;
+        const { DreamingService } = await import('./services/dreaming_service');
+
+        if (loop) {
+            await DreamingService.startDreamingLoop(interval_ms || 60000);
+            res.json({ success: true, message: 'Dreaming loop activated.', status: 'running' });
+        } else {
+            await DreamingService.dream();
+            res.json({ success: true, message: 'Single REM cycle completed.' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: (error as Error).message });
+    }
+});
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // TURBO CRYSTALLIZATION (INSTANT SPEED) ⚡
 // ═══════════════════════════════════════════════════════════════════════════════

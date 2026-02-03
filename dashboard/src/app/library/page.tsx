@@ -24,10 +24,16 @@ export default function LibraryPage() {
         const fetchCrystals = async () => {
             const { data } = await supabase
                 .from('crystals')
-                .select('context_id, domain, intent, author')
+                .select('context_id, domain, intent, author:authors(reputation)')
                 .order('created_at', { ascending: false });
 
-            if (data) setCrystals(data);
+            if (data) {
+                const mapped = data.map((c: any) => ({
+                    ...c,
+                    author: Array.isArray(c.author) ? c.author[0] || { reputation: 0.0 } : c.author
+                }));
+                setCrystals(mapped);
+            }
             setLoading(false);
         };
         fetchCrystals();

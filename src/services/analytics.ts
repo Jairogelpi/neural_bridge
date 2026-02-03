@@ -36,6 +36,10 @@ export interface SystemStats {
     threats_neutralized: number;
     neural_density: number;
     time_saved_hours: number;
+    // QUANTUM METRICS 🌌
+    dream_cycles: number;
+    fractal_depth: number;
+    entropy_blocked: number;
 }
 
 export class AnalyticsService {
@@ -93,7 +97,8 @@ export class AnalyticsService {
             queryCrystals,
             queryToday,
             queryWeek,
-            queryDomains,
+            // Enhanced query for Quantum Metrics
+            supabase.from('crystals').select('domain, metadata, genealogy'),
             // Analytics events for this user
             supabase.from('analytics_events')
                 .select('*')
@@ -155,7 +160,11 @@ export class AnalyticsService {
             truth_fidelity: parseFloat(avgFidelity.toFixed(3)),
             threats_neutralized: threats.count || 0,
             neural_density: neuralDensity,
-            time_saved_hours: parseFloat(timeSavedHours.toFixed(1))
+            time_saved_hours: parseFloat(timeSavedHours.toFixed(1)),
+            // QUANTUM METRICS CALCULATION
+            dream_cycles: domainStats.data?.filter((c: any) => c.metadata?.dream_evolution).length || 0,
+            fractal_depth: 1.0 + (domainStats.data?.reduce((acc: number, c: any) => acc + (c.genealogy?.generation || 0), 0) || 0) / (totalCrystals.count || 1),
+            entropy_blocked: threats.count || 0
         };
     }
 
