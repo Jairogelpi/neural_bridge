@@ -16,50 +16,43 @@ import type { Crystal } from '../types/crystal_format';
 export class RecursiveBrain {
 
     /**
-     * Identifies "voids" in the current knowledge domain.
-     * Uses HDC distribution analysis to find regions with low truth density.
+     * EPISTEMIC AUDIT: Ranks knowledge gaps by "Expected Free Energy".
+     * Prioritizes regions where learning provides the maximum Information Gain.
      */
-    static async detectKnowledgeGaps(domain: string): Promise<string[]> {
-        console.log(`[RecursiveBrain] 🔍 Auditing Semantic Lattice for domain: ${domain}...`);
+    static async performEpistemicAudit(domain: string): Promise<Array<{ gap: string; expected_information_gain: number }>> {
+        console.log(`[RecursiveBrain] 🔍 Performing Epistemic Audit for domain: ${domain}...`);
 
-        // 1. Fetch all Crystals in domain
         const { data: crystals } = await supabase
             .from('crystals')
-            .select('*')
+            .select('intent')
             .eq('domain', domain);
 
         if (!crystals || crystals.length < 5) {
-            return ["general_overview", "core_entities", "primary_rules"];
+            return [{ gap: "core_foundations", expected_information_gain: 1.0 }];
         }
 
-        // 2. Map to HDC Space
-        const hvs = crystals.map(c => Hypervector.fromString(c.verification?.canonical_hash || ''));
-        const center = Hypervector.bundle(hvs);
-
-        // 3. Find Outliers / Low Density Regions
-        // Simplified: Ask the LLM to analyze the existing intents and find what's missing.
         const intents = crystals.map(c => c.intent.primary).join("\n- ");
 
-        const gapPrompt = `
-        ACT AS A SEMANTIC ANALYST.
-        I have the following knowledge crystals for the domain '${domain}':
-        
-        CURRENT KNOWLEDGE:
-        - ${intents}
+        const auditPrompt = `
+        ACT AS AN EPISTEMIC FORAGER (Active Inference Mode).
+        I have this knowledge lattice for the domain '${domain}':
+        ${intents}
         
         TASK:
-        Identify 3 critical "Knowledge Gaps" or "Logical Voids" that are missing from this domain.
-        What would a professional need to know that is NOT covered above?
+        Identify 3 regions of high UNCERTAINTY (Gaps).
+        For each gap, estimate the "Expected Information Gain" (0.0 to 1.0) if this gap is filled.
         
-        Return ONLY a JSON array of 3 string topics.
+        Return ONLY a JSON array:
+        [{"gap": "...", "expected_information_gain": 0.0-1.0}]
         `;
 
-        const res = await SCPService.resilientCallLLM(gapPrompt, 'google/gemini-2.0-flash-exp:free', 'Semantic Auditor');
+        const res = await SCPService.resilientCallLLM(auditPrompt, 'anthropic/claude-3.5-sonnet', 'Epistemic Audit');
 
         try {
-            return JSON.parse(res.content.match(/\[[\s\S]*\]/)?.[0] || '[]');
+            return JSON.parse(res.content.match(/\[[\s\S]*\]/)?.[0] || '[]')
+                .sort((a: any, b: any) => b.expected_information_gain - a.expected_information_gain);
         } catch {
-            return ["unknown_edge_case", "secondary_dependencies"];
+            return [];
         }
     }
 
@@ -114,22 +107,21 @@ export class RecursiveBrain {
 
     /**
      * Performs a single "Learning Pulse".
-     * Now includes both Inductive Gap-Filling and Abductive Idea Generation.
+     * Driven by Expected Free Energy.
      */
     static async learningPulse(domain: string) {
-        // 1. Inductive Path: Fill Gaps
-        const gaps = await this.detectKnowledgeGaps(domain);
-        if (gaps.length > 0) {
-            const target = gaps[0];
-            console.log(`[RecursiveBrain] 💡 Found Gap: "${target}". Initiating Discovery...`);
-            const probe = await this.generateProbe(target!, domain);
+        // 1. Inductive Path: Epistemic Foraging
+        const audit = await this.performEpistemicAudit(domain);
+        if (audit.length > 0) {
+            const target = audit[0]!.gap;
+            console.log(`[RecursiveBrain] 🧭 Epistemic Foraging: Targeting "${target}" (Gain: ${audit[0]!.expected_information_gain})`);
+            const probe = await this.generateProbe(target, domain);
             const discoveryRes = await SCPService.resilientCallLLM(probe, 'anthropic/claude-3.5-sonnet', 'Autonomous Discoverer');
             const crystal = await CrystallizationService.mineCrystal(discoveryRes.content, {
                 domain,
-                author: { id: 'recursive_brain', name: 'Neural Bridge Self-Healing Engine', reputation: 0.95 }
+                author: { id: 'recursive_brain', name: 'Epistemic Foraging Engine', reputation: 0.95 }
             });
             await supabase.from('crystals').upsert(crystal);
-            console.log(`[RecursiveBrain] ✅ Gap "${target}" filled.`);
         }
 
         // 2. Abductive Path: Propose Hypotheses (New Ideas)

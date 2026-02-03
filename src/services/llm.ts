@@ -334,6 +334,17 @@ Return ONLY valid JSON, no markdown or explanation.`;
         domain = await detectDomainAutonomously(processedText);
     }
 
+    // 🧠 NEUROMORPHIC FILTER: Predictive Coding
+    const { predictionError, residualContent } = await StochasticEngine.performPredictiveCoding(processedText, domain);
+
+    if (predictionError < 0.2) {
+        console.log(`[SCPService] 💤 High Prediction Accuracy (${(1 - predictionError) * 100}%). Efficiently assimilating known context...`);
+        // In high accuracy cases, we could theoretically skip the LLM entirely 
+        // and return a 'Synthetic' Crystal based on the prediction.
+    }
+
+    const contextToProcess = predictionError > 0.1 ? processedText : residualContent;
+
     const model = getOptimalModel({ domain, task: 'compile' });
 
     // 💉 SEMANTIC IMMUNITY SYSTEM: Inject Vaccines

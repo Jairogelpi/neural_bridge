@@ -43,21 +43,32 @@ export class DialecticalEngine {
 
             console.log(`[Hegel] ⚠️ Thesis destroyed by: "${attack.attack_vector}". Synthesizing new truth...`);
 
-            // 2. SYNTHESIS: Ask the Architect to fix the flaw
+            // 2. SYNTHESIS: Generate candidate syntheses
+            // We optimize for Variational Free Energy: F = Complexity - Accuracy
             const synthesisPrompt = `
-            THE DIALECTIC PROCESS
+            THE NEUROMORPHIC DIALECTIC (Active Inference Mode)
             
-            Current Thesis: "${currentThesis}"
-            Fatal Flaw (Red Team Attack): "${attack.attack_vector}"
+            Current Thesis (Thesis): "${currentThesis}"
+            Prediction Error (Attack): "${attack.attack_vector}"
+            Context: "${context.substring(0, 500)}..."
             
-            OBJECTIVE: Rewrite the Thesis to be TRUE and RESILIENT to this attack.
-            Do not abandon the core meaning, but Nuance/Constrain it so it cannot be falsified.
+            OBJECTIVE: Propose a synthesis that minimizes Variational Free Energy.
+            This means:
+            1. ACCURACY: It must fully resolve the prediction error (the attack).
+            2. COMPLEXITY: It must be as simple as possible (Minimum Description Length).
             
-            Return ONLY the new Thesis string. No markdown.
+            Return ONLY the new synthesized Thesis string. No markdown.
             `;
 
-            const synthesisRes = await SCPService.resilientCallLLM(synthesisPrompt, 'google/gemini-pro-1.5', 'You are a Dialectical Synthesizer.');
+            const synthesisRes = await SCPService.resilientCallLLM(synthesisPrompt, 'anthropic/claude-3.5-sonnet', 'You are a Variational Free Energy Optimizer.');
             const nextThesis = synthesisRes.content.trim();
+
+            // 3. FEP EVALUATION: Calculate Free Energy Delta
+            const feBefore = await DialecticalEngine.calculateFreeEnergy(currentThesis, context);
+            const feAfter = await DialecticalEngine.calculateFreeEnergy(nextThesis, context);
+            const feDelta = feAfter - feBefore;
+
+            console.log(`[Hegel] 🧠 Free Energy Delta: ${feDelta.toFixed(4)} (Objective: < 0)`);
 
             history.push({
                 round,
@@ -75,7 +86,35 @@ export class DialecticalEngine {
             final_thesis: currentThesis,
             iterations: MAX_ROUNDS,
             history,
-            is_resilient: false // It might still be flawed if we hit limit
+            is_resilient: false
         };
+    }
+
+    /**
+     * FREE ENERGY CALCULATION (Semantic FEP Approximation)
+     * F = Complexity - Accuracy
+     */
+    private static async calculateFreeEnergy(thesis: string, context: string): Promise<number> {
+        // 1. Complexity (Shannon Entropy / MDL Approximation)
+        // Shorter, denser claims have lower complexity cost
+        const complexity = Math.log2(thesis.length + 1) * 0.1;
+
+        // 2. Accuracy (Predictive Power)
+        // How well the thesis "explains" the context. High accuracy = Low surprise.
+        const accuracyPrompt = `
+        SCORE THE ACCURACY of this thesis against the provided context.
+        Thesis: "${thesis}"
+        Context: "${context.substring(0, 1000)}..."
+        
+        Return a single number between 0 and 1, where 1 is "perfect explanation" 
+        and 0 is "irrelevant or wrong".
+        RETURN ONLY THE NUMBER.
+        `;
+
+        const res = await SCPService.resilientCallLLM(accuracyPrompt, 'google/gemini-2.0-flash-exp:free', 'Semantic Accuracy Scorer');
+        const accuracy = parseFloat(res.content.trim()) || 0.1;
+
+        // F = Complexity - Accuracy (Minimizing this value)
+        return complexity - accuracy;
     }
 }

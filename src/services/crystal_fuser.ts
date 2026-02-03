@@ -19,45 +19,54 @@ export class CrystalFuser {
      * Instant O(N) merging of crystals using Hyperdimensional Computing.
      * No LLM costs. Pure superpositions.
      */
+    /**
+     * HOLOGRAPHIC MATH FUSION ⚡ (Phase 10: Geometric Singularity)
+     * Instant O(N) merging using Gärdenfors' Concept Space motifs.
+     */
     static fuseHolographic(crystals: Crystal[]): Crystal {
         if (crystals.length === 0) throw new Error("Vacuum fusion attempted.");
         if (crystals.length === 1) return crystals[0]!;
 
-        console.log(`[CrystalFuser] ⚡ Holographic Fusion of ${crystals.length} realities...`);
+        console.log(`[CrystalFuser] 📐 Geometric Fusion of ${crystals.length} concept points...`);
 
-        // 1. Superposition of Intents (Concatenation for now, could be Summary)
-        const mergedIntent = crystals.map(c => c.intent.primary).join(" + ");
+        // 1. Calculate Logical Gravity (HDC Density)
+        const vectors = crystals.map(c => Hypervector.fromString(c.verification.canonical_hash));
+        const bundle = Hypervector.bundle(vectors);
 
-        // 2. Constraint Union (Set Theory)
-        const allConstraints = crystals.flatMap(c => c.constraints || []);
-        const uniqueConstraints = Array.from(new Set(allConstraints.map(c => JSON.stringify(c))))
-            .map(s => JSON.parse(s));
+        // Measure 'Rigidity' (Bit Density)
+        let bits = 0;
+        for (let b = 0; b < 4096; b++) if ((bundle.data[b >>> 5]! >>> (b & 31)) & 1) bits++;
+        const density = bits / 4096;
 
-        // 3. Mathematical Identity Fusion (Bundle Hashes)
-        // New Hash = Majority(Hash A, Hash B, Hash C)
-        const vectors = crystals.map(c =>
-            // We need to re-compute or parse the stored hash. 
-            // Assuming stored is Hex String.
-            Hypervector.fromString(c.verification.canonical_hash)
-        );
-        const fusedVector = Hypervector.bundle(vectors);
+        // 2. Convergence Test: If density > 0.65, we have a "Singularity" (Single Axiom)
+        const isSingularity = density > 0.65;
+        const mergedIntent = isSingularity
+            ? `Geometric Singularity: Unified Axiom synthesized from ${crystals.length} sources.`
+            : crystals.map(c => c.intent.primary).slice(0, 3).join(" + ") + (crystals.length > 3 ? "..." : "");
+
+        // 3. Entity Convex Hull (Naive approximation: Set Union)
+        const allEntities = crystals.flatMap(c => c.entities || []);
+        const uniqueEntities = Array.from(new Map(allEntities.map(e => [e.name, e])).values());
 
         const master: Crystal = {
             ...crystals[0]!,
-            context_id: `holo_master_${Date.now()}`,
-            version: '3.0.0 (Holographic)',
+            context_id: `geo_master_${Date.now()}`,
+            version: '4.0.0 (Neuromorphic)',
             intent: {
                 primary: mergedIntent,
-                status: crystals[0]?.intent.status || CrystalStatus.ACTIVE,
-                secondary: []
+                status: crystals[0]?.intent.status || CrystalStatus.ACTIVE
             },
-            constraints: uniqueConstraints,
-            entities: crystals.flatMap(c => c.entities || []),
+            entities: uniqueEntities,
+            metadata: {
+                ...(crystals[0]!.metadata || {}),
+                geometric_density: density,
+                is_singularity: isSingularity
+            },
             created_at: new Date().toISOString(),
             verification: {
-                canonical_hash: fusedVector.toString(), // The Mathematical Sum of its parts
+                canonical_hash: bundle.toString(),
                 semantic_invariants: [],
-                policy: crystals[0]!.verification.policy || { strictness: 'high', method: 'standard' }
+                policy: { min_checks: 2, accept_threshold: 0.9, max_retries: 1, strategy: 'strict' }
             }
         };
 
