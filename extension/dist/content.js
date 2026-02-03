@@ -303,8 +303,11 @@ function hideOverlay() {
 function injectFloatingButton() {
   const b = document.createElement("div");
   b.id = "neural-bridge-fab";
-  b.innerHTML = '<span style="font-size: 48px;">🧠</span>';
-  b.title = "Capture Context";
+  b.style.cssText = "position:fixed;bottom:20px;left:20px;width:60px;height:60px;background:linear-gradient(135deg, #6366f1, #8b5cf6);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:999999;box-shadow:0 10px 25px rgba(99,102,241,0.5);transition:transform 0.2s;border:2px solid rgba(255,255,255,0.2);";
+  b.onmouseenter = () => b.style.transform = "scale(1.1)";
+  b.onmouseleave = () => b.style.transform = "scale(1)";
+  b.innerHTML = '<span style="font-size: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">🧠</span>';
+  b.title = "Neural Bridge - Capture Context";
   b.onclick = async () => {
     try {
       await captureContextReal();

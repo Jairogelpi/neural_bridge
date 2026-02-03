@@ -1,0 +1,94 @@
+
+> dashboard@0.1.0 build
+> next build
+
+   ▲ Next.js 15.1.6
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+
+Failed to compile.
+
+./src/app/chat/page.tsx
+3:39  Error: 'useCallback' is defined but never used.  @typescript-eslint/no-unused-vars
+12:10  Error: 'supabase' is defined but never used.  @typescript-eslint/no-unused-vars
+20:16  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+28:15  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+37:58  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+61:8  Warning: React Hook useEffect has a missing dependency: 'createNewSession'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+164:45  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+176:18  Error: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/cortex/page.tsx
+12:57  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+12:71  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+13:29  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+32:26  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+43:44  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+97:53  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/extension/page.tsx
+3:31  Error: 'useCallback' is defined but never used.  @typescript-eslint/no-unused-vars
+12:5  Error: 'UserPlus' is defined but never used.  @typescript-eslint/no-unused-vars
+13:5  Error: 'Key' is defined but never used.  @typescript-eslint/no-unused-vars
+16:5  Error: 'ChevronRight' is defined but never used.  @typescript-eslint/no-unused-vars
+20:8  Error: 'api' is defined but never used.  @typescript-eslint/no-unused-vars
+49:23  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/library/page.tsx
+4:10  Error: 'motion' is defined but never used.  @typescript-eslint/no-unused-vars
+5:34  Error: 'Filter' is defined but never used.  @typescript-eslint/no-unused-vars
+23:27  Error: 'error' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/login/page.tsx
+25:23  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/page.tsx
+6:3  Error: 'Zap' is defined but never used.  @typescript-eslint/no-unused-vars
+9:3  Error: 'ArrowRight' is defined but never used.  @typescript-eslint/no-unused-vars
+11:3  Error: 'LogIn' is defined but never used.  @typescript-eslint/no-unused-vars
+13:3  Error: 'Activity' is defined but never used.  @typescript-eslint/no-unused-vars
+14:3  Error: 'Layers' is defined but never used.  @typescript-eslint/no-unused-vars
+15:3  Error: 'Binary' is defined but never used.  @typescript-eslint/no-unused-vars
+20:10  Error: 'useRouter' is defined but never used.  @typescript-eslint/no-unused-vars
+193:51  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/privacy/page.tsx
+78:50  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/register/page.tsx
+27:23  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/settings/page.tsx
+5:27  Error: 'Shield' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ActivityItem.tsx
+2:38  Error: 'Zap' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/Chat/ChatList.tsx
+3:10  Error: 'motion' is defined but never used.  @typescript-eslint/no-unused-vars
+4:37  Error: 'MessageSquare' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/Chat/CrystalContext.tsx
+10:13  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/components/Chat/CrystalPicker.tsx
+4:18  Error: 'AnimatePresence' is defined but never used.  @typescript-eslint/no-unused-vars
+5:59  Error: 'Clock' is defined but never used.  @typescript-eslint/no-unused-vars
+5:79  Error: 'Activity' is defined but never used.  @typescript-eslint/no-unused-vars
+12:13  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/components/CrystalCard.tsx
+6:25  Error: 'Database' is defined but never used.  @typescript-eslint/no-unused-vars
+7:10  Error: 'clsx' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/Sidebar.tsx
+55:55  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/context/AuthContext.tsx
+8:11  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+20:13  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+25:38  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules

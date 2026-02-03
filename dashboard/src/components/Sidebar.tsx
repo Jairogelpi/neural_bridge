@@ -12,7 +12,9 @@ import {
     Shield,
     FilePlus,
     Network,
-    Gavel
+    Gavel,
+    Zap,
+    Film
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
@@ -37,6 +39,8 @@ export function Sidebar() {
                 <NavItem href="/chat" icon={MessageSquare} label="Neural Chat" active={pathname === '/chat'} />
                 <NavItem href="/cortex" icon={Brain} label="Cortex Graph" active={pathname === '/cortex'} />
                 <NavItem href="/ingest" icon={FilePlus} label="Neurogenesis" active={pathname === '/ingest'} />
+                <NavItem href="/turbo" icon={Zap} label="Turbo Stats" active={pathname === '/turbo'} />
+                <NavItem href="/multimodal" icon={Film} label="Multimodal" active={pathname === '/multimodal'} />
                 <NavItem href="/nexus" icon={Network} label="Nexus Bridge" active={pathname === '/nexus'} />
                 <NavItem href="/jury" icon={Gavel} label="Jury Protocol" active={pathname === '/jury'} />
                 <NavItem href="/settings" icon={Settings} label="Settings" active={pathname === '/settings'} />

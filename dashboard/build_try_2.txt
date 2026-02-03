@@ -1,0 +1,26 @@
+
+> dashboard@0.1.0 build
+> next build
+
+   ▲ Next.js 15.1.6
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+ ⨯ ESLint: Plugin "" not found.
+   Collecting page data ...
+   Generating static pages (0/17) ...
+Error occurred prerendering page "/cortex". Read more: https://nextjs.org/docs/messages/prerender-error
+ReferenceError: window is not defined
+    at 187 (C:\Users\jairo\Desktop\neural_bridge\dashboard\.next\server\app\cortex\page.js:1:165735)
+    at Object.t [as require] (C:\Users\jairo\Desktop\neural_bridge\dashboard\.next\server\webpack-runtime.js:1:128)
+    at require (C:\Users\jairo\Desktop\neural_bridge\dashboard\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:131:7946)
+    at u (C:\Users\jairo\Desktop\neural_bridge\dashboard\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:36:646)
+    at F (C:\Users\jairo\Desktop\neural_bridge\dashboard\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:36:10477)
+    at W (C:\Users\jairo\Desktop\neural_bridge\dashboard\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:36:13033)
+    at C:\Users\jairo\Desktop\neural_bridge\dashboard\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:36:15283
+    at Z._fromJSON (C:\Users\jairo\Desktop\neural_bridge\dashboard\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:36:15317)
+    at JSON.parse (<anonymous>)
+    at D (C:\Users\jairo\Desktop\neural_bridge\dashboard\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:36:10201)
+Export encountered an error on /cortex/page: /cortex, exiting the build.
+ ⨯ Static worker exited with code: 1 and signal: null

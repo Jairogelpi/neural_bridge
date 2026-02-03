@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Sidebar } from '@/components/Sidebar';
 import { Upload, FileText, Database, Sparkles, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import api from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function IngestPage() {
@@ -17,19 +18,18 @@ export default function IngestPage() {
         setStatus('idle');
 
         try {
-            // Simulate AI Processing & Vectorization
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            // Create Crystal in Supabase
-            const { error } = await supabase.from('crystals').insert({
-                domain: 'MANUAL_INGEST',
-                intent: { primary: text.substring(0, 100) + '...', full: text },
-                author: { reputation: 1.0, source: 'HUMAN_OVERRIDE' },
-                context_id: `manual_${Date.now()}`,
-                origin_app: 'DASHBOARD_NEUROGENESIS'
+            // Use Flash crystallization for instant response
+            const response = await api.post('/v1/turbo/crystallize', {
+                text,
+                tier: 'flash', // Instant math-based (0ms AI)
+                domain: 'MANUAL_INGEST'
             });
 
-            if (error) throw error;
+            if (!response.data.success) throw new Error(response.data.error);
+
+            console.log(`[Ingest] ⚡ Crystallized in ${response.data.metrics.elapsed_ms}ms (${response.data.metrics.tier} tier)`);
+            console.log(`[Ingest] 📋 Background queue: ${response.data.metrics.queue_stats.queued} pending upgrades`);
+
             setStatus('success');
             setText('');
         } catch (error) {

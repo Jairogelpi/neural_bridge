@@ -220,7 +220,36 @@ CREATE TABLE IF NOT EXISTS public.verify_telemetry (
   created_at timestamp with time zone NOT NULL DEFAULT now()
 );
 
--- 9. BOOTSTRAP (INITIAL STATE)
+
+-- 9. ANALYTICS & METRICS (For Real Data Endpoints)
+CREATE TABLE IF NOT EXISTS public.analytics_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_name TEXT NOT NULL,
+    event_data JSONB DEFAULT '{}',
+    user_id TEXT,
+    tenant_id UUID REFERENCES public.tenants(tenant_id),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_analytics_events_name ON public.analytics_events(event_name);
+CREATE INDEX IF NOT EXISTS idx_analytics_events_created_at ON public.analytics_events(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_analytics_events_user_id ON public.analytics_events(user_id);
+
+-- 10. PROCESSING QUEUE (For Active Jobs Tracking)
+CREATE TABLE IF NOT EXISTS public.processing_queue (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
+    job_type TEXT NOT NULL,
+    job_data JSONB DEFAULT '{}',
+    tenant_id UUID REFERENCES public.tenants(tenant_id),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_processing_queue_status ON public.processing_queue(status);
+CREATE INDEX IF NOT EXISTS idx_processing_queue_created_at ON public.processing_queue(created_at DESC);
+
+-- 11. BOOTSTRAP (INITIAL STATE)
 INSERT INTO public.experts (name, public_key, domain, reputation)
 VALUES ('Genesis Oracle', 'NB_SIG_GENESIS_GATEWAY_O1', 'logic', 1.0)
 ON CONFLICT (public_key) DO NOTHING;

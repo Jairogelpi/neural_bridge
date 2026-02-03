@@ -1,62 +1,86 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
-import ForceGraph2D from 'react-force-graph-2d';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import dynamic from 'next/dynamic';
+
+const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), { ssr: false });
 import { Sidebar } from '@/components/Sidebar';
-import { ZoomIn, ZoomOut, Share2, RefreshCcw } from 'lucide-react';
+import { ZoomIn, ZoomOut, Share2, RefreshCcw, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { usePagination, useInfiniteScroll } from '@/hooks/usePagination';
+
+const PAGE_SIZE = 100; // Load 100 crystals at a time
 
 export default function CortexPage() {
     const [graphData, setGraphData] = useState<{ nodes: any[], links: any[] }>({ nodes: [], links: [] });
     const graphRef = useRef<any>(null);
 
-    const fetchGraph = async () => {
-        const { data: crystals } = await supabase
-            .from('crystals')
-            .select('context_id, domain, author, intent');
+    // Lazy loading pagination
+    const {
+        data: crystals,
+        loading,
+        hasMore,
+        loadMore
+    } = usePagination({
+        fetchPage: async (page, pageSize) => {
+            const { data } = await supabase
+                .from('crystals')
+                .select('context_id, domain, author, intent, metadata')
+                .range(page * pageSize, (page + 1) * pageSize - 1)
+                .order('created_at', { ascending: false });
 
-        if (crystals) {
-            // Transform Crystals into Nodes
-            const nodes = crystals.map(c => ({
-                id: c.context_id,
-                group: c.domain === 'CORE_TRUTH' ? 1 : 2,
-                label: c.domain,
-                val: c.author?.reputation || 1
-            }));
+            return data || [];
+        },
+        pageSize: PAGE_SIZE
+    });
 
-            // Create implicit links based on shared domains or intent similarity (naive simulation for now)
-            // In a full implementation, we would query a 'synapses' table.
-            // For now, we link sequential crystals to form a time-chain and domain clusters.
-            const links: any[] = [];
-            for (let i = 0; i < nodes.length - 1; i++) {
-                // Link temporal sequence
-                links.push({ source: nodes[i].id, target: nodes[i + 1].id });
+    // Infinite scroll
+    useInfiniteScroll(loadMore, { enabled: hasMore && !loading });
 
-                // Link same group (domain) loosely
-                const sameGroup = nodes.filter((n, idx) => idx > i && n.group === nodes[i].group).slice(0, 2);
-                sameGroup.forEach(n => links.push({ source: nodes[i].id, target: n.id }));
-            }
-
-            // Remove duplicates and self-loops if any
-            setGraphData({ nodes: nodes as any, links: links });
-        }
-    };
-
+    // Build graph from crystals
     useEffect(() => {
-        fetchGraph();
+        if (!crystals || crystals.length === 0) return;
 
-        // Realtime updates
-        const channel = supabase
-            .channel('cortex_realtime')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'crystals' }, () => {
-                fetchGraph();
-            })
-            .subscribe();
+        // Transform Crystals into Nodes
+        const nodes = crystals.map((c: any) => {
+            const generation = c.metadata?.genealogy?.generation || 0;
+            return {
+                id: c.context_id,
+                group: generation,
+                label: `[Layer ${generation}] ${c.domain}`,
+                val: (generation + 1) * 2, // Bigger nodes for higher generations
+                details: c.intent?.primary
+            };
+        });
 
-        return () => {
-            supabase.removeChannel(channel);
-        };
-    }, []);
+        const links: any[] = [];
+
+        // 1. GENEALOGY LINKS (The Fractal Backbone)
+        crystals.forEach((c: any) => {
+            if (c.metadata?.genealogy?.parents) {
+                c.metadata.genealogy.parents.forEach((parentId: string) => {
+                    links.push({
+                        source: parentId,
+                        target: c.context_id,
+                        type: 'genealogy'
+                    });
+                });
+            }
+        });
+
+        // 2. TEMPORAL/DOMAIN LINKS (Implicit)
+        for (let i = 0; i < nodes.length - 1; i++) {
+            if (nodes[i].group === nodes[i + 1].group) {
+                links.push({
+                    source: nodes[i].id,
+                    target: nodes[i + 1].id,
+                    type: 'temporal'
+                });
+            }
+        }
+
+        setGraphData({ nodes, links });
+    }, [crystals]);
 
     return (
         <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-blue-100 selection:text-blue-900 flex">
@@ -74,9 +98,6 @@ export default function CortexPage() {
 
                 {/* Controls */}
                 <div className="absolute bottom-8 right-8 z-10 flex flex-col gap-2">
-                    <button className="p-3 bg-white border border-gray-100 rounded-xl shadow-xl hover:bg-gray-50 text-gray-600 hover:text-purple-600 transition-colors" onClick={() => fetchGraph()}>
-                        <RefreshCcw size={20} />
-                    </button>
                     <button className="p-3 bg-white border border-gray-100 rounded-xl shadow-xl hover:bg-gray-50 text-gray-600 hover:text-purple-600 transition-colors" onClick={() => graphRef.current?.zoomIn()}>
                         <ZoomIn size={20} />
                     </button>
@@ -92,8 +113,11 @@ export default function CortexPage() {
                     <ForceGraph2D
                         ref={graphRef}
                         graphData={graphData}
-                        nodeColor={node => (node as any).group === 1 ? '#06b6d4' : '#8b5cf6'}
-                        linkColor={() => '#cbd5e1'}
+                        nodeColor={node => {
+                            const colors = ['#06b6d4', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
+                            return colors[(node as any).group % colors.length];
+                        }}
+                        linkColor={link => (link as any).type === 'genealogy' ? '#4f46e5' : '#cbd5e1'}
                         backgroundColor="#f8fafc"
                         nodeLabel="label"
                         nodeRelSize={6}

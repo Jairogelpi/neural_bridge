@@ -28,11 +28,21 @@ export default function ExtensionPopup() {
     const [error, setError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Mock live metrics for popup demonstration
+    // Load real fidelity metrics from backend
     useEffect(() => {
-        const interval = setInterval(() => {
-            setFidelity(Math.floor(Math.random() * 20) + 80);
-        }, 3000);
+        const fetchFidelity = async () => {
+            try {
+                const response = await api.get('/v1/analytics/fidelity');
+                if (response.data.success) {
+                    setFidelity(response.data.fidelity || 0);
+                }
+            } catch (err) {
+                console.error('Failed to fetch fidelity:', err);
+            }
+        };
+
+        fetchFidelity();
+        const interval = setInterval(fetchFidelity, 5000);
         return () => clearInterval(interval);
     }, []);
 

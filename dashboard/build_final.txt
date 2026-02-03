@@ -1,0 +1,94 @@
+
+> dashboard@0.1.0 build
+> next build
+
+   ▲ Next.js 15.1.6
+   - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+
+./src/app/chat/page.tsx
+3:39  Warning: 'useCallback' is defined but never used.  @typescript-eslint/no-unused-vars
+12:10  Warning: 'supabase' is defined but never used.  @typescript-eslint/no-unused-vars
+61:8  Warning: React Hook useEffect has a missing dependency: 'createNewSession'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+176:18  Warning: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/extension/page.tsx
+3:31  Warning: 'useCallback' is defined but never used.  @typescript-eslint/no-unused-vars
+12:5  Warning: 'UserPlus' is defined but never used.  @typescript-eslint/no-unused-vars
+13:5  Warning: 'Key' is defined but never used.  @typescript-eslint/no-unused-vars
+16:5  Warning: 'ChevronRight' is defined but never used.  @typescript-eslint/no-unused-vars
+20:8  Warning: 'api' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/ingest/page.tsx
+6:10  Warning: 'supabase' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/library/page.tsx
+4:10  Warning: 'motion' is defined but never used.  @typescript-eslint/no-unused-vars
+5:34  Warning: 'Filter' is defined but never used.  @typescript-eslint/no-unused-vars
+23:27  Warning: 'error' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/page.tsx
+6:3  Warning: 'Zap' is defined but never used.  @typescript-eslint/no-unused-vars
+9:3  Warning: 'ArrowRight' is defined but never used.  @typescript-eslint/no-unused-vars
+11:3  Warning: 'LogIn' is defined but never used.  @typescript-eslint/no-unused-vars
+13:3  Warning: 'Activity' is defined but never used.  @typescript-eslint/no-unused-vars
+14:3  Warning: 'Layers' is defined but never used.  @typescript-eslint/no-unused-vars
+15:3  Warning: 'Binary' is defined but never used.  @typescript-eslint/no-unused-vars
+20:10  Warning: 'useRouter' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/settings/page.tsx
+5:27  Warning: 'Shield' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ActivityItem.tsx
+2:38  Warning: 'Zap' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/Chat/ChatList.tsx
+3:10  Warning: 'motion' is defined but never used.  @typescript-eslint/no-unused-vars
+4:37  Warning: 'MessageSquare' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/Chat/CrystalPicker.tsx
+4:18  Warning: 'AnimatePresence' is defined but never used.  @typescript-eslint/no-unused-vars
+5:59  Warning: 'Clock' is defined but never used.  @typescript-eslint/no-unused-vars
+5:79  Warning: 'Activity' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/CrystalCard.tsx
+6:25  Warning: 'Database' is defined but never used.  @typescript-eslint/no-unused-vars
+7:10  Warning: 'clsx' is defined but never used.  @typescript-eslint/no-unused-vars
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+   Collecting page data ...
+   Generating static pages (0/18) ...
+   Generating static pages (4/18) 
+   Generating static pages (8/18) 
+   Generating static pages (13/18) 
+ ✓ Generating static pages (18/18)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+┌ ○ /                                    3.71 kB         172 kB
+├ ○ /_not-found                          979 B           106 kB
+├ ○ /chat                                43.8 kB         257 kB
+├ ○ /cortex                              4.4 kB          180 kB
+├ ○ /dashboard                           6.16 kB         220 kB
+├ ○ /extension                           6.83 kB         171 kB
+├ ○ /ingest                              6.78 kB         175 kB
+├ ○ /jury                                6.56 kB         175 kB
+├ ○ /library                             11.6 kB         225 kB
+├ ○ /login                               2.45 kB         171 kB
+├ ○ /nexus                               4.49 kB         218 kB
+├ ○ /privacy                             2.28 kB         150 kB
+├ ○ /register                            2.6 kB          171 kB
+├ ○ /settings                            3.81 kB         135 kB
+└ ○ /turbo                               4.28 kB         135 kB
++ First Load JS shared by all            105 kB
+  ├ chunks/4bd1b696-9d5fcf2c349029bf.js  52.9 kB
+  ├ chunks/517-36ad06353e860f28.js       50.3 kB
+  └ other shared chunks (total)          2 kB
+
+
+○  (Static)  prerendered as static content
+

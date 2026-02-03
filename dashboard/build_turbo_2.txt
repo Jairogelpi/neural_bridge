@@ -1,0 +1,81 @@
+
+> dashboard@0.1.0 build
+> next build
+
+   ▲ Next.js 15.1.6
+   - Environments: .env
+
+   Creating an optimized production build ...
+(node:10900) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:25056) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+
+./src/app/chat/page.tsx
+3:39  Warning: 'useCallback' is defined but never used.  @typescript-eslint/no-unused-vars
+12:10  Warning: 'supabase' is defined but never used.  @typescript-eslint/no-unused-vars
+61:8  Warning: React Hook useEffect has a missing dependency: 'createNewSession'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+176:18  Warning: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/extension/page.tsx
+3:31  Warning: 'useCallback' is defined but never used.  @typescript-eslint/no-unused-vars
+12:5  Warning: 'UserPlus' is defined but never used.  @typescript-eslint/no-unused-vars
+13:5  Warning: 'Key' is defined but never used.  @typescript-eslint/no-unused-vars
+16:5  Warning: 'ChevronRight' is defined but never used.  @typescript-eslint/no-unused-vars
+20:8  Warning: 'api' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/ingest/page.tsx
+6:10  Warning: 'supabase' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/library/page.tsx
+4:10  Warning: 'motion' is defined but never used.  @typescript-eslint/no-unused-vars
+5:34  Warning: 'Filter' is defined but never used.  @typescript-eslint/no-unused-vars
+23:27  Warning: 'error' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/page.tsx
+6:3  Warning: 'Zap' is defined but never used.  @typescript-eslint/no-unused-vars
+9:3  Warning: 'ArrowRight' is defined but never used.  @typescript-eslint/no-unused-vars
+11:3  Warning: 'LogIn' is defined but never used.  @typescript-eslint/no-unused-vars
+13:3  Warning: 'Activity' is defined but never used.  @typescript-eslint/no-unused-vars
+14:3  Warning: 'Layers' is defined but never used.  @typescript-eslint/no-unused-vars
+15:3  Warning: 'Binary' is defined but never used.  @typescript-eslint/no-unused-vars
+20:10  Warning: 'useRouter' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/settings/page.tsx
+5:27  Warning: 'Shield' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ActivityItem.tsx
+2:38  Warning: 'Zap' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/Chat/ChatList.tsx
+3:10  Warning: 'motion' is defined but never used.  @typescript-eslint/no-unused-vars
+4:37  Warning: 'MessageSquare' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/Chat/CrystalPicker.tsx
+4:18  Warning: 'AnimatePresence' is defined but never used.  @typescript-eslint/no-unused-vars
+5:59  Warning: 'Clock' is defined but never used.  @typescript-eslint/no-unused-vars
+5:79  Warning: 'Activity' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/CrystalCard.tsx
+6:25  Warning: 'Database' is defined but never used.  @typescript-eslint/no-unused-vars
+7:10  Warning: 'clsx' is defined but never used.  @typescript-eslint/no-unused-vars
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+   Collecting page data ...
+   Generating static pages (0/18) ...
+Error occurred prerendering page "/dashboard". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: Invalid supabaseUrl: Must be a valid HTTP or HTTPS URL.
+    at C:\Users\jairo\Desktop\neural_bridge\dashboard\.next\server\chunks\320.js:37:48215
+    at new rg (C:\Users\jairo\Desktop\neural_bridge\dashboard\.next\server\chunks\320.js:37:48397)
+    at ry (C:\Users\jairo\Desktop\neural_bridge\dashboard\.next\server\chunks\320.js:37:52136)
+    at 5842 (C:\Users\jairo\Desktop\neural_bridge\dashboard\.next\server\app\dashboard\page.js:1:13451)
+    at t (C:\Users\jairo\Desktop\neural_bridge\dashboard\.next\server\webpack-runtime.js:1:128)
+    at 319 (C:\Users\jairo\Desktop\neural_bridge\dashboard\.next\server\app\dashboard\page.js:1:5930)
+    at Object.t [as require] (C:\Users\jairo\Desktop\neural_bridge\dashboard\.next\server\webpack-runtime.js:1:128)
+    at require (C:\Users\jairo\Desktop\neural_bridge\dashboard\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:131:7946)
+    at u (C:\Users\jairo\Desktop\neural_bridge\dashboard\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:36:646)
+    at F (C:\Users\jairo\Desktop\neural_bridge\dashboard\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:36:10477)
+Export encountered an error on /dashboard/page: /dashboard, exiting the build.
+ ⨯ Static worker exited with code: 1 and signal: null

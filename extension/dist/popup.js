@@ -52,6 +52,9 @@ function setupEventListeners() {
   document.getElementById("btn-settings").onclick = () => document.getElementById("settings-panel").classList.add("active");
   document.getElementById("btn-close-settings").onclick = () => document.getElementById("settings-panel").classList.remove("active");
   btnBootstrap.onclick = handleBootstrap;
+  document.getElementById("open-dashboard").onclick = () => {
+    chrome.tabs.create({ url: "https://neural-bridge-dashboard.onrender.com/dashboard" });
+  };
 }
 function showMode(mode) {
   [modeCaptureBtn, modeInjectBtn, modeMeshBtn].forEach((b) => b.classList.remove("active"));
