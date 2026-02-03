@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Search, Database, Check, Cpu, Calendar, User, Clock, ShieldCheck, Activity } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { X, Search, Database, Check, Cpu, Calendar, User, ShieldCheck } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Tooltip } from '@/components/Tooltip';
 
@@ -100,8 +100,8 @@ export function CrystalPicker({ isOpen, onClose, onSelect, alreadySelected }: Cr
                                     onClick={() => !isSelected && onSelect(crystal)}
                                     disabled={isSelected}
                                     className={`relative text-left p-6 rounded-[2rem] border transition-all group overflow-hidden ${isSelected
-                                            ? 'bg-blue-50/50 border-blue-200 cursor-default'
-                                            : 'bg-white border-gray-100 hover:border-blue-300 hover:shadow-xl hover:shadow-blue-500/5 hover:-translate-y-1'
+                                        ? 'bg-blue-50/50 border-blue-200 cursor-default'
+                                        : 'bg-white border-gray-100 hover:border-blue-300 hover:shadow-xl hover:shadow-blue-500/5 hover:-translate-y-1'
                                         }`}
                                 >
                                     {/* Selection Indicator */}
@@ -114,8 +114,8 @@ export function CrystalPicker({ isOpen, onClose, onSelect, alreadySelected }: Cr
 
                                     <div className="flex items-start gap-6">
                                         <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${isSelected
-                                                ? 'bg-blue-500 text-white shadow-blue-500/20'
-                                                : 'bg-gray-900 text-white group-hover:bg-blue-600 group-hover:shadow-blue-500/30 transition-all'
+                                            ? 'bg-blue-500 text-white shadow-blue-500/20'
+                                            : 'bg-gray-900 text-white group-hover:bg-blue-600 group-hover:shadow-blue-500/30 transition-all'
                                             }`}>
                                             <Database size={24} />
                                         </div>

@@ -1,15 +1,13 @@
 "use client";
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Sidebar } from '@/components/Sidebar';
-import { Mic, MicOff, Volume2, Sparkles, Activity, Loader2, Play, Square } from 'lucide-react';
+import { Mic, MicOff, Volume2, Sparkles, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function VoiceBridgePage() {
     const [isListening, setIsListening] = useState(false);
-    const [isSpeaking, setIsSpeaking] = useState(false);
     const [transcript, setTranscript] = useState("");
-    const [response, setResponse] = useState("");
 
     const handleTogglemic = () => {
         setIsListening(!isListening);
@@ -61,8 +59,8 @@ export default function VoiceBridgePage() {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             className={`relative z-10 w-48 h-48 rounded-full flex items-center justify-center border-4 transition-all ${isListening
-                                    ? 'border-cyan-400 bg-cyan-400/10 shadow-[0_0_50px_rgba(34,211,238,0.3)]'
-                                    : 'border-white/10 bg-white/5 hover:border-white/20'
+                                ? 'border-cyan-400 bg-cyan-400/10 shadow-[0_0_50px_rgba(34,211,238,0.3)]'
+                                : 'border-white/10 bg-white/5 hover:border-white/20'
                                 }`}
                         >
                             {isListening ? <MicOff size={48} className="text-cyan-400" /> : <Mic size={48} />}
@@ -79,7 +77,7 @@ export default function VoiceBridgePage() {
                                         animate={{ opacity: 1, y: 0 }}
                                         className="text-xl font-bold italic text-white/60"
                                     >
-                                        "{transcript}"
+                                        &quot;{transcript}&quot;
                                     </motion.p>
                                 )}
                             </AnimatePresence>

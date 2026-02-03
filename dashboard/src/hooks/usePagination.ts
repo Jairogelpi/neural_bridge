@@ -61,7 +61,7 @@ export function usePagination<T>({
     // Initial load
     useEffect(() => {
         loadPage(initialPage, false);
-    }, []);
+    }, [loadPage, initialPage]);
 
     const loadMore = useCallback(() => {
         if (!loading && hasMore) {

@@ -1,7 +1,6 @@
 "use client";
 
-import { motion } from 'framer-motion';
-import { MessageSquarePlus, Trash2, MessageSquare } from 'lucide-react';
+import { MessageSquarePlus, Trash2 } from 'lucide-react';
 
 interface ChatSession {
     id: string;
@@ -42,8 +41,8 @@ export function ChatList({ sessions, activeId, onSelect, onCreate, onDelete }: C
                         key={session.id}
                         onClick={() => onSelect(session.id)}
                         className={`group relative p-3 rounded-xl cursor-pointer transition-all border ${activeId === session.id
-                                ? 'bg-white border-blue-100 shadow-sm'
-                                : 'hover:bg-gray-100 border-transparent'
+                            ? 'bg-white border-blue-100 shadow-sm'
+                            : 'hover:bg-gray-100 border-transparent'
                             }`}
                     >
                         <div className="flex items-start gap-3">

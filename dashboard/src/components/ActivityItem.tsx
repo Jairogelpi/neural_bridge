@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Activity, Database, Shield, Zap } from 'lucide-react';
+import { Activity, Database, Shield } from 'lucide-react';
 
 interface ActivityItemProps {
     type: string;

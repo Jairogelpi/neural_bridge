@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/Sidebar';
-import { ShieldCheck, Zap, AlertTriangle, Activity, Database, ShieldAlert } from 'lucide-react';
+import { ShieldCheck, Activity, Database, ShieldAlert } from 'lucide-react';
 import { motion } from 'framer-motion';
 import api from '@/lib/api';
 
