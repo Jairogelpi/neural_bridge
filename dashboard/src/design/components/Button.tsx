@@ -7,9 +7,7 @@
 'use client';
 
 import { ButtonHTMLAttributes, ReactNode } from 'react';
-import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
-import { tokens } from '../tokens';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'glass';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -68,14 +66,7 @@ export function Button({
     ...props
 }: ButtonProps) {
     return (
-        <motion.button
-            whileHover={{ scale: disabled || loading ? 1 : 1.02 }}
-            whileTap={{ scale: disabled || loading ? 1 : 0.98 }}
-            transition={{
-                type: 'spring',
-                stiffness: 400,
-                damping: 17,
-            }}
+        <button
             className={`
                 ${variantStyles[variant]}
                 ${sizeStyles[size]}
@@ -85,6 +76,7 @@ export function Button({
                 transition-all duration-200
                 disabled:opacity-50 disabled:cursor-not-allowed
                 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2
+                hover:scale-[1.02] active:scale-[0.98]
             `}
             disabled={disabled || loading}
             {...props}
@@ -95,6 +87,6 @@ export function Button({
                 icon
             ) : null}
             {children}
-        </motion.button>
+        </button>
     );
 }
