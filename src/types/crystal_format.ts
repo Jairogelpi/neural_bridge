@@ -399,6 +399,23 @@ export interface Crystal {
         nullifier: string;
         target_constraint_id: string;
     }>;
+
+    // ========== NEUROMORPHIC SINGULARITY ==========
+
+    /** Neuromorphic / Active Inference metrics */
+    neuromorphic_stats?: {
+        /** Variational Free Energy score (F = Complexity - Accuracy) */
+        free_energy: number;
+
+        /** Predictive Surprise (Prediction Error) */
+        surprise: number;
+
+        /** Geometric Concept Density (HDC Logic Gravity) */
+        geometric_density: number;
+
+        /** True if this is a Geometric Singularity (Converged Axiom) */
+        is_singularity: boolean;
+    };
 }
 
 // ============================================

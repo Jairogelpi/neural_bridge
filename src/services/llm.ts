@@ -505,6 +505,14 @@ Return ONLY valid JSON, no markdown or explanation.`;
                 max_retries: 2,
                 strategy: 'balanced'
             }
+        },
+
+        // ========== NEUROMORPHIC INITIALIZATION ==========
+        neuromorphic_stats: {
+            free_energy: 1.0, // Default to high surprise until refined
+            surprise: predictionError,
+            geometric_density: entropy, // Use bit-entropy as density proxy
+            is_singularity: false
         }
     };
 
@@ -523,6 +531,12 @@ Return ONLY valid JSON, no markdown or explanation.`;
                     dialectical_rounds: dialectic.iterations,
                     dialectical_synthesis: true
                 };
+
+                // Update Neuromorphic Truth Stats
+                if (crystal.neuromorphic_stats) {
+                    crystal.neuromorphic_stats.free_energy = dialectic.final_free_energy;
+                    crystal.neuromorphic_stats.is_singularity = dialectic.final_accuracy > 0.9 && dialectic.final_free_energy < 0.2;
+                }
             }
         } catch (e) {
             console.warn('[SCPService] ⚖️ Dialectical Loop bypassed due to friction:', e);

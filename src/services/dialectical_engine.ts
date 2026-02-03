@@ -6,6 +6,8 @@ export interface DialecticalResult {
     iterations: number;
     history: { round: number; thesis: string; attack: string; synthesis: string }[];
     is_resilient: boolean;
+    final_free_energy: number;
+    final_accuracy: number;
 }
 
 /**
@@ -33,11 +35,14 @@ export class DialecticalEngine {
 
             if (attack.survived) {
                 console.log(`[Hegel] ✅ Thesis survived Round ${round}. Evolution complete.`);
+                const fe = await DialecticalEngine.calculateFreeEnergy(currentThesis, context);
                 return {
                     final_thesis: currentThesis,
                     iterations: round,
                     history,
-                    is_resilient: true
+                    is_resilient: true,
+                    final_free_energy: fe,
+                    final_accuracy: 1.0 // Survived all attacks
                 };
             }
 
@@ -82,11 +87,14 @@ export class DialecticalEngine {
         }
 
         // If we ran out of rounds
+        const finalFE = await DialecticalEngine.calculateFreeEnergy(currentThesis, context);
         return {
             final_thesis: currentThesis,
             iterations: MAX_ROUNDS,
             history,
-            is_resilient: false
+            is_resilient: false,
+            final_free_energy: finalFE,
+            final_accuracy: 0.5 // Hit limit, probably sub-optimal
         };
     }
 
