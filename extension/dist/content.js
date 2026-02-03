@@ -339,7 +339,14 @@ async function startAutoPilot() {
       injectFloatingButton();
     }
   });
-  observer.observe(document.body, { childList: true, subtree: true });
+  if (document.body) {
+    observer.observe(document.body, { childList: true, subtree: true });
+  } else {
+    console.warn("[Neural Bridge] document.body not ready for AutoPilot observer");
+    window.addEventListener("DOMContentLoaded", () => {
+      if (document.body) observer.observe(document.body, { childList: true, subtree: true });
+    });
+  }
 }
 function detectHost() {
   const url = window.location.href;

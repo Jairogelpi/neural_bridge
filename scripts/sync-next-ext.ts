@@ -14,7 +14,8 @@ async function buildNextExt() {
     }
 
     // 2. Copy extension.html & Patch references
-    const popupHtml = path.join(dashboardOut, 'extension.html');
+    // With trailingSlash: true, it's at extension/index.html
+    const popupHtml = path.join(dashboardOut, 'extension', 'index.html');
     const targetPopup = path.join(extDist, 'extension.html');
     if (fs.existsSync(popupHtml)) {
         let content = fs.readFileSync(popupHtml, 'utf-8');

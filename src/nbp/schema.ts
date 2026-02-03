@@ -10,7 +10,8 @@
  */
 
 import { Crystal, CrystalConstraint, ConstraintRule } from './types';
-import crypto from 'crypto';
+// import crypto from 'crypto';
+import { cryptoUtils } from '../utils/crypto_utils';
 
 export class CrystalBuilder {
     private crystal: Partial<Crystal>;
@@ -19,7 +20,7 @@ export class CrystalBuilder {
     constructor(name: string) {
         this.crystal = {
             nbp_version: '1.0',
-            id: `cryst_${crypto.randomBytes(4).toString('hex')}`,
+            id: `cryst_${cryptoUtils.randomHex(4)}`,
             created_at: new Date().toISOString(),
             name,
             constraints: []

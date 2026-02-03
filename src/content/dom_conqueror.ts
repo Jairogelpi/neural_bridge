@@ -3,6 +3,8 @@
  * Inject Neural Bridge Reality Shields directly into ChatGPT/Claude DOM.
  */
 
+import { overlay } from "./ui/overlay";
+
 declare const chrome: {
     runtime: {
         sendMessage(message: unknown): Promise<unknown>;
@@ -56,6 +58,42 @@ export class DomConqueror {
     private start() {
         this.observer.observe(document.body, { childList: true, subtree: true });
         this.scanExisting();
+        this.injectFAB();
+    }
+
+    private injectFAB() {
+        if (document.getElementById('nb-fab')) return;
+        const fab = document.createElement('div');
+        fab.id = 'nb-fab';
+        // Bottom-left positioning
+        Object.assign(fab.style, {
+            position: 'fixed',
+            bottom: '20px',
+            left: '20px',
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #020202, #1a1a1a)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            zIndex: '9999999',
+            transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            fontSize: '28px'
+        });
+        fab.innerHTML = '⚡'; // Using bolt for "Neural" feel
+
+        fab.addEventListener('mouseenter', () => fab.style.transform = 'scale(1.1) rotate(5deg)');
+        fab.addEventListener('mouseleave', () => fab.style.transform = 'scale(1) rotate(0deg)');
+        fab.addEventListener('click', () => {
+            overlay.show();
+            overlay.idle();
+        });
+
+        document.body.appendChild(fab);
     }
 
     private handleMutations(mutations: MutationRecord[]) {

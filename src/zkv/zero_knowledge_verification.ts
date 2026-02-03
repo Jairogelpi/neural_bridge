@@ -16,69 +16,18 @@
  * 5. Verifier CANNOT see: the actual source content
  */
 
-// UTILITY FUNCTIONS FOR BROWSER/NODE COMPATIBILITY
-// ═══════════════════════════════════════════════════════════════════════════════
-
-const isBrowser = typeof window !== 'undefined' && typeof window.crypto !== 'undefined';
+import { cryptoUtils } from '../utils/crypto_utils';
 
 async function sha256(message: string): Promise<string> {
-    if (isBrowser) {
-        const msgBuffer = new TextEncoder().encode(message);
-        const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgBuffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    } else {
-        // Fallback for Node.js (dynamically imported to avoid bundler issues)
-        try {
-            // @ts-ignore
-            const { createHash } = await import('node:crypto');
-            return createHash('sha256').update(message).digest('hex');
-        } catch (e) {
-            console.error("Crypto not available", e);
-            return "";
-        }
-    }
+    return await cryptoUtils.sha256(message);
 }
 
 async function hmacSha256(key: string, message: string): Promise<string> {
-    if (isBrowser) {
-        const enc = new TextEncoder();
-        const keyData = enc.encode(key);
-        const msgData = enc.encode(message);
-        const cryptoKey = await window.crypto.subtle.importKey(
-            'raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
-        );
-        const signature = await window.crypto.subtle.sign('HMAC', cryptoKey, msgData);
-        return Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, '0')).join('');
-    } else {
-        try {
-            // @ts-ignore
-            const { createHmac } = await import('node:crypto');
-            return createHmac('sha256', key).update(message).digest('hex');
-        } catch (e) {
-            console.error("Crypto not available", e);
-            return "";
-        }
-    }
+    return await cryptoUtils.hmacSha256(key, message);
 }
 
 function randomHex(length: number): string {
-    if (isBrowser) {
-        const bytes = new Uint8Array(length);
-        window.crypto.getRandomValues(bytes);
-        return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
-    } else {
-        try {
-            // @ts-ignore
-            const { randomBytes } = require('node:crypto');
-            return randomBytes(length).toString('hex');
-        } catch (e) {
-            // Basic fallback purely for non-critical (not cryptographically secure)
-            let res = "";
-            for (let i = 0; i < length; i++) res += Math.floor(Math.random() * 256).toString(16).padStart(2, '0');
-            return res;
-        }
-    }
+    return cryptoUtils.randomHex(length);
 }
 
 
