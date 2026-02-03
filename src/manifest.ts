@@ -45,6 +45,12 @@ export function buildManifest() {
                 js: ["content/silent_monitor.js"],
                 run_at: "document_start"
             }
+        ],
+        web_accessible_resources: [
+            {
+                resources: ["extension.html", "nx/*", "icons/*"],
+                matches: ["<all_urls>"]
+            }
         ]
     } as const;
 }

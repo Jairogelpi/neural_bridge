@@ -8,6 +8,7 @@ import { overlay } from "./ui/overlay";
 declare const chrome: {
     runtime: {
         sendMessage(message: unknown): Promise<unknown>;
+        getURL(path: string): string;
     };
 };
 
@@ -56,6 +57,11 @@ export class DomConqueror {
     }
 
     private start() {
+        if (!document.body) {
+            // Wait for body to be ready
+            window.addEventListener('DOMContentLoaded', () => this.start());
+            return;
+        }
         this.observer.observe(document.body, { childList: true, subtree: true });
         this.scanExisting();
         this.injectFAB();
@@ -65,35 +71,89 @@ export class DomConqueror {
         if (document.getElementById('nb-fab')) return;
         const fab = document.createElement('div');
         fab.id = 'nb-fab';
-        // Bottom-left positioning
+
+        // FAB Style - Matching Identity Theme
         Object.assign(fab.style, {
             position: 'fixed',
-            bottom: '20px',
-            left: '20px',
-            width: '56px',
-            height: '56px',
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #020202, #1a1a1a)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+            bottom: '24px',
+            left: '24px',
+            width: '48px',
+            height: '48px',
+            borderRadius: '12px',
+            background: 'linear-gradient(135deg, #2563eb, #06b6d4)', // Blue to Cyan gradient
+            boxShadow: '0 8px 30px rgba(37, 99, 235, 0.4)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            zIndex: '9999999',
-            transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-            fontSize: '28px'
+            zIndex: '2147483647',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            border: '2px solid rgba(255,255,255,0.2)'
         });
-        fab.innerHTML = '⚡'; // Using bolt for "Neural" feel
 
-        fab.addEventListener('mouseenter', () => fab.style.transform = 'scale(1.1) rotate(5deg)');
-        fab.addEventListener('mouseleave', () => fab.style.transform = 'scale(1) rotate(0deg)');
+        // Icon
+        const iconUrl = chrome.runtime.getURL('icons/icon48.png');
+        fab.innerHTML = `<img src="${iconUrl}" style="width: 24px; height: 24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));" alt="NB">`;
+
+        // Hover Effect
+        fab.addEventListener('mouseenter', () => {
+            fab.style.transform = 'translateY(-2px) scale(1.05)';
+            fab.style.boxShadow = '0 12px 40px rgba(37, 99, 235, 0.6)';
+        });
+        fab.addEventListener('mouseleave', () => {
+            fab.style.transform = 'translateY(0) scale(1)';
+            fab.style.boxShadow = '0 8px 30px rgba(37, 99, 235, 0.4)';
+        });
+
+        // Click Action - Open Iframe
         fab.addEventListener('click', () => {
-            overlay.show();
-            overlay.idle();
+            this.toggleIframe();
         });
 
         document.body.appendChild(fab);
+    }
+
+    private toggleIframe() {
+        const id = 'nb-popup-iframe';
+        let iframe = document.getElementById(id) as HTMLIFrameElement;
+
+        if (iframe) {
+            // Toggle
+            if (iframe.style.display === 'none') {
+                iframe.style.display = 'block';
+                iframe.style.opacity = '0';
+                setTimeout(() => iframe.style.opacity = '1', 50);
+            } else {
+                iframe.style.opacity = '0';
+                setTimeout(() => iframe.style.display = 'none', 300);
+            }
+        } else {
+            // Create
+            iframe = document.createElement('iframe');
+            iframe.id = id;
+            iframe.src = chrome.runtime.getURL('extension.html');
+            Object.assign(iframe.style, {
+                position: 'fixed',
+                bottom: '84px', // Above FAB
+                left: '24px',
+                width: '380px',
+                height: '520px',
+                border: 'none',
+                borderRadius: '24px',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+                zIndex: '2147483647',
+                transition: 'opacity 0.3s ease, transform 0.3s ease',
+                background: 'transparent',
+                opacity: '0',
+                transform: 'translateY(10px)'
+            });
+
+            document.body.appendChild(iframe);
+            requestAnimationFrame(() => {
+                iframe.style.opacity = '1';
+                iframe.style.transform = 'translateY(0)';
+            });
+        }
     }
 
     private handleMutations(mutations: MutationRecord[]) {
