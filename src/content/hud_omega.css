@@ -1,0 +1,121 @@
+:root {
+    --omega-bg: rgba(10, 10, 20, 0.85);
+    --omega-accent: #00f2ff;
+    --omega-gold: #ffcc00;
+    --omega-glass: rgba(255, 255, 255, 0.05);
+    --omega-border: rgba(255, 255, 255, 0.1);
+    --omega-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+}
+
+.nb-omega-hud {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 320px;
+    background: var(--omega-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--omega-border);
+    border-radius: 12px;
+    box-shadow: var(--omega-shadow);
+    color: white;
+    font-family: 'Outfit', 'Inter', sans-serif;
+    padding: 20px;
+    z-index: 10000;
+    overflow: hidden;
+    animation: omegaSlide 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes omegaSlide {
+    from {
+        transform: translateX(120%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.nb-omega-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--omega-accent);
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nb-omega-stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.nb-omega-stat-card {
+    background: var(--omega-glass);
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--omega-border);
+}
+
+.nb-omega-stat-label {
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 4px;
+}
+
+.nb-omega-stat-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.nb-omega-progress-container {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    margin-top: 8px;
+    position: relative;
+}
+
+.nb-omega-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--omega-accent), #7000ff);
+    border-radius: 2px;
+    transition: width 0.5s ease;
+}
+
+.nb-omega-birth-pulse {
+    margin-top: 20px;
+    border-top: 1px solid var(--omega-border);
+    padding-top: 15px;
+}
+
+.nb-omega-log-item {
+    font-size: 0.75rem;
+    padding: 8px;
+    background: rgba(0, 242, 255, 0.05);
+    border-left: 2px solid var(--omega-accent);
+    margin-top: 10px;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.nb-glow {
+    text-shadow: 0 0 10px var(--omega-accent);
+}

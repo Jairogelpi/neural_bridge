@@ -416,6 +416,32 @@ export interface Crystal {
         /** True if this is a Geometric Singularity (Converged Axiom) */
         is_singularity: boolean;
     };
+
+    // ========== FRACTAL GENEALOGY (Lineage) ==========
+
+    /** 
+     * Fractal Lineage 
+     * Tracks how this crystal evolved from others.
+     */
+    genealogy?: {
+        generation: number; // 0 = Genesis, 1, 2, 3...
+        parents: string[]; // IDs of crystals used to create this one
+        evolved_from?: string; // ID of the specific crystal this refines (if direct mutation)
+    };
+
+    // ========== SYNAPTIC CONNECTOME (Horizontal Links) ==========
+
+    /** 
+     * Synaptic Connections
+     * Autonomous semantic links between crystals.
+     */
+    synapses?: Array<{
+        target: string; // Target Crystal ID
+        type: 'SUPPORTS' | 'CONTRADICTS' | 'REFINES' | 'ORIGINATES_FROM' | 'RELATED_TO' | 'MERGED_INTO';
+        strength: number; // 0.0 - 1.0 (Semantic affinity)
+        discovered_at: string; // ISO timestamp
+        justification?: string; // Why this link exists
+    }>;
 }
 
 // ============================================

@@ -13,7 +13,7 @@ import type { SemanticMerkleTree } from "../smt";
 import { CLPVRuntime } from "../clpv";
 import type { PortableReceipt } from "../clpv";
 import { truthVault } from "../services/truth_vault";
-import type { Crystal } from "../api/types";
+import type { Crystal } from "../types/crystal_format";
 
 export type TrustState = 'idle' | 'scanning' | 'verified' | 'warning' | 'blocked';
 
@@ -119,7 +119,7 @@ export class FirewallAgent {
         if (!this.host) return;
 
         const initialText = this.host.getLastAssistantText();
-        const detected = DomainHeuristics.detect(initialText || document.title);
+        const detected = await DomainHeuristics.detect(initialText || document.title);
 
         this.activeDomain = detected.domain;
         console.log(`[NeuralFirewall] Domain detected: ${this.activeDomain} (${detected.confidence})`);
@@ -161,8 +161,7 @@ export class FirewallAgent {
 
         this.lastProcessedText = currentText;
         onVerdict({ state: 'scanning', sri: 0 });
-
-        const d = DomainHeuristics.detect(currentText);
+        const d = await DomainHeuristics.detect(currentText);
         if (d.domain !== this.activeDomain && d.confidence > 0.6) {
             this.activeDomain = d.domain;
             await this.mountDomainCrystals();
@@ -210,7 +209,7 @@ export class FirewallAgent {
 
         // 5. TRUTH VAULT: Holographic Memory & Reality Check
         // Checks if current text contradicts previously verified truths from ANY session
-        const realityCheck = truthVault.checkReality(currentText);
+        const realityCheck = await truthVault.checkReality(currentText, this.activeDomain);
         let healing = undefined;
 
         if (realityCheck.is_conflict) {
@@ -219,7 +218,10 @@ export class FirewallAgent {
 
             healing = {
                 needed: true,
-                corrected_text: truthVault.healReality(currentText, realityCheck),
+                corrected_text: await truthVault.healReality(currentText, {
+                    reason: realityCheck.contradiction_reason || 'Contradicts verified truth',
+                    entry: realityCheck.conflicting_entry
+                }),
                 source_truth_id: realityCheck.conflicting_entry?.id || 'unknown',
                 reason: realityCheck.contradiction_reason || 'Contradicts verified truth'
             };
@@ -227,13 +229,37 @@ export class FirewallAgent {
             // AUTO-SAVE: If text is valid and substantial, crystallize it into the vault
             // This builds the user's sovereign memory automatically
             if (this.lastSMT) {
-                truthVault.saveTruth({
-                    content: currentText,
+                // Modified based on Crystal format
+                const autoCrystal: Crystal = {
+                    scp_version: '1.0',
+                    context_id: `auto_${Date.now()}`,
+                    created_at: new Date().toISOString(),
+                    version: '1.0.0',
+                    tier: 'community',
                     domain: this.activeDomain,
-                    smt: this.lastSMT,
-                    pck: pckResult?.valid ? this.mountedPCKs.get(this.activeDomain) : undefined,
-                    score: pckResult?.confidence || 0.9
-                }).catch(e => console.error("Failed to crystallize truth:", e));
+                    source: {
+                        platform: this.host?.name || 'unknown',
+                        url: window.location.href,
+                        timestamp: new Date().toISOString()
+                    },
+                    author: {
+                        id: 'nb_auto_guardian',
+                        name: 'Neural Guard',
+                        reputation: 1.0
+                    },
+                    intent: { primary: currentText.substring(0, 100), status: 'active' as any },
+                    constraints: [],
+                    entities: [],
+                    smt_root: '', // Will be calculated
+                    proof_tree: {},
+                    fractal_depth: 0,
+                    verification: {
+                        canonical_hash: '',
+                        semantic_invariants: [],
+                        policy: { min_checks: 1, accept_threshold: 0.7, max_retries: 1, strategy: 'balanced' }
+                    }
+                };
+                truthVault.saveTruth(autoCrystal).catch(e => console.error("Failed to crystallize truth:", e));
             }
         }
 

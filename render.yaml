@@ -32,5 +32,27 @@ services:
     envVars:
       - key: NEXT_PUBLIC_API_URL
         value: https://neural-bridge-backend.onrender.com
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
       - key: NODE_ENV
         value: production
+
+  - type: web
+    name: open-webui
+    runtime: docker
+    plan: starter
+    envVars:
+      - key: OPENAI_API_BASE_URL
+        value: https://neural-bridge-backend.onrender.com/v1
+      - key: OPENAI_API_KEY
+        value: neural-bridge-sovereign-internal
+      - key: WEBUI_AUTH
+        value: "true"
+      - key: WEBUI_NAME
+        value: "Neural Bridge Hive"
+    disk:
+      name: openwebui-data
+      mountPath: /app/backend/data
+      sizeGB: 10

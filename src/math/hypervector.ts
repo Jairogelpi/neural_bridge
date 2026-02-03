@@ -307,4 +307,15 @@ export class Hypervector {
     getFisherInformation(): number {
         return 1.0 - this.getEntropy();
     }
+
+    /**
+     * BUCKET HASH (Spatial Hashing) 🪣
+     * 
+     * Extracts a stable Locality Sensitive Hash (LSH) for O(1) searches.
+     * In HDC, nearby vectors share similar bucket hashes with high probability.
+     */
+    getBucketHash(): string {
+        // Use a 32-bit projection of the vector as a bucket
+        return this.data[0].toString(16).padStart(8, '0');
+    }
 }

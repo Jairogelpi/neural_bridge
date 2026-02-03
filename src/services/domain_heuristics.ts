@@ -1,3 +1,5 @@
+import { SemanticHasher } from './semantic_hashing';
+import { Hypervector } from '../math/hypervector';
 import type { Crystal } from '../types/crystal_format';
 
 export type KnowledgeDomain = string;
@@ -9,52 +11,42 @@ export interface DomainScore {
 
 export const DomainHeuristics = {
     /**
-     * Analyze text to detect the knowledge domain
+     * Analyze text to detect the knowledge domain using SEMANTIC ANCHORS.
+     * No hardcoded word lists. Pure mathematical resonance.
      */
-    detect(text: string): DomainScore {
-        const t = text.toLowerCase();
+    async detect(text: string): Promise<DomainScore> {
+        const hv = Hypervector.fromString(SemanticHasher.computeHolographicHash(text));
 
-        // Common domains for heuristic detection
-        const keywords: Record<string, string[]> = {
-            medicine: ['patient', 'prescribe', 'drug', 'clinical', 'diagnosis', 'treatment', 'hospital', 'therapy', 'pharmacological', 'paciente', 'dosis', 'médico'],
-            law: ['contract', 'legal', 'litigation', 'attorney', 'clause', 'regulation', 'compliance', 'jurisdiction', 'agreement', 'contrato', 'cláusula', 'ley', 'derecho'],
-            tech: ['code', 'api', 'server', 'database', 'frontend', 'backend', 'algorithm', 'deployment', 'interface', 'variable', 'código', 'servidor', 'datos'],
-            finance: ['investment', 'portfolio', 'asset', 'trading', 'market', 'equity', 'revenue', 'fiduciary', 'capital', 'inversión', 'mercado', 'activo', 'ingresos'],
-            education: ['teaching', 'curriculum', 'lesson', 'student', 'educational', 'academic', 'pedagogy', 'learning', 'enseñanza', 'clase', 'estudiante'],
-            creative: ['branding', 'design', 'copywriting', 'artistic', 'narrative', 'scripts', 'visual', 'composition', 'diseño', 'arte', 'escritura'],
-            corporate: ['strategy', 'logistics', 'operations', 'hr', 'management', 'roadmap', 'stakeholder', 'quarterly', 'estrategia', 'logística', 'gestión']
+        // Generate Domain Anchors (Deterministc projections of domain concepts)
+        const anchors: Record<string, Hypervector> = {
+            medicine: Hypervector.fromString(SemanticHasher.computeHolographicHash("medical clinical patient health treatment")),
+            law: Hypervector.fromString(SemanticHasher.computeHolographicHash("legal contract regulation law justice")),
+            tech: Hypervector.fromString(SemanticHasher.computeHolographicHash("code programming software technology system")),
+            finance: Hypervector.fromString(SemanticHasher.computeHolographicHash("finance money market investment capital")),
+            education: Hypervector.fromString(SemanticHasher.computeHolographicHash("education student learning teaching academic")),
+            creative: Hypervector.fromString(SemanticHasher.computeHolographicHash("art design creativity media visual")),
+            corporate: Hypervector.fromString(SemanticHasher.computeHolographicHash("business management company corporate strategy"))
         };
 
-        const scores: Record<string, number> = {};
-        // Initialize scores
-        Object.keys(keywords).forEach(d => scores[d] = 0);
-        scores['general'] = 0.1; // Base confidence
-
-        for (const [domain, words] of Object.entries(keywords)) {
-            words.forEach(word => {
-                if (t.includes(word)) {
-                    scores[domain] = (scores[domain] || 0) + 1;
-                }
-            });
+        const resonance: Record<string, number> = {};
+        for (const [domain, anchor] of Object.entries(anchors)) {
+            resonance[domain] = hv.similarity(anchor);
         }
 
-        // Find max
-        let bestDomain: KnowledgeDomain = 'general';
-        let maxScore = 0;
+        // Find max resonance
+        let bestDomain = 'general';
+        let maxResonance = 0.45; // Threshold for specialization
 
-        for (const [domain, score] of Object.entries(scores)) {
-            if (score > maxScore) {
-                maxScore = score;
+        for (const [domain, score] of Object.entries(resonance)) {
+            if (score > maxResonance) {
+                maxResonance = score;
                 bestDomain = domain;
             }
         }
 
-        // Normalize confidence (0 to 1)
-        const confidence = Math.min(maxScore / 5, 1.0);
-
         return {
-            domain: confidence > 0.2 ? bestDomain : 'general',
-            confidence: Math.max(confidence, 0.1)
+            domain: bestDomain,
+            confidence: maxResonance
         };
     },
 

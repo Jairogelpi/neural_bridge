@@ -56,16 +56,39 @@ interface SCPCompilerOutput {
     author?: { id?: string; name?: string };
 }
 
+import { CONFIG } from '../config';
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // PRODUCTION MODELS - VERIFIED WORKING (Jan 2026)
 // These models have been tested and confirmed working on OpenRouter
 // ═══════════════════════════════════════════════════════════════════════════════
-const PRIMARY_FREE_MODEL = ENV_MODEL || 'nvidia/nemotron-3-nano-30b-a3b:free';  // NVIDIA - most reliable fallback
+const PRIMARY_FREE_MODEL = ENV_MODEL || CONFIG.model_stack.free;
 const FREE_MODEL_FALLBACKS = [
     'arcee-ai/trinity-large-preview:free',        // Arcee Trinity 400B MoE
     'liquid/lfm-2.5-1.2b-instruct:free',          // Liquid LFM - fast
     'upstage/solar-pro-3:free',                   // Upstage Solar Pro 3
 ];
+
+const PREMIUM_MODEL = CONFIG.model_stack.premium;
+
+/**
+ * POTENCY ESCALATOR 🏔️⚡
+ * Calculates the required model potency based on Free Energy and Complexity.
+ */
+function getRequiredPotency(stats?: { free_energy: number; surprise: number }): string {
+    const fe = stats?.free_energy || stats?.surprise || 0.5;
+
+    if (CONFIG.budget_mode === 'performance') return PREMIUM_MODEL;
+    if (CONFIG.budget_mode === 'sovereign') return CONFIG.model_stack.local;
+
+    // BALANCED: Escalate if surprise is too high (> 0.3)
+    if (fe > 0.3) {
+        console.log(`[PotencyEscalator] 🏔️ High Free Energy detected (${fe.toFixed(2)}). Escalating to Platinum Tier...`);
+        return PREMIUM_MODEL;
+    }
+
+    return PRIMARY_FREE_MODEL;
+}
 
 // TURBO: Minimal cooldown (only for rate limit protection)
 const REQUEST_COOLDOWN_MS = 50;
@@ -77,7 +100,7 @@ async function sleep(ms: number) {
 // Real LLM call via OpenRouter with TURBO Backoff (fast fallback)
 async function callLLM(
     prompt: string,
-    model: string = 'anthropic/claude-3.5-sonnet',
+    model: string = CONFIG.model_stack.premium,
     systemPrompt?: string,
     maxRetries: number = 1  // TURBO: Only 1 retry before fallback
 ): Promise<LLMResponse> {
@@ -89,13 +112,17 @@ async function callLLM(
     }
     messages.push({ role: 'user', content: prompt });
 
-    // Lazy load API Key to allow runtime injection (e.g. via dotenv)
-    const apiKey = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_OPENROUTER_API_KEY ||
+    // PHASE SINGULARITY: Sovereign Key Injection
+    const { KeyManager } = await import('./key_manager');
+    const userKey = await KeyManager.getKey('openrouter');
+
+    const apiKey = userKey ||
+        (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_OPENROUTER_API_KEY ||
         (globalThis as unknown as { process?: { env: Record<string, string> } }).process?.env?.VITE_OPENROUTER_API_KEY ||
         (globalThis as unknown as { process?: { env: Record<string, string> } }).process?.env?.OPENROUTER_API_KEY;
 
     if (!apiKey) {
-        throw new Error('MISSING_API_KEY: VITE_OPENROUTER_API_KEY is not defined.');
+        throw new Error('MISSING_API_KEY: Please provide an OpenRouter key in Settings.');
     }
 
     let attempt = 0;
@@ -107,7 +134,7 @@ async function callLLM(
                     'Authorization': `Bearer ${apiKey}`,
                     'Content-Type': 'application/json',
                     'HTTP-Referer': 'https://neural-bridge.ai',
-                    'X-Title': 'Neural Bridge SCP'
+                    'X-Title': 'Neural Bridge Sovereign'
                 },
                 body: JSON.stringify({
                     model,
@@ -140,7 +167,7 @@ async function callLLM(
 
             // Simple zero-cost pricing for :free models
             const pricing: Record<string, { prompt: number; completion: number }> = {
-                'anthropic/claude-3.5-sonnet': { prompt: 0.003, completion: 0.015 },
+                [CONFIG.model_stack.premium]: { prompt: 0.003, completion: 0.015 },
                 'openai/gpt-4o': { prompt: 0.005, completion: 0.015 }
             };
 
@@ -337,15 +364,29 @@ Return ONLY valid JSON, no markdown or explanation.`;
     // 🧠 NEUROMORPHIC FILTER: Predictive Coding
     const { predictionError, residualContent } = await StochasticEngine.performPredictiveCoding(processedText, domain);
 
-    if (predictionError < 0.2) {
-        console.log(`[SCPService] 💤 High Prediction Accuracy (${(1 - predictionError) * 100}%). Efficiently assimilating known context...`);
-        // In high accuracy cases, we could theoretically skip the LLM entirely 
-        // and return a 'Synthetic' Crystal based on the prediction.
+    // 🪐 SIGMA FILTER: Talamic Scaling (Infinite Library)
+    const { ThalamicGateway } = await import('./thalamic_gateway');
+    const talamicMatch = await ThalamicGateway.route(processedText, domain);
+
+    let talamicContext = "";
+    if (talamicMatch.bestCrystal) {
+        console.log(`[SCPService] 🪐 Resonant Crystal retrieved from Talamic Atlas. Merging knowledge...`);
+        const { CrystalFuser } = await import('./crystal_fuser');
+        talamicContext = `\n\n🪐 TALAMIC CONTEXT (Verified Knowledge):\n${CrystalFuser.fuseCrystalIntoContext(talamicMatch.bestCrystal)}`;
     }
 
-    const contextToProcess = predictionError > 0.1 ? processedText : residualContent;
+    if (predictionError < 0.2) {
+        console.log(`[SCPService] 💤 High Prediction Accuracy (${(1 - predictionError) * 100}%). Efficiently assimilating known context...`);
+    }
 
-    const model = getOptimalModel({ domain, task: 'compile' });
+    const contextToProcess = (predictionError > 0.1 ? processedText : residualContent) + talamicContext;
+
+    const model = getOptimalModel({
+        domain,
+        task: 'compile',
+        text: processedText,
+        stats: { free_energy: entropy, surprise: predictionError }
+    });
 
     // 💉 SEMANTIC IMMUNITY SYSTEM: Inject Vaccines
     const { VaccineEngine } = await import('./vaccine_engine');
@@ -537,6 +578,9 @@ Return ONLY valid JSON, no markdown or explanation.`;
                     crystal.neuromorphic_stats.free_energy = dialectic.final_free_energy;
                     crystal.neuromorphic_stats.is_singularity = dialectic.final_accuracy > 0.9 && dialectic.final_free_energy < 0.2;
                 }
+
+                // FRACAL ASCENSION: A synthesis is a higher-order abstraction
+                crystal.fractal_depth = (crystal.fractal_depth || 0) + 1;
             }
         } catch (e) {
             console.warn('[SCPService] ⚖️ Dialectical Loop bypassed due to friction:', e);
@@ -641,7 +685,11 @@ export async function verifyTransfer(
         cost: 0
     };
 
-    const finalTarget = targetModel || getOptimalModel({ domain: crystal.domain, task: 'verify' });
+    const finalTarget = targetModel || getOptimalModel({
+        domain: crystal.domain,
+        task: 'verify',
+        stats: crystal.neuromorphic_stats
+    });
 
     const { SemanticProtocol } = await import('./semantic_protocol');
     const handshake = await SemanticProtocol.performHandshake(crystal, finalTarget);
@@ -916,22 +964,30 @@ export function getOptimalModel(params: {
     isCritical?: boolean;
     task?: 'compile' | 'verify' | 'repair' | 'dream' | 'abstract';
     text?: string;
+    stats?: { free_energy: number; surprise: number };
 }): string {
-    const { isCritical = false, task = 'verify', text = '' } = params;
+    const { isCritical = false, task = 'verify', text = '', stats } = params;
+
+    // 1. Check Budget Mode (Sovereign/Performance override)
+    if (CONFIG.budget_mode === 'performance') return CONFIG.model_stack.premium;
+    if (CONFIG.budget_mode === 'sovereign') return CONFIG.model_stack.local;
+
+    // 2. Use Potency Escalator if stats are provided
+    if (stats) {
+        return getRequiredPotency(stats);
+    }
+
+    // 3. Fallback to Heuristic (Legacy Logic but updated for CONFIG)
     let requiredIQ = isCritical ? 0.9 : 0.5;
     if (task === 'compile' || task === 'repair') requiredIQ += 0.2;
     if (text.length > 5000) requiredIQ += 0.1;
 
-    const models = [
-        { id: 'google/gemini-2.0-flash-exp:free', capability: 0.6, cost: 0 },
-        { id: 'google/gemini-pro-1.5', capability: 0.85, cost: 0.01 },
-        { id: 'anthropic/claude-3.5-sonnet', capability: 0.95, cost: 0.03 }
-    ];
+    // Use free model as default unless IQ requirement is very high
+    if (requiredIQ > 0.85) {
+        return CONFIG.model_stack.premium;
+    }
 
-    const eligible = models.filter(m => m.capability >= Math.min(requiredIQ, 0.95));
-    const best = eligible.sort((a, b) => (b.capability / (b.cost + 0.01)) - (a.capability / (a.cost + 0.01)))[0];
-
-    return best?.id || 'google/gemini-2.0-flash-exp:free';
+    return CONFIG.model_stack.free;
 }
 
 async function computeCanonicalHash(obj: unknown): Promise<string> {

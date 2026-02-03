@@ -1,3 +1,4 @@
+import { EdgeDistillator } from "../../services/edge_distillator";
 // Complete Verifier with Type-Aware Scoring
 // Supports: boolean | enum | set | regex | short_text
 
@@ -102,16 +103,20 @@ function scoreShortText(expected: string, got: unknown): { s: number; reason: st
     if (!g) return { s: 0, reason: "short_text_missing" };
     if (!e) return { s: 0.7, reason: "short_text_no_expected" }; // degrade: can't verify strongly
 
-    // token overlap (cheap semantic)
+    // 🚀 UPSILON: Use HDC Semantic Resonance for Zero-Cost Verification
+    const audit = EdgeDistillator.verifyInvariantHDC(g, { prompt: '', expected: { type: 'short_text', value: e } });
+
+    if (audit.resonance >= 0.95) return { s: 1, reason: "short_text_hdc_perfect" };
+    if (audit.resonance >= 0.85) return { s: 0.8, reason: "short_text_hdc_high" };
+
+    // token overlap (cheap semantic) - Fallback
     const eTok = new Set(e.split(/\s+/).filter(Boolean));
     const gTok = new Set(g.split(/\s+/).filter(Boolean));
     let inter = 0;
     for (const t of eTok) if (gTok.has(t)) inter++;
     const overlap = eTok.size ? inter / eTok.size : 0;
 
-    if (overlap >= 0.8) return { s: 1, reason: "short_text_overlap_high" };
-    if (overlap >= 0.5) return { s: 0.7, reason: "short_text_overlap_mid" };
-    if (overlap >= 0.25) return { s: 0.3, reason: "short_text_overlap_low" };
+    if (overlap >= 0.8) return { s: 0.7, reason: "short_text_overlap_high" };
     return { s: 0, reason: "short_text_mismatch" };
 }
 

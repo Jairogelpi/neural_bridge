@@ -125,6 +125,44 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
                 return;
             }
 
+            if (msg?.type === "NB_UNIVERSAL_PLUG") {
+                console.log("[Background] ⚡ UNIVERSAL PLUG triggered.");
+                const { AutonomousOnboarding } = await import("./services/autonomous_onboarding");
+
+                const result = await AutonomousOnboarding.universalPlug({
+                    type: msg.sourceType || 'text',
+                    content: msg.content,
+                    metadata: msg.metadata || {}
+                });
+
+                sendResponse({ ok: true, result });
+                return;
+            }
+
+            if (msg?.type === "GET_BRIDGE_PAYLOAD") {
+                console.log("[Background] 🌉 Preparing Bridge Payload for External LLM...");
+                const { OpenWebUIBridge } = await import("./services/openwebui_bridge");
+
+                // Get a representative query (could be from msg.query or a sum of active context)
+                const query = msg.query || "General Truth Grounding";
+                const payload = await OpenWebUIBridge.prepareInjection(query, []); // Empty array = get most relevant
+
+                sendResponse({ ok: true, payload });
+                return;
+            }
+
+            if (msg?.type === "NB_REFINE_KNOWLEDGE") {
+                console.log("[Background] 🧬 Triggering Recursive Refinement...");
+                const { NeuralSurface } = await import("./services/neural_surface");
+
+                // If no session exists, initiate a temporary one for refinement
+                const sessionId = msg.sessionId || "GLOBAL_REFINE";
+                await NeuralSurface.refineKnowledge(sessionId, msg.interactionResult);
+
+                sendResponse({ ok: true });
+                return;
+            }
+
             sendResponse({ ok: false, error: "unknown_message" });
         } catch (e: unknown) {
             console.error("[Background Error]", e);

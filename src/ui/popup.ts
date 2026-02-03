@@ -53,6 +53,78 @@ function setupEventListeners() {
     // Auth submit
     document.getElementById('btn-login-submit')!.onclick = handleLogin;
     document.getElementById('btn-register-submit')!.onclick = handleRegister;
+
+    // Phase Chi: Universal Plug
+    document.getElementById('btn-plug-submit')!.onclick = handleUniversalPlug;
+
+    // Simple Drag & Drop support
+    const plugBody = document.querySelector('.nb-universal-plug') as HTMLElement;
+    plugBody.ondragover = (e) => { e.preventDefault(); plugBody.style.borderColor = 'var(--accent)'; };
+    plugBody.ondragleave = () => { plugBody.style.borderColor = 'var(--border)'; };
+    plugBody.ondrop = handleFileDrop;
+}
+
+// ========== UNIVERSAL PLUG ==========
+
+async function handleUniversalPlug() {
+    const input = document.getElementById('plug-url') as HTMLInputElement;
+    const content = input.value.trim();
+    if (!content) return;
+
+    const btn = document.getElementById('btn-plug-submit') as HTMLButtonElement;
+    const originalText = btn.textContent;
+    btn.textContent = 'Linking...';
+    btn.disabled = true;
+
+    try {
+        const res = await chrome.runtime.sendMessage({
+            type: 'NB_UNIVERSAL_PLUG',
+            sourceType: content.startsWith('http') ? 'url' : 'text',
+            content: content,
+            metadata: { name: content.substring(0, 30) }
+        });
+
+        if (res.ok && res.result.status !== 'ERROR') {
+            updateStatus(`Linked: ${res.result.domain}`, 'success');
+            input.value = '';
+            // If it triggered evolution, show a special message
+            if (res.result.status === 'EVOLVING') {
+                alert(`Universal Plug: System is autonomously evolving a new optimizer for the ${res.result.domain} domain!`);
+            }
+        } else {
+            updateStatus('Plug Failed', 'error');
+        }
+    } catch (e) {
+        updateStatus('Error', 'error');
+    } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
+}
+
+async function handleFileDrop(e: DragEvent) {
+    e.preventDefault();
+    const files = e.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    updateStatus(`Reading ${file.name}...`, 'idle');
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+        const content = event.target?.result as string;
+        const res = await chrome.runtime.sendMessage({
+            type: 'NB_UNIVERSAL_PLUG',
+            sourceType: 'file',
+            content: content,
+            metadata: { name: file.name }
+        });
+
+        if (res.ok) {
+            updateStatus(`Knowledge Ingested: ${res.result.domain}`, 'success');
+        }
+    };
+    reader.readAsText(file);
 }
 
 // ========== CRYSTALLIZE ==========
@@ -94,18 +166,25 @@ function showCrystalPreview(crystal: any) {
         ? crystal.proof_tree.nodes.size
         : (typeof crystal.proof_tree?.nodes === 'object' ? Object.keys(crystal.proof_tree.nodes || {}).length : 0);
 
-    const enriched_preview = {
+    const enriched_preview: any = {
         pck_identity: {
-            id: crystal.pck_id || 'pck_generated',
-            version: '1.0-universal',
-            timestamp: new Date().toISOString()
+            id: crystal.context_id || 'generated',
+            tier: crystal.tier || 'community',
+            version: crystal.version || '1.0.0'
         },
         semantic_character: {
-            domain: crystal.claim?.domain || crystal.domain || 'general',
+            domain: crystal.domain || 'general',
             nodes: nodeCount,
             confidence: `${Math.round((crystal.claim?.confidence || 0.95) * 100)}%`
         },
-        proof_marker: "SHA256-HMAC-VERIFIED"
+        neuromorphic_dash: crystal.neuromorphic_stats ? {
+            free_energy: crystal.neuromorphic_stats.free_energy.toFixed(3),
+            predictive_surprise: crystal.neuromorphic_stats.surprise.toFixed(3),
+            logic_gravity: crystal.neuromorphic_stats.geometric_density.toFixed(3),
+            fractal_depth: crystal.fractal_depth || 0,
+            singularity: crystal.neuromorphic_stats.is_singularity ? "ACTIVE" : "STABLE"
+        } : "HEURISTIC_MODE",
+        proof_marker: "SOVEREIGN_HIVE_VERIFIED"
     };
 
     data.textContent = JSON.stringify(enriched_preview, null, 2);

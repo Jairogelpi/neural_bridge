@@ -14,8 +14,8 @@
         "https://gemini.google.com/*",
         "https://claude.ai/*",
         "https://openrouter.ai/*",
-        "http://localhost:3000/*",
-        "https://neural-bridge-backend.onrender.com/*"
+        "http://localhost:*/*",
+        "https://*.onrender.com/*"
     ],
     "action": {
         "default_popup": "popup.html",
@@ -39,6 +39,19 @@
             ],
             "js": [
                 "content.js"
+            ],
+            "css": [
+                "content.css"
+            ],
+            "run_at": "document_idle"
+        },
+        {
+            "matches": [
+                "http://localhost:*/*",
+                "https://*.onrender.com/*"
+            ],
+            "js": [
+                "openwebui_bridge.js"
             ],
             "css": [
                 "content.css"

@@ -1,5 +1,6 @@
 import { SCPService, type LLMResponse } from './llm';
-import type { Crystal} from '../types/crystal_format';
+import { CONFIG } from '../config';
+import type { Crystal } from '../types/crystal_format';
 import { ConstraintRule } from '../types/crystal_format';
 
 export interface OraclePrediction {
@@ -46,7 +47,7 @@ export class Oracle {
 
         let simRes: LLMResponse;
         try {
-            simRes = await SCPService.resilientCallLLM(simulationPrompt, 'google/gemini-2.0-flash-exp:free', 'You are Murphy\'s Law.');
+            simRes = await SCPService.resilientCallLLM(simulationPrompt, CONFIG.model_stack.flash, 'You are Murphy\'s Law.');
         } catch (e) {
             console.warn(`[Oracle] ⚠️ Ghost Simulation unavailable (Network/API Error). Proceeding safely.`);
             return { original_timeline_outcome: 'SUCCESS', optimized_crystal_diff: "Oracle Offline - No Intervention." };
@@ -100,7 +101,7 @@ export class Oracle {
         Return ONLY the new Intent string.
         `;
 
-        const fixRes = await SCPService.resilientCallLLM(interventionPrompt, 'google/gemini-pro-1.5', 'You are a Time Traveler.');
+        const fixRes = await SCPService.resilientCallLLM(interventionPrompt, CONFIG.model_stack.premium, 'You are a Time Traveler.');
         const newIntent = fixRes.content.trim();
 
         // Apply the fix "Retroactively"

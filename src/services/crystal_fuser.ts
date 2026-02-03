@@ -67,7 +67,8 @@ export class CrystalFuser {
                 canonical_hash: bundle.toString(),
                 semantic_invariants: [],
                 policy: { min_checks: 2, accept_threshold: 0.9, max_retries: 1, strategy: 'strict' }
-            }
+            },
+            fractal_depth: Math.max(...crystals.map(c => c.fractal_depth || 0)) + 1
         };
 
         return master;
@@ -119,7 +120,8 @@ export class CrystalFuser {
             verification: {
                 ...crystals[0]!.verification,
                 semantic_invariants: [] // To be re-generated
-            }
+            },
+            fractal_depth: Math.max(...crystals.map(c => c.fractal_depth || 0)) + 1
         };
 
         // 3. Notify Sentinel

@@ -1,3 +1,4 @@
+
 import type { CrystalRuntimeConfig, CrystalExecutionResult } from "../services/crystal_runtime";
 import { CrystalRuntime } from "../services/crystal_runtime";
 import { loadCrystal, loadCards, getActiveContextId } from "../content/storage";
@@ -7,6 +8,7 @@ import { SCPService } from './llm';
 import type { Crystal } from "../types/crystal_format";
 import type { Platform } from "../api/types";
 import type { DecisionReceipt } from "./decision_receipts";
+import { EdgeDistillator } from "./edge_distillator";
 
 export interface VerificationRequest {
     context_id?: string;
@@ -38,7 +40,6 @@ export class VerificationService {
             const crystal = await loadCrystal(card.context_id);
             if (!crystal) continue;
 
-            // HARMONY LOGIC: Match by domain or semantic relevance
             const crystalDomain = crystal.domain || 'general';
             if (crystalDomain === params.domain || params.domain === 'general') {
                 candidates.push(crystal);
@@ -52,30 +53,35 @@ export class VerificationService {
      * Execute a full verification cycle
      */
     public static async verify(req: VerificationRequest): Promise<CrystalExecutionResult | null> {
-        let crystal = null;
+        let crystal: Crystal | null = null;
 
         if (req.context_id) {
-            crystal = await loadCrystal(req.context_id);
+            crystal = await loadCrystal(req.context_id) as any;
         }
 
         if (!crystal) {
-            // If no context_id, attempt to harvest crystals for the domain
-            const domain = req.domain || DomainHeuristics.detect(req.answer).domain;
+            const detectedValue = await DomainHeuristics.detect(req.answer);
+            const domain = req.domain || detectedValue.domain;
             const harvested = await this.harvestCrystals({ domain, text: req.answer });
             if (harvested.length > 0) {
-                crystal = harvested[0]; // Take the best match
+                crystal = harvested[0];
             }
         }
 
         if (!crystal) return null;
 
         // ═══════════════════════════════════════════════════════════════════
-        // TURBO OPTIMIZATION: Quick Safety Check (Zero LLM Cost)
+        // UPSILON OPTIMIZATION: Zero-Cost Semantic Audit (HDC)
         // ═══════════════════════════════════════════════════════════════════
+        const realityAudit = EdgeDistillator.checkContradictionHDC(crystal.intent.primary, req.answer);
+        if (realityAudit.contradictory) {
+            console.log(`⚡ [UPSILON] HDC contradiction detected (Distance: ${realityAudit.distance.toFixed(2)})`);
+            // Handled as immediate failure
+        }
+
         const quickCheck = DomainHeuristics.quickSafetyCheck(crystal, req.answer);
 
         if (quickCheck.obviousViolation && quickCheck.confidence >= 0.85) {
-            // FAST PATH: Return immediately without expensive LLM calls
             console.log(`⚡ [TURBO] Quick safety check detected violation: ${quickCheck.reason}`);
 
             return {
@@ -102,7 +108,7 @@ export class VerificationService {
                 }],
                 passed: false,
                 issues: [quickCheck.reason],
-                total_cost: 0 // Zero cost!
+                total_cost: 0
             };
         }
 
@@ -110,47 +116,43 @@ export class VerificationService {
             domain: (req.domain || crystal.domain || 'general') as KnowledgeDomain,
             sri_threshold: req.mode === 'active' ? 0.85 : 0.8,
             enable_adversarials: true,
-            enable_counterfactuals: req.mode === 'active', // Only for active check to save tokens
+            enable_counterfactuals: req.mode === 'active',
             sign_receipt: true
         };
 
         const result = await CrystalRuntime.executeCrystal({
-            crystal: crystal as Crystal,
+            crystal: crystal,
             question: req.question,
             answer: req.answer,
             config,
             requester: req.requester
         });
 
-        // 📊 HARMONY TELEMETRY: Report to Dashboard (if possible)
         try {
             const { reportVerifyTelemetry } = await import("../api/client");
             const version = typeof chrome !== 'undefined' && chrome.runtime?.getManifest?.()?.version || "1.0.0";
 
             await reportVerifyTelemetry({
                 body: {
-                    context_id: (crystal as Crystal).context_id,
+                    context_id: (crystal).context_id,
                     target_host: (req.domain as string as Platform) || "other",
                     decision: result.passed ? "ACCEPT" : "FAIL",
                     score: result.sri,
                     ladder_steps: result.execution_log,
                     receipt: result.receipt,
-                    author_id: (crystal as Crystal).author?.id,
+                    author_id: (crystal).author?.id,
                     reputation_impact: (result as { reputation_impact?: number }).reputation_impact || 0,
                     extension_version: version
                 },
                 extensionVersion: version
             });
         } catch (e) {
-            console.warn("[VerificationService] Telemetry report skipped (likely CLI or No-Auth environment)");
+            console.warn("[VerificationService] Telemetry report skipped");
         }
 
         return result;
     }
 
-    /**
-     * REFLOW PROTOCOL: Suggest a repair for a non-compliant answer
-     */
     public static async suggestRepair(params: {
         crystal: Crystal | null;
         question: string;
@@ -169,7 +171,7 @@ export class VerificationService {
             ${params.failedInvariants.map(inv => `- ${inv}`).join('\n')}
             
             REPAIR GOAL:
-            Rewrite the answer to be 100% compliant with the GROUND TRUTH CONSTRAINTS and fix the specific FAILED CONSTRAINTS while maintaining the helpfulness of the original response.
+            Rewrite the answer to be 100% compliant with the GROUND TRUTH CONSTRAINTS and fix the specific FAILED CONSTRAINTS.
             Return ONLY the corrected answer text.
         `;
 
@@ -177,16 +179,12 @@ export class VerificationService {
         return response.content;
     }
 
-    /**
-     * Get the current active crystal from storage or memory
-     */
     public static async getActiveCrystal(): Promise<any | null> {
         const activeId = await getActiveContextId();
         if (activeId) {
             return await loadCrystal(activeId);
         }
 
-        // Fallback: search for any mounted crystal
         const harvested = await this.harvestCrystals({ domain: 'general', text: '' });
         return harvested.length > 0 ? harvested[0] : null;
     }

@@ -3,7 +3,7 @@ import { SMTRuntime } from '../smt';
 import type { Crystal } from '../types/crystal_format';
 
 export interface SentinelEvent {
-    type: 'VACCINE_SYNTHESIS' | 'ORACLE_DREAM' | 'JURY_ESCALATION' | 'FRACTAL_COMPRESSION' | 'ECONOMIC_ROUTING' | 'CRYSTAL_FUSION' | 'ENTROPY_PURIFICATION' | 'CHAOS_EVOLUTION' | 'SEMANTIC_HANDSHAKE' | 'SOVEREIGN_CONSENSUS';
+    type: 'VACCINE_SYNTHESIS' | 'ORACLE_DREAM' | 'JURY_ESCALATION' | 'FRACTAL_COMPRESSION' | 'ECONOMIC_ROUTING' | 'CRYSTAL_FUSION' | 'ENTROPY_PURIFICATION' | 'CHAOS_EVOLUTION' | 'SEMANTIC_HANDSHAKE' | 'SOVEREIGN_CONSENSUS' | 'HIVE_DREAM' | 'NEUROGENESIS' | 'COGNITIVE_EVOLUTION';
     severity: 'info' | 'warning' | 'critical';
     message: string;
     details: Record<string, unknown>;

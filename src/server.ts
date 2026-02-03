@@ -343,11 +343,33 @@ app.post('/v1/telemetry/verify_result', (req: Request, res: Response) => {
     res.json({ success: true });
 });
 
-app.post('/v1/session/bootstrap', (req: Request, res: Response) => {
-    res.json({
-        success: true,
-        session_token: `sess_${crypto.randomBytes(16).toString('hex')}`
-    });
+app.post('/v1/neural/chat', async (req: Request, res: Response) => {
+    try {
+        const { session_id, prompt, crystal_ids } = req.body;
+        const { NeuralSurface } = await import('./services/neural_surface');
+
+        let targetSessionId = session_id;
+        if (!targetSessionId) {
+            targetSessionId = await NeuralSurface.initiateSession(crystal_ids || []);
+        }
+
+        const response = await NeuralSurface.groundedChat(targetSessionId, prompt);
+        res.json({ success: true, response, session_id: targetSessionId });
+    } catch (error) {
+        res.status(500).json({ error: (error as Error).message });
+    }
+});
+
+app.post('/v1/neural/refine', async (req: Request, res: Response) => {
+    try {
+        const { session_id, interaction_result } = req.body;
+        const { NeuralSurface } = await import('./services/neural_surface');
+
+        await NeuralSurface.refineKnowledge(session_id || "GLOBAL", interaction_result);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: (error as Error).message });
+    }
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════

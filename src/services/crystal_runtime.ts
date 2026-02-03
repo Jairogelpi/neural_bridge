@@ -8,7 +8,7 @@ import type { DecisionReceipt } from './decision_receipts';
 import { DecisionReceipts } from './decision_receipts';
 import type { Invariant, VerifyResult } from '../content/verifier/verifier';
 import { verifyAnswers } from '../content/verifier/verifier';
-import type { Crystal} from '../types/crystal_format';
+import type { Crystal } from '../types/crystal_format';
 import { SemanticInvariant } from '../types/crystal_format';
 
 export interface CrystalRuntimeConfig {
@@ -171,7 +171,8 @@ export async function executeCrystal(params: {
 
             const model = SCPService.getOptimalModel({
                 domain: config.domain,
-                task: 'verify'
+                task: 'verify',
+                stats: crystal.neuromorphic_stats
             });
 
             // TURBO: Run all adversarial verifications in PARALLEL
@@ -235,7 +236,11 @@ export async function executeCrystal(params: {
             // Take one transformation to test
             const transformation = metamorphicTest.transformations[0];
             if (transformation) {
-                const model = SCPService.getOptimalModel({ domain: config.domain, task: 'verify' });
+                const model = SCPService.getOptimalModel({
+                    domain: config.domain,
+                    task: 'verify',
+                    stats: crystal.neuromorphic_stats
+                });
 
                 // Verify if the answer still holds for the transformed question
                 const metaVerification = await SCPService.verifyArbitrary({
@@ -278,7 +283,8 @@ export async function executeCrystal(params: {
 
             const model = SCPService.getOptimalModel({
                 domain: config.domain,
-                task: 'verify'
+                task: 'verify',
+                stats: crystal.neuromorphic_stats
             });
 
             // REAL verification of counterfactual (with cache)
