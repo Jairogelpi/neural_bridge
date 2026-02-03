@@ -182,7 +182,7 @@ export class FirewallAgent {
 
         // 2. SMT: Semantic analysis (contradiction detection)
         if (this.smtMode) {
-            smtResult = this.analyzeWithSMT(currentText);
+            smtResult = await this.analyzeWithSMT(currentText);
             this.lastSemanticHash = smtResult.semantic_hash;
             this.lastSMT = smtResult.tree;
             contradictionsFound = smtResult.contradictions;
@@ -198,7 +198,7 @@ export class FirewallAgent {
 
         // 4. CLPV: Generate cross-LLM portable receipt
         if (this.clpvMode) {
-            this.lastPortableReceipt = this.generatePortableReceipt(currentText);
+            this.lastPortableReceipt = await this.generatePortableReceipt(currentText);
             this.totalPortableReceipts++;
         }
 
@@ -358,7 +358,7 @@ export class FirewallAgent {
         if (!pck) {
             // Create PCK from page context (domain-specific knowledge)
             const pageContext = this.extractPageContext();
-            pck = PCKRuntime.compile(pageContext, {
+            pck = await PCKRuntime.compile(pageContext, {
                 domain: this.activeDomain as KnowledgeDomain,
                 extract_numbers: true,
                 extract_entities: true,
@@ -376,18 +376,18 @@ export class FirewallAgent {
      * SMT Analysis - Semantic Merkle Tree for contradiction detection
      * Hash of MEANING, not bytes
      */
-    private analyzeWithSMT(text: string): {
+    private async analyzeWithSMT(text: string): Promise<{
         semantic_hash: string;
         tree: SemanticMerkleTree;
         contradictions: number;
-    } {
+    }> {
         // Build semantic tree from current text
-        const tree = SMTRuntime.build(text);
+        const tree = await SMTRuntime.build(text);
 
         // Compare with previous content if available
         let contradictions = 0;
         if (this.lastSMT) {
-            const comparison = SMTRuntime.compare(
+            const comparison = await SMTRuntime.compare(
                 this.lastProcessedText || '',
                 text
             );
@@ -428,11 +428,11 @@ export class FirewallAgent {
      * CLPV Receipt Generation - Cross-LLM portable receipt
      * Works with GPT-4, Claude, Gemini, Llama - ANY LLM
      */
-    private generatePortableReceipt(text: string): PortableReceipt {
+    private async generatePortableReceipt(text: string): Promise<PortableReceipt> {
         // Detect LLM from host
         const llmName = this.host?.name || 'unknown';
 
-        const receipt = CLPVRuntime.createReceipt({
+        const receipt = await CLPVRuntime.createReceipt({
             question: 'Contextual verification',
             answer: text,
             llm: llmName

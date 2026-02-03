@@ -18,7 +18,7 @@ const tabs = {
     storage: document.getElementById('tab-storage')!
 };
 
-const DASHBOARD_URL = 'https://neural-bridge-dashboard.onrender.com';
+const DASHBOARD_URL = 'https://neural-bridge-dashboard.onrender.com/dashboard';
 
 // State
 let activeCrystal: any = null;
