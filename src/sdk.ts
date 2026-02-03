@@ -178,8 +178,8 @@ export class NeuralBridge {
      * // Later, verify any answer with ZERO cost:
      * const result = nb.verifyWithPCK(pck, llmAnswer);
      */
-    compilePCK(source: string, domain: string = 'general'): ProofCarryingKnowledge {
-        return PCKRuntime.compile(source, {
+    async compilePCK(source: string, domain: string = 'general'): Promise<ProofCarryingKnowledge> {
+        return await PCKRuntime.compile(source, {
             domain,
             extract_numbers: true,
             extract_entities: true,
@@ -193,7 +193,7 @@ export class NeuralBridge {
      * 
      * @returns Verification result with confidence score
      */
-    verifyWithPCK(pck: ProofCarryingKnowledge, answer: string): {
+    async verifyWithPCK(pck: ProofCarryingKnowledge, answer: string): Promise<{
         valid: boolean;
         confidence: number;
         supported_claims: string[];
@@ -201,19 +201,19 @@ export class NeuralBridge {
         contradictions: string[];
         llm_calls_made: 0;  // Always zero - this is the revolution
         verification_time_ms: number;
-    } {
-        return PCKRuntime.verifyAnswer(pck, answer);
+    }> {
+        return await PCKRuntime.verifyAnswer(pck, answer);
     }
 
     /**
      * Verify PCK integrity - ensure proofs haven't been tampered with.
      */
-    verifyPCKIntegrity(pck: ProofCarryingKnowledge): {
+    async verifyPCKIntegrity(pck: ProofCarryingKnowledge): Promise<{
         valid: boolean;
         checks_performed: number;
         failed_checks: string[];
-    } {
-        return PCKVerifier.verify(pck);
+    }> {
+        return await PCKVerifier.verify(pck);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -230,13 +230,13 @@ export class NeuralBridge {
      * @param domain - Knowledge domain
      * @returns ZK proof that can be shared without revealing source
      */
-    createZKProof(params: {
+    async createZKProof(params: {
         source: string;
         answer: string;
         domain: string;
         constraints?: Array<{ type: string; value: unknown }>;
-    }): ZKProof {
-        return ZKVRuntime.createProof(params);
+    }): Promise<ZKProof> {
+        return await ZKVRuntime.createProof(params);
     }
 
     /**
@@ -244,26 +244,26 @@ export class NeuralBridge {
      * The verifier learns ONLY: Is the answer correct? (yes/no + confidence)
      * The verifier does NOT learn: Source content, verification logic
      */
-    verifyZKProof(proof: ZKProof, answer?: string): ZKVerificationResult {
-        return ZKVRuntime.verifyProof(proof, answer);
+    async verifyZKProof(proof: ZKProof, answer?: string): Promise<ZKVerificationResult> {
+        return await ZKVRuntime.verifyProof(proof, answer);
     }
 
     /**
      * Full ZKV workflow: Prove and verify in one call.
      * Demonstrates complete zero-knowledge verification pipeline.
      */
-    proveAndVerifyZK(params: {
+    async proveAndVerifyZK(params: {
         source: string;
         answer: string;
         domain: string;
         constraints?: Array<{ type: string; value: unknown }>;
-    }): {
+    }): Promise<{
         proof: ZKProof;
         verification: ZKVerificationResult;
         source_revealed: false;
         logic_revealed: false;
-    } {
-        return ZKVRuntime.proveAndVerify(params);
+    }> {
+        return await ZKVRuntime.proveAndVerify(params);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -275,27 +275,27 @@ export class NeuralBridge {
      * Build a Semantic Merkle Tree from text.
      * Creates a hash of MEANING, not bytes.
      */
-    buildSemanticTree(text: string): SemanticMerkleTree {
-        return SMTRuntime.build(text);
+    async buildSemanticTree(text: string): Promise<SemanticMerkleTree> {
+        return await SMTRuntime.build(text);
     }
 
     /**
      * Compare two documents semantically.
      * Detects paraphrases, contradictions, and plagiarism.
      */
-    compareSemantics(text1: string, text2: string): SemanticComparisonResult {
-        return SMTRuntime.compare(text1, text2);
+    async compareSemantics(text1: string, text2: string): Promise<SemanticComparisonResult> {
+        return await SMTRuntime.compare(text1, text2);
     }
 
     /**
      * Verify a claim against a semantic truth tree.
      */
-    verifyClaimAgainstTree(smt: SemanticMerkleTree, claim: string): {
+    async verifyClaimAgainstTree(smt: SemanticMerkleTree, claim: string): Promise<{
         found: boolean;
         semantic_match: boolean;
         confidence: number;
-    } {
-        return SMTRuntime.verifyClaim(smt, claim);
+    }> {
+        return await SMTRuntime.verifyClaim(smt, claim);
     }
 
     /**
@@ -319,20 +319,20 @@ export class NeuralBridge {
      * Create a portable receipt from any LLM response.
      * The receipt works with GPT-4, Claude, Gemini, Llama - ANY model.
      */
-    createPortableReceipt(params: {
+    async createPortableReceipt(params: {
         question: string;
         answer: string;
         llm?: string;
-    }): PortableReceipt {
-        return CLPVRuntime.createReceipt(params);
+    }): Promise<PortableReceipt> {
+        return await CLPVRuntime.createReceipt(params);
     }
 
     /**
      * Verify a portable receipt.
      * Works regardless of which LLM created the original response.
      */
-    verifyPortableReceipt(receipt: PortableReceipt, answer?: string): CrossVerificationResult {
-        return CLPVRuntime.verifyReceipt(receipt, answer);
+    async verifyPortableReceipt(receipt: PortableReceipt, answer?: string): Promise<CrossVerificationResult> {
+        return await CLPVRuntime.verifyReceipt(receipt, answer);
     }
 
     /**

@@ -1,5 +1,5 @@
 /**
- * ZERO-KNOWLEDGE VERIFICATION (ZKV)
+ * ZERO-KNOWLEDGE VERIFICATION (ZKV) - Browser Compatible Version
  * 
  * Revolutionary feature: Prove an answer is correct WITHOUT revealing:
  * 1. The source document (proprietary data protection)
@@ -16,7 +16,71 @@
  * 5. Verifier CANNOT see: the actual source content
  */
 
-import crypto from 'crypto';
+// UTILITY FUNCTIONS FOR BROWSER/NODE COMPATIBILITY
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const isBrowser = typeof window !== 'undefined' && typeof window.crypto !== 'undefined';
+
+async function sha256(message: string): Promise<string> {
+    if (isBrowser) {
+        const msgBuffer = new TextEncoder().encode(message);
+        const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    } else {
+        // Fallback for Node.js (dynamically imported to avoid bundler issues)
+        try {
+            // @ts-ignore
+            const { createHash } = await import('node:crypto');
+            return createHash('sha256').update(message).digest('hex');
+        } catch (e) {
+            console.error("Crypto not available", e);
+            return "";
+        }
+    }
+}
+
+async function hmacSha256(key: string, message: string): Promise<string> {
+    if (isBrowser) {
+        const enc = new TextEncoder();
+        const keyData = enc.encode(key);
+        const msgData = enc.encode(message);
+        const cryptoKey = await window.crypto.subtle.importKey(
+            'raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+        );
+        const signature = await window.crypto.subtle.sign('HMAC', cryptoKey, msgData);
+        return Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, '0')).join('');
+    } else {
+        try {
+            // @ts-ignore
+            const { createHmac } = await import('node:crypto');
+            return createHmac('sha256', key).update(message).digest('hex');
+        } catch (e) {
+            console.error("Crypto not available", e);
+            return "";
+        }
+    }
+}
+
+function randomHex(length: number): string {
+    if (isBrowser) {
+        const bytes = new Uint8Array(length);
+        window.crypto.getRandomValues(bytes);
+        return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+    } else {
+        try {
+            // @ts-ignore
+            const { randomBytes } = require('node:crypto');
+            return randomBytes(length).toString('hex');
+        } catch (e) {
+            // Basic fallback purely for non-critical (not cryptographically secure)
+            let res = "";
+            for (let i = 0; i < length; i++) res += Math.floor(Math.random() * 256).toString(16).padStart(2, '0');
+            return res;
+        }
+    }
+}
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ZKV CORE TYPES
@@ -102,7 +166,7 @@ export class ZKProver {
 
     constructor(secretKey?: string) {
         // Generate or use provided secret key
-        this.secretKey = secretKey || crypto.randomBytes(32).toString('hex');
+        this.secretKey = secretKey || randomHex(32);
         this.sourceHash = '';
     }
 
@@ -110,13 +174,13 @@ export class ZKProver {
      * Commit to a source document without revealing it
      * Returns a commitment that proves the source exists
      */
-    commitToSource(source: string): string {
+    async commitToSource(source: string): Promise<string> {
         // Create a binding commitment using hash + secret
-        const nonce = crypto.randomBytes(16).toString('hex');
-        this.sourceHash = this.hash(source + nonce);
+        const nonce = randomHex(16);
+        this.sourceHash = await this.hash(source + nonce);
 
         // The commitment hides the source but binds to it
-        const commitment = this.hash(this.sourceHash + this.secretKey);
+        const commitment = await this.hash(this.sourceHash + this.secretKey);
         return commitment;
     }
 
@@ -124,46 +188,45 @@ export class ZKProver {
      * Generate a Zero-Knowledge Proof that an answer is correct
      * WITHOUT revealing the source document or verification logic
      */
-    generateProof(params: {
+    async generateProof(params: {
         source: string;
         answer: string;
         domain: string;
         constraints?: Array<{ type: string; value: unknown }>;
-    }): ZKProof {
+    }): Promise<ZKProof> {
         const { source, answer, domain, constraints = [] } = params;
-        const startTime = Date.now();
 
         // Step 1: Create commitments (hide actual values)
-        const nonce = crypto.randomBytes(32).toString('hex');
-        const sourceCommitment = this.createCommitment(source, nonce);
-        const answerHash = this.hash(answer);
+        const nonce = randomHex(32);
+        const sourceCommitment = await this.createCommitment(source, nonce);
+        const answerHash = await this.hash(answer);
 
         // Step 2: Verify internally (prover knows the source)
         const internalVerification = this.internalVerify(source, answer, constraints);
 
         // Step 3: Create ZK commitments for each verification aspect
-        const sourceExistsCommitment = this.createZKCommitment({
+        const sourceExistsCommitment = await this.createZKCommitment({
             claim: 'Source document exists and is valid',
             secret: source,
-            nonce: crypto.randomBytes(16).toString('hex')
+            nonce: randomHex(16)
         });
 
-        const answerMatchesCommitment = this.createZKCommitment({
+        const answerMatchesCommitment = await this.createZKCommitment({
             claim: 'Answer matches source content',
             secret: source + answer,
-            nonce: crypto.randomBytes(16).toString('hex'),
+            nonce: randomHex(16),
             result: internalVerification.matches
         });
 
-        const constraintsCommitment = this.createZKCommitment({
+        const constraintsCommitment = await this.createZKCommitment({
             claim: 'All constraints are satisfied',
             secret: JSON.stringify(constraints) + JSON.stringify(internalVerification),
-            nonce: crypto.randomBytes(16).toString('hex'),
+            nonce: randomHex(16),
             result: internalVerification.constraintsPassed === constraints.length
         });
 
         // Step 4: Create the final proof
-        const proofId = `zkp_${crypto.randomBytes(8).toString('hex')}`;
+        const proofId = `zkp_${randomHex(8)}`;
         const proofContent = JSON.stringify({
             proofId,
             sourceCommitment,
@@ -197,8 +260,8 @@ export class ZKProver {
 
             signature: {
                 algorithm: 'SHA256-HMAC',
-                prover_commitment: this.hash(this.secretKey),
-                value: this.sign(proofContent)
+                prover_commitment: await this.hash(this.secretKey),
+                value: await this.sign(proofContent)
             }
         };
 
@@ -303,34 +366,35 @@ export class ZKProver {
     /**
      * Create a ZK commitment that hides the secret
      */
-    private createZKCommitment(params: {
+    private async createZKCommitment(params: {
         claim: string;
         secret: string;
         nonce: string;
         result?: boolean;
-    }): ZKCommitment {
+    }): Promise<ZKCommitment> {
         const { claim, secret, nonce, result = true } = params;
 
         // Create Merkle tree from secret chunks
         const chunks = this.splitIntoChunks(secret, 64);
-        const leafHashes = chunks.map(c => this.hash(c + nonce)).filter((h): h is string => !!h);
-        const merkleRoot = this.computeMerkleRoot(leafHashes);
+        const leafHashPromises = chunks.map(c => this.hash(c + nonce));
+        const leafHashes = (await Promise.all(leafHashPromises)).filter((h): h is string => !!h);
+        const merkleRoot = await this.computeMerkleRoot(leafHashes);
 
         // Create the commitment
         return {
-            commitment_id: `zkc_${crypto.randomBytes(8).toString('hex')}`,
+            commitment_id: `zkc_${randomHex(8)}`,
             timestamp: new Date().toISOString(),
-            claim_hash: this.hash(claim),
-            source_commitment: this.hash(secret.substring(0, 32) + nonce), // Partial commitment
-            verification_hash: this.hash(String(result) + nonce),
+            claim_hash: await this.hash(claim),
+            source_commitment: await this.hash(secret.substring(0, 32) + nonce), // Partial commitment
+            verification_hash: await this.hash(String(result) + nonce),
             merkle_root: merkleRoot,
             proof_path: leafHashes.slice(0, 3), // Partial path (reveals nothing)
-            nonce: this.hash(nonce) // Hashed nonce (safe to share)
+            nonce: await this.hash(nonce) // Hashed nonce (safe to share)
         };
     }
 
-    private createCommitment(data: string, nonce: string): string {
-        return this.hash(this.hash(data) + nonce);
+    private async createCommitment(data: string, nonce: string): Promise<string> {
+        return await this.hash(await this.hash(data) + nonce);
     }
 
     private splitIntoChunks(str: string, size: number): string[] {
@@ -341,26 +405,26 @@ export class ZKProver {
         return chunks.length > 0 ? chunks : [''];
     }
 
-    private computeMerkleRoot(hashes: string[]): string {
-        if (hashes.length === 0) return this.hash('empty');
-        if (hashes.length === 1) return hashes[0] || this.hash('single');
+    private async computeMerkleRoot(hashes: string[]): Promise<string> {
+        if (hashes.length === 0) return await this.hash('empty');
+        if (hashes.length === 1) return hashes[0] || await this.hash('single');
 
         const nextLevel: string[] = [];
         for (let i = 0; i < hashes.length; i += 2) {
             const left = hashes[i] || '';
             const right = hashes[i + 1] || left;
-            nextLevel.push(this.hash(left + right));
+            nextLevel.push(await this.hash(left + right));
         }
 
         return this.computeMerkleRoot(nextLevel);
     }
 
-    private hash(data: string): string {
-        return crypto.createHash('sha256').update(data).digest('hex');
+    private async hash(data: string): Promise<string> {
+        return sha256(data);
     }
 
-    private sign(data: string): string {
-        return crypto.createHmac('sha256', this.secretKey).update(data).digest('hex');
+    private async sign(data: string): Promise<string> {
+        return hmacSha256(this.secretKey, data);
     }
 }
 
@@ -375,7 +439,7 @@ export class ZKVerifier {
      * The verifier learns only: is the answer correct? (yes/no)
      * The verifier does NOT learn: source content, verification logic
      */
-    verify(proof: ZKProof, answer?: string): ZKVerificationResult {
+    async verify(proof: ZKProof, answer?: string): Promise<ZKVerificationResult> {
         const startTime = Date.now();
 
         // Step 1: Verify proof structure
@@ -390,7 +454,7 @@ export class ZKVerifier {
         // Step 4: If answer provided, verify it matches the proof
         let answerMatches = true;
         if (answer) {
-            const answerHash = crypto.createHash('sha256').update(answer).digest('hex');
+            const answerHash = await sha256(answer);
             answerMatches = proof.claim.answer_hash === answerHash;
         }
 
@@ -475,15 +539,15 @@ export class ZKVRuntime {
      * Create a ZK proof for an answer
      * Enterprise use: Prove answer correctness without revealing proprietary data
      */
-    static createProof(params: {
+    static async createProof(params: {
         source: string;           // HIDDEN: Never leaves the prover
         answer: string;           // Public: The answer being verified
         domain: string;
         constraints?: Array<{ type: string; value: unknown }>;
         secretKey?: string;       // Optional: For consistent prover identity
-    }): ZKProof {
+    }): Promise<ZKProof> {
         const prover = new ZKProver(params.secretKey);
-        return prover.generateProof(params);
+        return await prover.generateProof(params);
     }
 
     /**
@@ -491,28 +555,28 @@ export class ZKVRuntime {
      * Returns: Is the answer correct? (yes/no + confidence)
      * Does NOT reveal: Source content, verification logic
      */
-    static verifyProof(proof: ZKProof, answer?: string): ZKVerificationResult {
+    static async verifyProof(proof: ZKProof, answer?: string): Promise<ZKVerificationResult> {
         const verifier = new ZKVerifier();
-        return verifier.verify(proof, answer);
+        return await verifier.verify(proof, answer);
     }
 
     /**
      * Full workflow: Prove and verify in one call
      * Demonstrates the complete ZKV pipeline
      */
-    static proveAndVerify(params: {
+    static async proveAndVerify(params: {
         source: string;
         answer: string;
         domain: string;
         constraints?: Array<{ type: string; value: unknown }>;
-    }): {
+    }): Promise<{
         proof: ZKProof;
         verification: ZKVerificationResult;
         source_revealed: false;
         logic_revealed: false;
-    } {
-        const proof = this.createProof(params);
-        const verification = this.verifyProof(proof, params.answer);
+    }> {
+        const proof = await this.createProof(params);
+        const verification = await this.verifyProof(proof, params.answer);
 
         return {
             proof,
@@ -522,5 +586,3 @@ export class ZKVRuntime {
         };
     }
 }
-
-// Already exported above via class declarations

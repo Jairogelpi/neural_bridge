@@ -8,13 +8,13 @@
  * Anyone can verify independently by re-computing the proof chain.
  */
 
-import crypto from 'crypto';
+import { cryptoUtils } from '../utils/crypto_utils';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // CORE PCK TYPES
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export type ProofType = 
+export type ProofType =
     | 'axiom'           // Base fact from authoritative source
     | 'derivation'      // Derived from other proofs via rule
     | 'extraction'      // Extracted from source text
@@ -36,7 +36,7 @@ export interface ProofNode {
     id: string;
     type: ProofType;
     claim: string;
-    
+
     // For axioms: the source
     source?: {
         document: string;
@@ -46,25 +46,25 @@ export interface ProofNode {
         retrieved_at: string;
         content_hash: string;  // SHA-256 of source content
     };
-    
+
     // For derivations: the reasoning chain
     derivation?: {
         rule: DerivationRule;
         premises: string[];  // IDs of proof nodes used
         justification: string;
     };
-    
+
     // For extractions: what was extracted
     extraction?: {
         pattern: string;      // Regex or extraction pattern
         matched_text: string; // Actual text that matched
         position: { start: number; end: number };
     };
-    
+
     // Cryptographic binding
     proof_hash: string;       // Hash of this proof node
     timestamp: string;
-    
+
     // Verification metadata
     verifiable: boolean;      // Can be independently verified
     verification_cost: 0;     // Always 0 - no API calls needed
@@ -75,23 +75,23 @@ export interface ProofCarryingKnowledge {
     pck_version: '1.0';
     pck_id: string;
     created_at: string;
-    
+
     // The claim this PCK proves
     claim: {
         statement: string;
         domain: string;
         confidence: number;  // 0.0 - 1.0 based on proof strength
     };
-    
+
     // The proof tree
     proof_tree: {
         root: string;        // ID of root proof node
         nodes: Map<string, ProofNode>;
     };
-    
+
     // Merkle root of entire proof
     merkle_root: string;
-    
+
     // Signature
     signature: {
         algorithm: 'SHA256-HMAC';
@@ -108,20 +108,20 @@ export class PCKBuilder {
     private nodes: Map<string, ProofNode> = new Map();
     private claim: string = '';
     private domain: string = 'general';
-    
+
     /**
      * Add an axiom - a base fact from an authoritative source
      */
-    addAxiom(params: {
+    async addAxiom(params: {
         claim: string;
         source_document: string;
         source_content: string;
         section?: string;
         url?: string;
-    }): string {
+    }): Promise<string> {
         const id = this.generateId('axiom');
-        const content_hash = this.hash(params.source_content);
-        
+        const content_hash = await this.hash(params.source_content);
+
         const node: ProofNode = {
             id,
             type: 'axiom',
@@ -138,26 +138,26 @@ export class PCKBuilder {
             verifiable: true,
             verification_cost: 0
         };
-        
-        node.proof_hash = this.hashNode(node);
+
+        node.proof_hash = await this.hashNode(node);
         this.nodes.set(id, node);
         return id;
     }
-    
+
     /**
      * Add an extraction - a specific value extracted from source text
      */
-    addExtraction(params: {
+    async addExtraction(params: {
         claim: string;
         source_text: string;
         pattern: RegExp;
         axiom_id: string;  // Must reference an axiom
-    }): string | null {
+    }): Promise<string | null> {
         const match = params.pattern.exec(params.source_text);
         if (!match) return null;
-        
+
         const id = this.generateId('extraction');
-        
+
         const node: ProofNode = {
             id,
             type: 'extraction',
@@ -177,30 +177,30 @@ export class PCKBuilder {
             verifiable: true,
             verification_cost: 0
         };
-        
-        node.proof_hash = this.hashNode(node);
+
+        node.proof_hash = await this.hashNode(node);
         this.nodes.set(id, node);
         return id;
     }
-    
+
     /**
      * Add a derivation - knowledge derived from other proofs
      */
-    addDerivation(params: {
+    async addDerivation(params: {
         claim: string;
         rule: DerivationRule;
         premises: string[];
         justification: string;
-    }): string {
+    }): Promise<string> {
         // Verify all premises exist
         for (const p of params.premises) {
             if (!this.nodes.has(p)) {
                 throw new Error(`Premise ${p} not found in proof tree`);
             }
         }
-        
+
         const id = this.generateId('derivation');
-        
+
         const node: ProofNode = {
             id,
             type: 'derivation',
@@ -215,12 +215,12 @@ export class PCKBuilder {
             verifiable: true,
             verification_cost: 0
         };
-        
-        node.proof_hash = this.hashNode(node);
+
+        node.proof_hash = await this.hashNode(node);
         this.nodes.set(id, node);
         return id;
     }
-    
+
     /**
      * Set the main claim this PCK proves
      */
@@ -229,21 +229,21 @@ export class PCKBuilder {
         this.domain = domain;
         return this;
     }
-    
+
     /**
      * Build the final PCK
      */
-    build(rootId: string): ProofCarryingKnowledge {
+    async build(rootId: string): Promise<ProofCarryingKnowledge> {
         if (!this.nodes.has(rootId)) {
             throw new Error(`Root node ${rootId} not found`);
         }
-        
-        const merkle_root = this.computeMerkleRoot();
-        const pck_id = `pck_${this.hash(merkle_root + Date.now()).substring(0, 16)}`;
-        
+
+        const merkle_root = await this.computeMerkleRoot();
+        const pck_id = `pck_${(await this.hash(merkle_root + Date.now())).substring(0, 16)}`;
+
         // Calculate confidence based on proof strength
         const confidence = this.calculateConfidence(rootId);
-        
+
         const pck: ProofCarryingKnowledge = {
             pck_version: '1.0',
             pck_id,
@@ -260,26 +260,26 @@ export class PCKBuilder {
             merkle_root,
             signature: {
                 algorithm: 'SHA256-HMAC',
-                value: this.hash(merkle_root + pck_id)
+                value: await this.hash(merkle_root + pck_id)
             }
         };
-        
+
         return pck;
     }
-    
+
     // ═══════════════════════════════════════════════════════════════════════════
     // PRIVATE HELPERS
     // ═══════════════════════════════════════════════════════════════════════════
-    
+
     private generateId(prefix: string): string {
-        return `${prefix}_${crypto.randomBytes(8).toString('hex')}`;
+        return `${prefix}_${cryptoUtils.randomHex(8)}`;
     }
-    
-    private hash(data: string): string {
-        return crypto.createHash('sha256').update(data).digest('hex');
+
+    private async hash(data: string): Promise<string> {
+        return await cryptoUtils.sha256(data);
     }
-    
-    private hashNode(node: ProofNode): string {
+
+    private async hashNode(node: ProofNode): Promise<string> {
         const canonical = JSON.stringify({
             id: node.id,
             type: node.type,
@@ -288,31 +288,31 @@ export class PCKBuilder {
             derivation: node.derivation,
             extraction: node.extraction
         });
-        return this.hash(canonical);
+        return await this.hash(canonical);
     }
-    
-    private computeMerkleRoot(): string {
+
+    private async computeMerkleRoot(): Promise<string> {
         const hashes = Array.from(this.nodes.values()).map(n => n.proof_hash);
-        if (hashes.length === 0) return this.hash('empty');
-        
+        if (hashes.length === 0) return await this.hash('empty');
+
         while (hashes.length > 1) {
             const newHashes: string[] = [];
             for (let i = 0; i < hashes.length; i += 2) {
                 const left = hashes[i] || '';
                 const right = hashes[i + 1] || left;
-                newHashes.push(this.hash(left + right));
+                newHashes.push(await this.hash(left + right));
             }
             hashes.length = 0;
             hashes.push(...newHashes);
         }
-        
-        return hashes[0] || this.hash('empty');
+
+        return hashes[0] || await this.hash('empty');
     }
-    
+
     private calculateConfidence(nodeId: string): number {
         const node = this.nodes.get(nodeId);
         if (!node) return 0;
-        
+
         switch (node.type) {
             case 'axiom':
                 return 1.0;  // Axioms are fully trusted
@@ -331,7 +331,7 @@ export class PCKBuilder {
                 return 0.5;
         }
     }
-    
+
     private getRuleStrength(rule: DerivationRule): number {
         const strengths: Record<DerivationRule, number> = {
             'direct_quote': 1.0,
@@ -364,27 +364,27 @@ export class PCKVerifier {
     /**
      * Verify a PCK completely offline - no external calls
      */
-    static verify(pck: ProofCarryingKnowledge): VerificationResult {
+    static async verify(pck: ProofCarryingKnowledge): Promise<VerificationResult> {
         const startTime = Date.now();
         const failed_checks: string[] = [];
         let checks = 0;
-        
+
         // 1. Verify Merkle root
         checks++;
-        const computedMerkle = this.recomputeMerkleRoot(pck.proof_tree.nodes);
+        const computedMerkle = await this.recomputeMerkleRoot(pck.proof_tree.nodes);
         if (computedMerkle !== pck.merkle_root) {
             failed_checks.push('merkle_root_mismatch');
         }
-        
+
         // 2. Verify each node's hash
         for (const [id, node] of pck.proof_tree.nodes) {
             checks++;
-            const computedHash = this.recomputeNodeHash(node);
+            const computedHash = await this.recomputeNodeHash(node);
             if (computedHash !== node.proof_hash) {
                 failed_checks.push(`node_hash_mismatch:${id}`);
             }
         }
-        
+
         // 3. Verify derivation chains are valid
         for (const [id, node] of pck.proof_tree.nodes) {
             if (node.type === 'derivation' && node.derivation) {
@@ -395,7 +395,7 @@ export class PCKVerifier {
                         failed_checks.push(`missing_premise:${id}:${premiseId}`);
                     }
                 }
-                
+
                 // Check derivation rule is valid
                 checks++;
                 if (!this.isValidDerivation(node, pck.proof_tree.nodes)) {
@@ -403,7 +403,7 @@ export class PCKVerifier {
                 }
             }
         }
-        
+
         // 4. Verify extractions match patterns
         for (const [id, node] of pck.proof_tree.nodes) {
             if (node.type === 'extraction' && node.extraction) {
@@ -419,16 +419,16 @@ export class PCKVerifier {
                 }
             }
         }
-        
+
         // 5. Verify signature
         checks++;
-        const expectedSig = this.hash(pck.merkle_root + pck.pck_id);
+        const expectedSig = await this.hash(pck.merkle_root + pck.pck_id);
         if (expectedSig !== pck.signature.value) {
             failed_checks.push('signature_invalid');
         }
-        
+
         const verification_time_ms = Date.now() - startTime;
-        
+
         return {
             valid: failed_checks.length === 0,
             confidence: failed_checks.length === 0 ? pck.claim.confidence : 0,
@@ -438,7 +438,7 @@ export class PCKVerifier {
             external_calls_made: 0
         };
     }
-    
+
     /**
      * Verify a specific claim against a PCK
      */
@@ -449,56 +449,56 @@ export class PCKVerifier {
     } {
         // Check if the claim matches any node in the proof tree
         const matchingNodes: ProofNode[] = [];
-        
+
         for (const node of pck.proof_tree.nodes.values()) {
             if (this.claimsMatch(node.claim, claim)) {
                 matchingNodes.push(node);
             }
         }
-        
+
         if (matchingNodes.length === 0) {
             return { supported: false, proof_path: [], confidence: 0 };
         }
-        
+
         // Find the strongest proof path
-        const bestNode = matchingNodes.reduce((a, b) => 
-            this.getNodeConfidence(a, pck.proof_tree.nodes) > 
-            this.getNodeConfidence(b, pck.proof_tree.nodes) ? a : b
+        const bestNode = matchingNodes.reduce((a, b) =>
+            this.getNodeConfidence(a, pck.proof_tree.nodes) >
+                this.getNodeConfidence(b, pck.proof_tree.nodes) ? a : b
         );
-        
+
         const proof_path = this.getProofPath(bestNode.id, pck.proof_tree.nodes);
         const confidence = this.getNodeConfidence(bestNode, pck.proof_tree.nodes);
-        
+
         return { supported: true, proof_path, confidence };
     }
-    
+
     // ═══════════════════════════════════════════════════════════════════════════
     // PRIVATE HELPERS
     // ═══════════════════════════════════════════════════════════════════════════
-    
-    private static hash(data: string): string {
-        return crypto.createHash('sha256').update(data).digest('hex');
+
+    private static async hash(data: string): Promise<string> {
+        return await cryptoUtils.sha256(data);
     }
-    
-    private static recomputeMerkleRoot(nodes: Map<string, ProofNode>): string {
+
+    private static async recomputeMerkleRoot(nodes: Map<string, ProofNode>): Promise<string> {
         const hashes = Array.from(nodes.values()).map(n => n.proof_hash);
-        if (hashes.length === 0) return this.hash('empty');
-        
+        if (hashes.length === 0) return await this.hash('empty');
+
         while (hashes.length > 1) {
             const newHashes: string[] = [];
             for (let i = 0; i < hashes.length; i += 2) {
                 const left = hashes[i] || '';
                 const right = hashes[i + 1] || left;
-                newHashes.push(this.hash(left + right));
+                newHashes.push(await this.hash(left + right));
             }
             hashes.length = 0;
             hashes.push(...newHashes);
         }
-        
-        return hashes[0] || this.hash('empty');
+
+        return hashes[0] || await this.hash('empty');
     }
-    
-    private static recomputeNodeHash(node: ProofNode): string {
+
+    private static async recomputeNodeHash(node: ProofNode): Promise<string> {
         const canonical = JSON.stringify({
             id: node.id,
             type: node.type,
@@ -507,17 +507,17 @@ export class PCKVerifier {
             derivation: node.derivation,
             extraction: node.extraction
         });
-        return this.hash(canonical);
+        return await this.hash(canonical);
     }
-    
+
     private static isValidDerivation(node: ProofNode, nodes: Map<string, ProofNode>): boolean {
         if (!node.derivation) return false;
-        
+
         const rule = node.derivation.rule;
         const premises = node.derivation.premises.map(id => nodes.get(id)).filter(Boolean) as ProofNode[];
-        
+
         if (premises.length !== node.derivation.premises.length) return false;
-        
+
         // Rule-specific validation
         switch (rule) {
             case 'direct_quote':
@@ -533,28 +533,28 @@ export class PCKVerifier {
                 return true;
         }
     }
-    
+
     private static claimsMatch(claim1: string, claim2: string): boolean {
         const normalize = (s: string) => s.toLowerCase().replace(/[^\w\s]/g, '').trim();
         const n1 = normalize(claim1);
         const n2 = normalize(claim2);
-        
+
         // Exact match
         if (n1 === n2) return true;
-        
+
         // Contains match (one contains the other)
         if (n1.includes(n2) || n2.includes(n1)) return true;
-        
+
         // Token overlap > 70%
         const t1 = new Set(n1.split(/\s+/));
         const t2 = new Set(n2.split(/\s+/));
         let overlap = 0;
         for (const t of t1) if (t2.has(t)) overlap++;
         const similarity = overlap / Math.max(t1.size, t2.size);
-        
+
         return similarity > 0.7;
     }
-    
+
     private static getNodeConfidence(node: ProofNode, nodes: Map<string, ProofNode>): number {
         switch (node.type) {
             case 'axiom': return 1.0;
@@ -570,17 +570,17 @@ export class PCKVerifier {
             default: return 0.5;
         }
     }
-    
+
     private static getProofPath(nodeId: string, nodes: Map<string, ProofNode>): string[] {
         const path: string[] = [nodeId];
         const node = nodes.get(nodeId);
-        
+
         if (node?.derivation) {
             for (const premiseId of node.derivation.premises) {
                 path.push(...this.getProofPath(premiseId, nodes));
             }
         }
-        
+
         return path;
     }
 }

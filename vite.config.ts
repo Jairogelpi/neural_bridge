@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import { resolve } from "node:path";
 
 // Custom plugin to generate manifest.json
@@ -24,30 +24,33 @@ function generateManifest() {
     };
 }
 
-export default defineConfig({
-    plugins: [generateManifest()],
-    build: {
-        outDir: "dist",
-        emptyOutDir: true,
-        sourcemap: true,
-        rollupOptions: {
-            input: {
-                // MV3 service worker
-                service_worker: resolve(__dirname, "src/background.ts"),
-                // popup UI
-                popup: resolve(__dirname, "src/ui/popup.html"),
-            },
-            output: {
-                entryFileNames: (chunk) => {
-                    if (chunk.name === "service_worker") return "background/service_worker.js";
-                    return "assets/[name].js";
+export default defineConfig(({ mode }) => {
+    const env = loadEnv(mode, process.cwd(), '');
+    return {
+        plugins: [generateManifest()],
+        build: {
+            outDir: "dist",
+            emptyOutDir: true,
+            sourcemap: true,
+            rollupOptions: {
+                input: {
+                    // MV3 service worker
+                    service_worker: resolve(__dirname, "src/background.ts"),
+                    // popup UI
+                    popup: resolve(__dirname, "src/ui/popup.html"),
+                },
+                output: {
+                    entryFileNames: (chunk) => {
+                        if (chunk.name === "service_worker") return "background/service_worker.js";
+                        return "assets/[name].js";
+                    }
                 }
             }
-        }
-    },
-    define: {
-        "process.env.SUPABASE_URL": JSON.stringify(process.env.SUPABASE_URL),
-        "process.env.SUPABASE_ANON_KEY": JSON.stringify(process.env.SUPABASE_ANON_KEY),
-        "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "production"),
-    },
+        },
+        define: {
+            "process.env.SUPABASE_URL": JSON.stringify(env.SUPABASE_URL || process.env.SUPABASE_URL),
+            "process.env.SUPABASE_ANON_KEY": JSON.stringify(env.SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY),
+            "process.env.NODE_ENV": JSON.stringify(env.NODE_ENV || process.env.NODE_ENV || "production"),
+        },
+    };
 });

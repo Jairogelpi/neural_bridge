@@ -483,7 +483,7 @@ app.get('/health', (_req: Request, res: Response) => {
 // FEATURE 1: PROOF-CARRYING KNOWLEDGE (PCK)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-app.post('/api/pck/compile', (req: Request, res: Response) => {
+app.post('/api/pck/compile', async (req: Request, res: Response) => {
     try {
         const { source, domain = 'general' } = req.body;
 
@@ -493,7 +493,7 @@ app.post('/api/pck/compile', (req: Request, res: Response) => {
         }
 
         const startTime = Date.now();
-        const pck = PCKRuntime.compile(source, { domain });
+        const pck = await PCKRuntime.compile(source, { domain });
         const elapsed = Date.now() - startTime;
 
         res.json({
@@ -516,7 +516,7 @@ app.post('/api/pck/compile', (req: Request, res: Response) => {
     }
 });
 
-app.post('/api/pck/verify', (req: Request, res: Response) => {
+app.post('/api/pck/verify', async (req: Request, res: Response) => {
     try {
         const { source, domain = 'general', answer } = req.body;
 
@@ -526,8 +526,8 @@ app.post('/api/pck/verify', (req: Request, res: Response) => {
         }
 
         const startTime = Date.now();
-        const pck = PCKRuntime.compile(source, { domain });
-        const result = PCKRuntime.verifyAnswer(pck, answer);
+        const pck = await PCKRuntime.compile(source, { domain });
+        const result = await PCKRuntime.verifyAnswer(pck, answer);
         const elapsed = Date.now() - startTime;
 
         res.json({
@@ -553,7 +553,7 @@ app.post('/api/pck/verify', (req: Request, res: Response) => {
 // FEATURE 2: ZERO-KNOWLEDGE VERIFICATION (ZKV)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-app.post('/api/zkv/proof', (req: Request, res: Response) => {
+app.post('/api/zkv/proof', async (req: Request, res: Response) => {
     try {
         const { source, answer, domain, constraints } = req.body;
 
@@ -563,7 +563,7 @@ app.post('/api/zkv/proof', (req: Request, res: Response) => {
         }
 
         const startTime = Date.now();
-        const proof = ZKVRuntime.createProof({
+        const proof = await ZKVRuntime.createProof({
             source,
             answer,
             domain: domain || 'general',
@@ -594,7 +594,7 @@ app.post('/api/zkv/proof', (req: Request, res: Response) => {
     }
 });
 
-app.post('/api/zkv/verify', (req: Request, res: Response) => {
+app.post('/api/zkv/verify', async (req: Request, res: Response) => {
     try {
         const { proof } = req.body;
 
@@ -604,7 +604,7 @@ app.post('/api/zkv/verify', (req: Request, res: Response) => {
         }
 
         const startTime = Date.now();
-        const result = ZKVRuntime.verifyProof(proof);
+        const result = await ZKVRuntime.verifyProof(proof);
         const elapsed = Date.now() - startTime;
 
         res.json({
@@ -630,7 +630,7 @@ app.post('/api/zkv/verify', (req: Request, res: Response) => {
 // FEATURE 3: SEMANTIC MERKLE TREES (SMT)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-app.post('/api/smt/build', (req: Request, res: Response) => {
+app.post('/api/smt/build', async (req: Request, res: Response) => {
     try {
         const { text } = req.body;
 
@@ -640,7 +640,7 @@ app.post('/api/smt/build', (req: Request, res: Response) => {
         }
 
         const startTime = Date.now();
-        const tree = SMTRuntime.build(text);
+        const tree = await SMTRuntime.build(text);
         const elapsed = Date.now() - startTime;
 
         res.json({
@@ -664,7 +664,7 @@ app.post('/api/smt/build', (req: Request, res: Response) => {
     }
 });
 
-app.post('/api/smt/compare', (req: Request, res: Response) => {
+app.post('/api/smt/compare', async (req: Request, res: Response) => {
     try {
         const { text1, text2 } = req.body;
 
@@ -674,7 +674,7 @@ app.post('/api/smt/compare', (req: Request, res: Response) => {
         }
 
         const startTime = Date.now();
-        const comparison = SMTRuntime.compare(text1, text2);
+        const comparison = await SMTRuntime.compare(text1, text2);
         const elapsed = Date.now() - startTime;
 
         res.json({
@@ -701,7 +701,7 @@ app.post('/api/smt/compare', (req: Request, res: Response) => {
 // FEATURE 4: CROSS-LLM PORTABLE VERIFICATION (CLPV)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-app.post('/api/clpv/receipt', (req: Request, res: Response) => {
+app.post('/api/clpv/receipt', async (req: Request, res: Response) => {
     try {
         const { question, answer, llm } = req.body;
 
@@ -711,7 +711,7 @@ app.post('/api/clpv/receipt', (req: Request, res: Response) => {
         }
 
         const startTime = Date.now();
-        const receipt = CLPVRuntime.createReceipt({
+        const receipt = await CLPVRuntime.createReceipt({
             question,
             answer,
             llm: llm || 'unknown'
@@ -796,10 +796,10 @@ app.get('/api/probe/omega', async (req: Request, res: Response) => {
     }
 
     // 1. PCK Probe (Dynamic)
-    const pck = PCKRuntime.compile(text, { domain: String(domain) });
+    const pck = await PCKRuntime.compile(text, { domain: String(domain) });
 
     // 2. ZKV Probe (Dynamic)
-    const zkProof = ZKVRuntime.createProof({
+    const zkProof = await ZKVRuntime.createProof({
         source: text,
         answer: "Ontological validity confirmed",
         domain: String(domain),
@@ -807,10 +807,10 @@ app.get('/api/probe/omega', async (req: Request, res: Response) => {
     });
 
     // 3. SMT Probe (Dynamic)
-    const tree = SMTRuntime.build(text);
+    const tree = await SMTRuntime.build(text);
 
     // 4. CLPV Probe (Dynamic)
-    const receipt = CLPVRuntime.createReceipt({
+    const receipt = await CLPVRuntime.createReceipt({
         question: "Probe Content Analysis",
         answer: text.substring(0, 50) + "...",
         llm: 'omega-runtime'

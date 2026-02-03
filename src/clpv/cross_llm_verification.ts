@@ -15,7 +15,7 @@
  * - Receipts should be auditable regardless of source
  */
 
-import crypto from 'crypto';
+import { cryptoUtils } from '../utils/crypto_utils';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SUPPORTED LLM MODELS (Extensible)
@@ -207,14 +207,14 @@ export class PortableReceiptGenerator {
     private secretKey: string;
 
     constructor(secretKey?: string) {
-        this.secretKey = secretKey || crypto.randomBytes(32).toString('hex');
+        this.secretKey = secretKey || cryptoUtils.randomHex(32);
     }
 
     /**
      * Generate a portable receipt from any LLM response
      * The receipt is model-independent and can be verified by ANY system
      */
-    generate(params: {
+    async generate(params: {
         question: string;
         answer: string;
         source_llm?: LLMIdentifier;
@@ -223,7 +223,7 @@ export class PortableReceiptGenerator {
             confidence: number;
             issues?: Array<{ type: string; description: string; severity: string }>;
         };
-    }): PortableReceipt {
+    }): Promise<PortableReceipt> {
         const { question, answer, source_llm, verification_result } = params;
 
         // Detect LLM if not provided
@@ -233,13 +233,13 @@ export class PortableReceiptGenerator {
         const features = this.extractFeatures(answer);
 
         // Create semantic hash (hash of meaning, not bytes)
-        const semanticHash = this.createSemanticHash(features);
+        const semanticHash = await this.createSemanticHash(features);
 
         // Create Merkle tree from features
-        const merkleRoot = this.createMerkleRoot(features);
+        const merkleRoot = await this.createMerkleRoot(features);
 
         // Generate receipt ID
-        const receiptId = `clpv_${crypto.randomBytes(8).toString('hex')}`;
+        const receiptId = `clpv_${cryptoUtils.randomHex(8)}`;
 
         // Create proof
         const proofData = JSON.stringify({
@@ -248,7 +248,7 @@ export class PortableReceiptGenerator {
             merkleRoot,
             timestamp: Date.now()
         });
-        const signature = this.sign(proofData);
+        const signature = await this.sign(proofData);
 
         return {
             clpv_version: '1.0',
@@ -258,8 +258,8 @@ export class PortableReceiptGenerator {
             source_llm: llm,
 
             content: {
-                question_hash: this.hash(question),
-                answer_hash: this.hash(answer),
+                question_hash: await this.hash(question),
+                answer_hash: await this.hash(answer),
                 answer_length: answer.length,
                 language: this.detectLanguage(answer)
             },
@@ -285,7 +285,7 @@ export class PortableReceiptGenerator {
                 semantic_hash: semanticHash,
                 merkle_root: merkleRoot,
                 signature,
-                verification_key: this.hash(this.secretKey)
+                verification_key: await this.hash(this.secretKey)
             },
 
             portability: {
@@ -336,7 +336,7 @@ export class PortableReceiptGenerator {
         return { numbers, entities, claims, temporal };
     }
 
-    private createSemanticHash(features: SemanticFeatures): string {
+    private async createSemanticHash(features: SemanticFeatures): Promise<string> {
         // Sort features for consistency
         const normalized = JSON.stringify({
             numbers: features.numbers.map((n: { value: number; unit: string }) => `${n.value}:${n.unit}`).sort(),
@@ -344,24 +344,24 @@ export class PortableReceiptGenerator {
             claims: features.claims.sort(),
             temporal: features.temporal.sort()
         });
-        return this.hash(normalized);
+        return await this.hash(normalized);
     }
 
-    private createMerkleRoot(features: SemanticFeatures): string {
+    private async createMerkleRoot(features: SemanticFeatures): Promise<string> {
         const leaves = [
-            this.hash(JSON.stringify(features.numbers)),
-            this.hash(JSON.stringify(features.entities)),
-            this.hash(JSON.stringify(features.claims)),
-            this.hash(JSON.stringify(features.temporal))
+            await this.hash(JSON.stringify(features.numbers)),
+            await this.hash(JSON.stringify(features.entities)),
+            await this.hash(JSON.stringify(features.claims)),
+            await this.hash(JSON.stringify(features.temporal))
         ];
 
         // Simple Merkle root
         const level1 = [
-            this.hash((leaves[0] ?? '') + (leaves[1] ?? '')),
-            this.hash((leaves[2] ?? '') + (leaves[3] ?? ''))
+            await this.hash((leaves[0] ?? '') + (leaves[1] ?? '')),
+            await this.hash((leaves[2] ?? '') + (leaves[3] ?? ''))
         ];
 
-        return this.hash((level1[0] ?? '') + (level1[1] ?? ''));
+        return await this.hash((level1[0] ?? '') + (level1[1] ?? ''));
     }
 
     private detectLanguage(text: string): string {
@@ -372,12 +372,12 @@ export class PortableReceiptGenerator {
         return 'en';
     }
 
-    private hash(data: string): string {
-        return crypto.createHash('sha256').update(data).digest('hex');
+    private async hash(data: string): Promise<string> {
+        return await cryptoUtils.sha256(data);
     }
 
-    private sign(data: string): string {
-        return crypto.createHmac('sha256', this.secretKey).update(data).digest('hex');
+    private async sign(data: string): Promise<string> {
+        return await cryptoUtils.hmacSha256(this.secretKey, data);
     }
 }
 
@@ -391,7 +391,7 @@ export class CrossLLMVerifier {
      * Verify a portable receipt - works with ANY LLM source
      * The verification is INDEPENDENT of the model that generated the response
      */
-    static verify(receipt: PortableReceipt, answer?: string): CrossVerificationResult {
+    static async verify(receipt: PortableReceipt, answer?: string): Promise<CrossVerificationResult> {
         const startTime = Date.now();
 
         // 1. Verify receipt structure
@@ -403,7 +403,7 @@ export class CrossLLMVerifier {
         // 3. If answer provided, verify hash match
         let hashMatch = true;
         if (answer) {
-            const answerHash = crypto.createHash('sha256').update(answer).digest('hex');
+            const answerHash = await cryptoUtils.sha256(answer);
             hashMatch = receipt.content.answer_hash === answerHash;
         }
 
@@ -558,11 +558,11 @@ export class CLPVRuntime {
     /**
      * Create a portable receipt from any LLM response
      */
-    static createReceipt(params: {
+    static async createReceipt(params: {
         question: string;
         answer: string;
         llm?: string | LLMIdentifier;
-    }): PortableReceipt {
+    }): Promise<PortableReceipt> {
         const llm = typeof params.llm === 'string'
             ? LLMDetector.detect(params.answer, { model: params.llm })
             : params.llm;
@@ -572,14 +572,14 @@ export class CLPVRuntime {
             answer: params.answer,
         };
         if (llm) generateParams.source_llm = llm;
-        return this.generator.generate(generateParams);
+        return await this.generator.generate(generateParams);
     }
 
     /**
      * Verify a portable receipt
      */
-    static verifyReceipt(receipt: PortableReceipt, answer?: string): CrossVerificationResult {
-        return CrossLLMVerifier.verify(receipt, answer);
+    static async verifyReceipt(receipt: PortableReceipt, answer?: string): Promise<CrossVerificationResult> {
+        return await CrossLLMVerifier.verify(receipt, answer);
     }
 
     /**

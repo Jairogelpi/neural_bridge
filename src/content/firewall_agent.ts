@@ -191,7 +191,7 @@ export class FirewallAgent {
 
         // 3. ZKV: Generate privacy-preserving proof (for enterprise users)
         if (this.zkvMode && pckResult) {
-            zkProof = this.generateZKProof(currentText, pckResult.valid);
+            zkProof = await this.generateZKProof(currentText, pckResult.valid);
             this.lastZKProof = zkProof;
             this.totalZKProofs++;
         }
@@ -409,11 +409,11 @@ export class FirewallAgent {
      * ZKV Proof Generation - Zero-Knowledge proof for enterprise privacy
      * Proves verification happened WITHOUT revealing source data
      */
-    private generateZKProof(text: string, _isValid: boolean): ZKProof {
+    private async generateZKProof(text: string, _isValid: boolean): Promise<ZKProof> {
         const pageContext = this.extractPageContext();
 
         // Generate ZK proof - source never leaves the browser
-        const proof = ZKVRuntime.createProof({
+        const proof = await ZKVRuntime.createProof({
             source: pageContext,  // NEVER sent externally
             answer: text,
             domain: this.activeDomain as KnowledgeDomain,
