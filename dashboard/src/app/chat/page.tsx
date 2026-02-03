@@ -1,247 +1,332 @@
+"use client";
 
-'use client';
-
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Brain, Shield, Sparkles, Database, History, ChevronLeft } from 'lucide-react';
+import { Send, Bot, User, Sparkles, StopCircle, Menu } from 'lucide-react';
+import { api } from '@/lib/api';
+import ReactMarkdown from 'react-markdown';
+import { Sidebar } from '@/components/Sidebar';
+import { ChatList } from '@/components/Chat/ChatList';
+import { CrystalContext } from '@/components/Chat/CrystalContext';
+import { CrystalPicker } from '@/components/Chat/CrystalPicker';
 import { supabase } from '@/lib/supabase';
 
 interface Message {
+    id: string;
     role: 'user' | 'assistant';
     content: string;
-    isGrounded?: boolean;
+    timestamp: number;
+    thinking?: boolean;
+    crystals?: any[];
 }
 
-interface Crystal {
-    context_id: string;
-    domain: string;
-    intent: { primary: string };
+interface ChatSession {
+    id: string;
+    title: string;
+    lastMessage: string;
+    timestamp: number;
+    crystals: any[];
+    messages: Message[];
 }
 
 export default function ChatPage() {
+    // Session State
+    const [sessions, setSessions] = useState<ChatSession[]>([]);
+    const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
-    const [input, setInput] = useState('');
-    const [isTyping, setIsTyping] = useState(false);
-    const [crystals, setCrystals] = useState<Crystal[]>([]);
-    const [selectedCrystals, setSelectedCrystals] = useState<string[]>([]);
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const [sessionId, setSessionId] = useState<string | null>(null);
+    const [activeCrystals, setActiveCrystals] = useState<any[]>([]);
 
+    // UI State
+    const [input, setInput] = useState('');
+    const [isThinking, setIsThinking] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isPickerOpen, setIsPickerOpen] = useState(false);
+    const scrollRef = useRef<HTMLDivElement>(null);
+
+    // Initial Load
     useEffect(() => {
-        async function fetchCrystals() {
-            const { data } = await supabase.from('crystals').select('context_id, domain, intent');
-            setCrystals(data || []);
+        const savedSessions = localStorage.getItem('nb_chat_sessions');
+        if (savedSessions) {
+            const parsed = JSON.parse(savedSessions);
+            setSessions(parsed);
+            if (parsed.length > 0) {
+                // Load most recent
+                loadSession(parsed[0]);
+            } else {
+                createNewSession();
+            }
+        } else {
+            createNewSession();
         }
-        fetchCrystals();
     }, []);
 
+    // Save on change
+    useEffect(() => {
+        if (sessions.length > 0) {
+            localStorage.setItem('nb_chat_sessions', JSON.stringify(sessions));
+        }
+    }, [sessions]);
+
+    // Update active session when messages/crystals change
+    useEffect(() => {
+        if (!activeSessionId) return;
+
+        setSessions(prev => prev.map(s => {
+            if (s.id === activeSessionId) {
+                return {
+                    ...s,
+                    messages: messages,
+                    crystals: activeCrystals,
+                    lastMessage: messages.length > 0 ? messages[messages.length - 1].content : s.lastMessage,
+                    timestamp: Date.now()
+                };
+            }
+            return s;
+        }));
+    }, [messages, activeCrystals, activeSessionId]);
+
+    // Scroll to bottom
     useEffect(() => {
         if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
     }, [messages]);
 
-    const handleSend = async () => {
-        if (!input.trim()) return;
+    const createNewSession = () => {
+        const newSession: ChatSession = {
+            id: Date.now().toString(),
+            title: 'New Dialogue',
+            lastMessage: '',
+            timestamp: Date.now(),
+            crystals: [],
+            messages: [{
+                id: '1',
+                role: 'assistant',
+                content: "I am the Neural Surface. Accessing your Sovereign Knowledge Manifold. How may I assist?",
+                timestamp: Date.now()
+            }]
+        };
+        setSessions(prev => [newSession, ...prev]);
+        loadSession(newSession);
+    };
 
-        const userMsg: Message = { role: 'user', content: input };
+    const loadSession = (session: ChatSession) => {
+        setActiveSessionId(session.id);
+        setMessages(session.messages);
+        setActiveCrystals(session.crystals);
+    };
+
+    const deleteSession = (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        const newSessions = sessions.filter(s => s.id !== id);
+        setSessions(newSessions);
+        if (activeSessionId === id) {
+            if (newSessions.length > 0) loadSession(newSessions[0]);
+            else createNewSession();
+        }
+        localStorage.setItem('nb_chat_sessions', JSON.stringify(newSessions));
+    };
+
+    const handleSend = async () => {
+        if (!input.trim() || isThinking) return;
+
+        // User Message
+        const userMsg: Message = {
+            id: Date.now().toString(),
+            role: 'user',
+            content: input,
+            timestamp: Date.now()
+        };
         setMessages(prev => [...prev, userMsg]);
         setInput('');
-        setIsTyping(true);
+        setIsThinking(true);
+
+        // Rename session if first user message
+        if (messages.length <= 1) {
+            setSessions(prev => prev.map(s => s.id === activeSessionId ? { ...s, title: input.substring(0, 30) } : s));
+        }
 
         try {
-            // 1. CALL REAL GROUNDED CHAT API
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000'}/v1/neural/chat`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    session_id: sessionId,
-                    prompt: input,
-                    crystal_ids: selectedCrystals
-                })
+            // Construct Context from Crystals
+            let systemContext = "";
+            if (activeCrystals.length > 0) {
+                systemContext = "You have access to the following Sovereign Knowledge (Crystals):\n" +
+                    activeCrystals.map(c => `- [${c.domain}]: ${JSON.stringify(c.intent)}`).join('\n') +
+                    "\n\nUse this knowledge to answer the user's query with high fidelity.";
+            }
+
+            const apiMessages = [
+                ...(systemContext ? [{ role: 'system', content: systemContext }] : []),
+                ...messages.map(m => ({ role: m.role, content: m.content })),
+                { role: 'user', content: input }
+            ];
+
+            const response = await api.post('/v1/chat/completions', {
+                model: "neural-bridge-oracle",
+                messages: apiMessages
             });
 
-            const data = await response.json();
-            if (data.success) {
-                setSessionId(data.session_id);
-                const assistantMsg: Message = {
-                    role: 'assistant',
-                    content: data.response,
-                    isGrounded: selectedCrystals.length > 0
-                };
-                setMessages(prev => [...prev, assistantMsg]);
-
-                // 2. TRIGGER RECURSIVE REFINEMENT (Asynchronous Background Task)
-                fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000'}/v1/neural/refine`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        session_id: data.session_id,
-                        interaction_result: data.response
-                    })
-                }).then(() => console.log("[Neural Chat] 🧬 Knowledge refined and improved."));
-
-            } else {
-                throw new Error(data.error);
-            }
-        } catch (error) {
-            setMessages(prev => [...prev, { role: 'assistant', content: `[Error]: ${(error as Error).message}` }]);
+            const aiMsg: Message = {
+                id: (Date.now() + 1).toString(),
+                role: 'assistant',
+                content: response.data.choices[0].message.content,
+                timestamp: Date.now()
+            };
+            setMessages(prev => [...prev, aiMsg]);
+        } catch (err) {
+            const errorMsg: Message = {
+                id: (Date.now() + 1).toString(),
+                role: 'assistant',
+                content: "Connection to Oracle Lost. Retrying...",
+                timestamp: Date.now()
+            };
+            setMessages(prev => [...prev, errorMsg]);
         } finally {
-            setIsTyping(false);
+            setIsThinking(false);
         }
     };
 
-    const toggleCrystal = (id: string) => {
-        setSelectedCrystals(prev =>
-            prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
-        );
-    };
-
     return (
-        <div className="flex h-screen bg-[#050505] overflow-hidden">
-            {/* Sidebar: Knowledge Grounding */}
-            <aside className="w-80 border-r border-white/5 bg-white/[0.02] backdrop-blur-3xl p-6 flex flex-col">
-                <div className="mb-8">
-                    <h2 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
-                        <Database className="text-cyan-400" size={16} />
-                        Grounding Manifold
-                    </h2>
-                    <p className="text-[10px] text-white/40 mt-1 uppercase">Select truths to anchor the AI</p>
-                </div>
+        <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-blue-100 selection:text-blue-900 flex overflow-hidden">
+            <Sidebar />
 
-                <div className="flex-1 overflow-y-auto space-y-3 pr-2">
-                    {crystals.map((c) => (
-                        <button
-                            key={c.context_id}
-                            onClick={() => toggleCrystal(c.context_id)}
-                            className={twMerge(
-                                "w-full text-left p-4 rounded-xl border transition-all relative overflow-hidden group",
-                                selectedCrystals.includes(c.context_id)
-                                    ? "border-cyan-500/50 bg-cyan-500/10"
-                                    : "border-white/5 bg-white/5 hover:bg-white/10"
-                            )}
+            <main className="flex-1 md:ml-64 flex h-screen relative">
+                {/* CHAT SESSION SIDEBAR */}
+                <AnimatePresence>
+                    {isSidebarOpen && (
+                        <motion.div
+                            initial={{ width: 0, opacity: 0 }}
+                            animate={{ width: 256, opacity: 1 }}
+                            exit={{ width: 0, opacity: 0 }}
+                            className="h-full border-r border-gray-100 bg-gray-50/50 hidden lg:block overflow-hidden"
                         >
-                            <div className="relative z-10">
-                                <span className="text-[8px] font-bold text-cyan-400 uppercase">{c.domain}</span>
-                                <p className="text-xs text-white/70 line-clamp-2 mt-1">{c.intent.primary}</p>
-                            </div>
-                            {selectedCrystals.includes(c.context_id) && (
-                                <div className="absolute right-2 top-2 h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(0,242,255,1)]" />
-                            )}
-                        </button>
-                    ))}
-                </div>
-
-                <div className="mt-6 pt-6 border-t border-white/5">
-                    <button className="w-full flex items-center justify-between text-white/40 hover:text-white transition-colors">
-                        <span className="text-xs font-bold uppercase">Session History</span>
-                        <History size={16} />
-                    </button>
-                </div>
-            </aside>
-
-            {/* Main Chat Area */}
-            <main className="flex-1 flex flex-col relative">
-                {/* Background Glow */}
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/5 blur-[120px] pointer-events-none" />
-
-                {/* Header */}
-                <header className="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-black/40 backdrop-blur-md z-10">
-                    <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400">
-                            <Sparkles size={18} />
-                        </div>
-                        <div>
-                            <h1 className="text-sm font-bold text-white uppercase tracking-tighter">Talk to my Knowledge</h1>
-                            <p className="text-[10px] text-white/40 uppercase">Grounded in {selectedCrystals.length} Sovereign Crystals</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <select className="bg-white/5 border border-white/10 rounded-lg text-[10px] font-bold text-white/60 px-3 py-1 outline-none hover:border-cyan-500/30 transition-all uppercase">
-                            <option>Claude 3.5 Sonnet</option>
-                            <option>GPT-4o</option>
-                            <option>Llama 3 70B</option>
-                        </select>
-                    </div>
-                </header>
-
-                {/* Messages */}
-                <div className="flex-1 overflow-y-auto p-8 space-y-8 z-10" ref={scrollRef}>
-                    <AnimatePresence>
-                        {messages.map((m, i) => (
-                            <motion.div
-                                key={i}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className={twMerge(
-                                    "flex gap-4 max-w-3xl",
-                                    m.role === 'user' ? "ml-auto flex-row-reverse" : ""
-                                )}
-                            >
-                                <div className={twMerge(
-                                    "h-10 w-10 min-w-[40px] rounded-xl flex items-center justify-center border",
-                                    m.role === 'user' ? "bg-white/5 border-white/10 text-white/40" : "bg-cyan-500/10 border-cyan-500/20 text-cyan-400"
-                                )}>
-                                    {m.role === 'user' ? <ChevronLeft size={20} /> : <Brain size={20} />}
-                                </div>
-                                <div className={twMerge(
-                                    "space-y-2",
-                                    m.role === 'user' ? "text-right" : ""
-                                )}>
-                                    <div className={twMerge(
-                                        "p-4 rounded-2xl text-sm leading-relaxed",
-                                        m.role === 'user' ? "bg-white/5 text-white/80" : "bg-white/[0.02] text-white/90 border border-white/5"
-                                    )}>
-                                        {m.content}
-                                    </div>
-                                    {m.isGrounded && (
-                                        <div className="flex items-center gap-1.5 text-[8px] font-bold text-cyan-400 tracking-widest uppercase px-2 justify-end">
-                                            <Shield size={10} />
-                                            Grounded by Library
-                                        </div>
-                                    )}
-                                </div>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
-                    {isTyping && (
-                        <div className="flex gap-4">
-                            <div className="h-10 w-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
-                                <Brain size={20} className="animate-pulse" />
-                            </div>
-                            <div className="flex gap-1 items-center">
-                                <div className="w-1.5 h-1.5 rounded-full bg-cyan-500/40 animate-bounce [animation-delay:-0.3s]" />
-                                <div className="w-1.5 h-1.5 rounded-full bg-cyan-500/40 animate-bounce [animation-delay:-0.15s]" />
-                                <div className="w-1.5 h-1.5 rounded-full bg-cyan-500/40 animate-bounce" />
-                            </div>
-                        </div>
+                            <ChatList
+                                sessions={sessions}
+                                activeId={activeSessionId}
+                                onSelect={(id) => loadSession(sessions.find(s => s.id === id)!)}
+                                onCreate={createNewSession}
+                                onDelete={deleteSession}
+                            />
+                        </motion.div>
                     )}
-                </div>
+                </AnimatePresence>
 
-                {/* Input */}
-                <div className="p-8 z-10">
-                    <div className="max-w-3xl mx-auto relative group">
-                        <input
-                            type="text"
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                            placeholder="Ask your manifold..."
-                            className="w-full h-14 rounded-2xl bg-white/5 border border-white/10 pl-6 pr-16 text-sm text-white outline-none focus:border-cyan-500/40 focus:bg-white/[0.08] transition-all"
-                        />
-                        <button
-                            onClick={handleSend}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg bg-cyan-500 flex items-center justify-center text-black hover:bg-cyan-400 transition-colors shadow-lg shadow-cyan-500/20"
-                        >
-                            <Send size={16} />
-                        </button>
+                {/* MAIN CHAT AREA */}
+                <div className="flex-1 flex flex-col min-w-0 bg-white relative">
+                    {/* HEADER */}
+                    <header className="h-16 border-b border-gray-100 bg-white/80 backdrop-blur-xl flex items-center justify-between px-6 sticky top-0 z-10">
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                                className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 lg:block hidden"
+                            >
+                                <Menu size={20} />
+                            </button>
+                            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                                <Sparkles className="w-4 h-4 text-white" />
+                            </div>
+                            <div>
+                                <h1 className="text-sm font-black italic tracking-tighter text-gray-900">NEURAL CHAT</h1>
+                                <div className="flex items-center space-x-2">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Oracle Online</span>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* CRYSTAL CONTEXT */}
+                    <CrystalContext
+                        crystals={activeCrystals}
+                        onRemove={(id) => setActiveCrystals(prev => prev.filter(c => c.context_id !== id))}
+                        onAdd={() => setIsPickerOpen(true)}
+                    />
+
+                    {/* MESSAGES */}
+                    <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 bg-gray-50/30" ref={scrollRef}>
+                        <AnimatePresence initial={false}>
+                            {messages.map((msg) => (
+                                <motion.div
+                                    key={msg.id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                >
+                                    <div className={`flex max-w-3xl ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'} items-start gap-4`}>
+                                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${msg.role === 'user'
+                                                ? 'bg-black text-white'
+                                                : 'bg-white border border-gray-100 text-blue-600 shadow-sm'
+                                            }`}>
+                                            {msg.role === 'user' ? <User size={14} /> : <Bot size={14} />}
+                                        </div>
+
+                                        <div className={`p-5 rounded-[1.5rem] text-sm leading-relaxed shadow-sm ${msg.role === 'user'
+                                                ? 'bg-black text-white rounded-tr-none'
+                                                : 'bg-white border border-gray-100 text-gray-700 rounded-tl-none'
+                                            }`}>
+                                            <ReactMarkdown className="prose prose-sm max-w-none prose-invert={msg.role === 'user'}">
+                                                {msg.content}
+                                            </ReactMarkdown>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                            {isThinking && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="flex justify-start"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-8 h-8 rounded-xl bg-white border border-gray-100 text-blue-600 shadow-sm flex items-center justify-center">
+                                            <Bot size={14} />
+                                        </div>
+                                        <div className="px-6 py-4 bg-white border border-gray-100 rounded-[2rem] rounded-tl-none flex items-center gap-2">
+                                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
+                    {/* INPUT AREA */}
+                    <div className="p-6 bg-white border-t border-gray-100 relative z-20">
+                        <div className="max-w-4xl mx-auto relative">
+                            <input
+                                type="text"
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                                placeholder="Interrogate your knowledge manifold..."
+                                className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-6 pr-14 py-4 text-sm font-medium outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner"
+                                disabled={isThinking}
+                            />
+                            <button
+                                onClick={handleSend}
+                                disabled={!input.trim() || isThinking}
+                                className="absolute right-2 top-2 bottom-2 aspect-square bg-black text-white rounded-xl flex items-center justify-center hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                            >
+                                {isThinking ? <StopCircle size={18} className="animate-pulse" /> : <Send size={18} />}
+                            </button>
+                        </div>
                     </div>
                 </div>
+
+                {/* MODALS */}
+                <CrystalPicker
+                    isOpen={isPickerOpen}
+                    onClose={() => setIsPickerOpen(false)}
+                    onSelect={(crystal) => {
+                        setActiveCrystals(prev => [...prev, crystal]);
+                        setIsPickerOpen(false);
+                    }}
+                    alreadySelected={activeCrystals.map(c => c.context_id)}
+                />
+
             </main>
         </div>
     );
-}
-
-function twMerge(...classes: any[]) {
-    return classes.filter(Boolean).join(' ');
 }

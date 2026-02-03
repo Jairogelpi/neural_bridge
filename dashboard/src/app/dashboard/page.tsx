@@ -8,18 +8,13 @@ import {
     Shield,
     Zap,
     Database,
-    LayoutDashboard,
-    MessageSquare,
-    Settings,
-    LogOut,
-    Search,
-    Brain,
-    Globe
+    Search
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import Link from 'next/link';
 import { MetricCard } from '@/components/MetricCard';
 import { ActivityItem } from '@/components/ActivityItem';
+import { Sidebar } from '@/components/Sidebar';
+import { Tooltip } from '@/components/Tooltip';
 
 interface Stats {
     total_vaccines: number;
@@ -37,7 +32,7 @@ interface Log {
 }
 
 export default function DashboardPage() {
-    const { user, logout, isLoading: authLoading } = useAuth();
+    const { user, isLoading: authLoading } = useAuth();
     const [stats, setStats] = useState<Stats>({
         total_vaccines: 0,
         total_crystals: 0,
@@ -78,35 +73,8 @@ export default function DashboardPage() {
 
     return (
         <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-blue-100 selection:text-blue-900 flex">
+            <Sidebar />
 
-            {/* SIDEBAR NAVIGATION */}
-            <aside className="w-64 border-r border-gray-100 bg-white fixed h-full z-20 hidden md:flex flex-col">
-                <div className="p-8 border-b border-gray-50">
-                    <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center">
-                            <Shield className="w-4 h-4 text-white" />
-                        </div>
-                        <span className="text-xs font-black tracking-[0.2em] uppercase text-gray-900">Neural Bridge</span>
-                    </div>
-                </div>
-
-                <nav className="flex-1 p-6 space-y-2">
-                    <NavItem href="/dashboard" icon={LayoutDashboard} label="Overview" active />
-                    <NavItem href="/library" icon={Database} label="Library" />
-                    <NavItem href="/chat" icon={MessageSquare} label="Neural Chat" />
-                    <NavItem href="/cortex" icon={Brain} label="Cortex Graph" />
-                    <NavItem href="/settings" icon={Settings} label="Settings" />
-                </nav>
-
-                <div className="p-6 border-t border-gray-50">
-                    <button onClick={logout} className="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all w-full">
-                        <LogOut size={16} />
-                        <span className="text-xs font-bold uppercase tracking-wider">Disconnect</span>
-                    </button>
-                </div>
-            </aside>
-
-            {/* MAIN CONTENT */}
             <main className="flex-1 md:ml-64 p-8 md:p-12 overflow-y-auto">
                 <header className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6">
                     <div>
@@ -133,32 +101,43 @@ export default function DashboardPage() {
 
                 {/* METRICS GRID */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-                    <MetricCard
-                        label="Truth Fidelity"
-                        value="99.9%"
-                        icon={Shield}
-                        color="blue"
-                        subValue="VERIFIED"
-                    />
-                    <MetricCard
-                        label="Knowledge Crystals"
-                        value={stats.total_crystals}
-                        icon={Database}
-                        color="cyan"
-                    />
-                    <MetricCard
-                        label="Latency"
-                        value="0.0ms"
-                        icon={Zap}
-                        color="purple"
-                        subValue="LOCAL"
-                    />
-                    <MetricCard
-                        label="Active Synapses"
-                        value="4,096"
-                        icon={Activity}
-                        color="indigo"
-                    />
+                    <Tooltip content="System Integrity" description="Real-time verification score based on zero-knowledge proofs from the last 100 transactions.">
+                        <MetricCard
+                            label="Truth Fidelity"
+                            value="99.9%"
+                            icon={Shield}
+                            color="blue"
+                            subValue="VERIFIED"
+                        />
+                    </Tooltip>
+
+                    <Tooltip content="Total Knowledge" description="Total count of unique knowledge crystals indexed in the sovereign graph relative to the global manifold.">
+                        <MetricCard
+                            label="Knowledge Crystals"
+                            value={stats.total_crystals}
+                            icon={Database}
+                            color="cyan"
+                        />
+                    </Tooltip>
+
+                    <Tooltip content="Network Latency" description="Round-trip time to the Neural Bridge Oracle edge nodes.">
+                        <MetricCard
+                            label="Latency"
+                            value="12ms"
+                            icon={Zap}
+                            color="purple"
+                            subValue="LOCAL"
+                        />
+                    </Tooltip>
+
+                    <Tooltip content="Synaptic Density" description="Number of active connections and relationships between crystals in the cortex graph.">
+                        <MetricCard
+                            label="Active Synapses"
+                            value="4,096"
+                            icon={Activity}
+                            color="indigo"
+                        />
+                    </Tooltip>
                 </div>
 
                 {/* ACTIVITY FEED */}
@@ -188,18 +167,5 @@ export default function DashboardPage() {
                 </section>
             </main>
         </div>
-    );
-}
-
-function NavItem({ href, icon: Icon, label, active }: any) {
-    return (
-        <Link
-            href={href}
-            className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all group ${active ? 'bg-blue-50 text-blue-600' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                }`}
-        >
-            <Icon size={18} className={`transition-transform group-hover:scale-110 ${active ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-900'}`} />
-            <span className="text-xs font-bold uppercase tracking-wider">{label}</span>
-        </Link>
     );
 }

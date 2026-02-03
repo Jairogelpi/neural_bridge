@@ -3,20 +3,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Sidebar } from '@/components/Sidebar';
 import {
     Gavel,
-    Shield,
-    Terminal,
-    LogOut,
-    ChevronRight,
     RefreshCcw,
-    AlertTriangle,
     CheckCircle2,
     XCircle,
-    LayoutDashboard
+    AlertTriangle,
+    Shield
 } from 'lucide-react';
 import api from '@/lib/api';
-import Link from 'next/link';
 
 interface JuryCase {
     case_id: string;
@@ -28,7 +24,7 @@ interface JuryCase {
 }
 
 export default function JuryPage() {
-    const { user, logout, isLoading: authLoading } = useAuth();
+    const { user, isLoading: authLoading } = useAuth();
     const [cases, setCases] = useState<JuryCase[]>([]);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [votingId, setVotingId] = useState<string | null>(null);
@@ -52,8 +48,6 @@ export default function JuryPage() {
     const castVote = async (caseId: string, decision: 'ACCEPT' | 'FAIL') => {
         try {
             setVotingId(caseId);
-            // In a production app, we would use window.crypto to sign a challenge
-            // For this version, we use a simulation signature that the server expects: NB_SIG_...
             const signature = `NB_SIG_${Math.random().toString(36).substring(7)}`;
 
             await api.post('/v1/jury/vote', {
@@ -62,76 +56,45 @@ export default function JuryPage() {
                 signature
             });
 
-            // Remove case from local view
             setCases(prev => prev.filter(c => c.case_id !== caseId));
         } catch (err) {
             console.error('Failed to cast vote', err);
-            alert('Voting failed. Check your expert credentials.');
+            // In a real scenario, we might show a toast notification here
         } finally {
             setVotingId(null);
         }
     };
 
-    if (authLoading) return null;
-    if (!user) return null;
+    if (authLoading || !user) return null;
 
     return (
-        <div className="min-h-screen bg-[#020202] text-white font-mono selection:bg-cyan-500/30 overflow-hidden flex flex-col">
-            {/* TOP NAV */}
-            <header className="h-16 border-b border-white/5 bg-black/50 backdrop-blur-md flex items-center justify-between px-6 z-20">
-                <div className="flex items-center space-x-4">
-                    <div className="shrink-0 w-8 h-8 bg-cyan-500/10 border border-cyan-500/20 rounded-lg flex items-center justify-center">
-                        <Gavel className="w-5 h-5 text-cyan-400" />
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="text-sm font-bold tracking-tighter text-white uppercase">Jury of Truth <span className="text-cyan-500">v1.2</span></span>
-                        <span className="text-[10px] text-gray-500 font-medium">SOVEREIGN DECISION NODE</span>
-                    </div>
-                </div>
+        <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-blue-100 selection:text-blue-900 flex">
+            <Sidebar />
 
-                <div className="flex items-center space-x-6">
-                    <nav className="flex items-center space-x-1 mr-4">
-                        <Link href="/dashboard" className="px-3 py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-all flex items-center">
-                            <LayoutDashboard className="w-3 h-3 mr-2" /> Dashboard
-                        </Link>
-                        <div className="w-1 h-1 bg-white/10 rounded-full mx-1" />
-                        <Link href="/jury" className="px-3 py-1.5 rounded-lg text-xs font-bold text-cyan-400 bg-cyan-500/5 border border-cyan-500/10 flex items-center">
-                            <Gavel className="w-3 h-3 mr-2" /> Jury Cases
-                        </Link>
-                    </nav>
-
-                    <div className="flex items-center space-x-3 border-l border-white/10 pl-6">
-                        <div className="flex flex-col items-end">
-                            <span className="text-xs font-bold">{user.name}</span>
-                            <span className="text-[10px] text-cyan-500/70">Expert // {user.tier}</span>
-                        </div>
-                        <button onClick={logout} className="p-2 hover:bg-red-500/10 rounded-lg transition-colors group">
-                            <LogOut className="w-4 h-4 text-gray-500 group-hover:text-red-400 transition-colors" />
-                        </button>
-                    </div>
-                </div>
-            </header>
-
-            <main className="flex-1 flex flex-col overflow-hidden max-w-6xl mx-auto w-full p-8">
-                <div className="flex items-center justify-between mb-8">
+            <main className="flex-1 md:ml-64 p-8 md:p-12 overflow-y-auto">
+                <header className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6">
                     <div>
-                        <h1 className="text-2xl font-black tracking-tighter mb-2 italic">ESCALATIONS <span className="text-cyan-500">REQUIRED</span></h1>
-                        <p className="text-gray-500 text-sm max-w-xl">
-                            Each case below represents a knowledge conflict where AI consensus fell below the required threshold.
-                            As a verified Expert, your decision will provide the final mathematical anchor for truth.
-                        </p>
+                        <div className="inline-flex items-center px-4 py-1.5 bg-red-50 rounded-full mb-4 border border-red-100">
+                            <Gavel size={12} className="text-red-600 mr-2" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-red-700">Sovereign Decision Node</span>
+                        </div>
+                        <h1 className="text-4xl md:text-5xl font-black italic tracking-tighter text-gray-900 mb-2">
+                            JURY <span className="text-red-600">PROTOCOL.</span>
+                        </h1>
+                        <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Adjudicate truth conflicts in the lattice.</p>
                     </div>
+
                     <button
                         onClick={fetchCases}
                         disabled={isRefreshing}
-                        className="flex items-center space-x-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-xs font-bold hover:bg-white/10 transition-colors disabled:opacity-50"
+                        className="flex items-center px-6 py-3 bg-white border border-gray-200 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-50 transition-all shadow-sm hover:shadow-md disabled:opacity-50"
                     >
-                        <RefreshCcw className={`w-4 h-4 text-cyan-500 ${isRefreshing ? 'animate-spin' : ''}`} />
-                        <span>RE-SCAN LATTICE</span>
+                        <RefreshCcw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                        <span>Rescan Lattice</span>
                     </button>
-                </div>
+                </header>
 
-                <div className="flex-1 overflow-y-auto pr-4 scrollbar-hide space-y-4 pb-20">
+                <div className="space-y-6">
                     <AnimatePresence mode="popLayout">
                         {cases.map((juryCase) => (
                             <motion.div
@@ -139,85 +102,86 @@ export default function JuryPage() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
-                                className="bg-black/40 border border-white/10 rounded-2xl overflow-hidden group hover:border-cyan-500/30 transition-all"
+                                className="bg-white border border-gray-100 rounded-[2rem] p-8 shadow-sm hover:shadow-xl hover:shadow-red-500/5 transition-all group"
                             >
-                                <div className="p-6 flex flex-col md:flex-row md:items-center gap-6">
+                                <div className="flex flex-col lg:flex-row lg:items-center gap-8">
                                     <div className="flex-1">
-                                        <div className="flex items-center space-x-3 mb-3">
-                                            <span className="text-[10px] bg-red-500/20 text-red-400 py-1 px-2 rounded-md font-bold uppercase border border-red-500/20">
-                                                ISSUE: CONTRADICTION
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <span className="px-3 py-1 bg-red-50 text-red-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-red-100">
+                                                Contradiction Detected
                                             </span>
-                                            <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
-                                                ID: {juryCase.context_id.substring(0, 8)}...
+                                            <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">
+                                                ID: {juryCase.context_id.substring(0, 8)}
                                             </span>
                                         </div>
-                                        <h3 className="text-lg font-bold text-gray-100 mb-2 truncate group-hover:text-cyan-400 transition-colors">
+
+                                        <h3 className="text-xl font-bold text-gray-900 mb-4 leading-tight">
                                             {juryCase.issue_description}
                                         </h3>
-                                        <div className="flex items-center space-x-4">
-                                            <div className="flex items-center space-x-2">
-                                                <div className="w-32 h-1 bg-gray-800 rounded-full overflow-hidden">
-                                                    <div className="h-full bg-cyan-500" style={{ width: `${juryCase.consensus_score_ai * 100}%` }} />
+
+                                        <div className="flex items-center gap-6">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-[10px] font-bold text-gray-400 uppercase">AI Consensus</span>
+                                                <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full bg-gradient-to-r from-red-500 to-orange-500"
+                                                        style={{ width: `${juryCase.consensus_score_ai * 100}%` }}
+                                                    />
                                                 </div>
-                                                <span className="text-[10px] text-gray-400 font-bold">AI CONSENSUS: {(juryCase.consensus_score_ai * 100).toFixed(0)}%</span>
+                                                <span className="text-sm font-black text-gray-900">{(juryCase.consensus_score_ai * 100).toFixed(0)}%</span>
                                             </div>
-                                            <span className="text-gray-700">|</span>
-                                            <span className="text-[10px] text-gray-500 uppercase font-bold">CREATED: {new Date(juryCase.created_at).toLocaleDateString()}</span>
+                                            <div className="w-px h-4 bg-gray-200" />
+                                            <span className="text-[10px] font-bold text-gray-400 uppercase">
+                                                {new Date(juryCase.created_at).toLocaleDateString()}
+                                            </span>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center space-x-2">
+                                    <div className="flex items-center gap-3">
                                         <button
                                             onClick={() => castVote(juryCase.case_id, 'ACCEPT')}
                                             disabled={!!votingId}
-                                            className="px-6 py-3 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400 text-xs font-black uppercase hover:bg-green-500/20 hover:border-green-500/40 transition-all flex items-center disabled:opacity-50"
+                                            className="px-6 py-4 bg-green-50 text-green-700 rounded-xl font-bold uppercase tracking-wider text-xs hover:bg-green-100 disabled:opacity-50 transition-all flex items-center gap-2"
                                         >
-                                            <CheckCircle2 className="w-4 h-4 mr-2" /> Accept Truth
+                                            <CheckCircle2 size={16} />
+                                            <span>Accept Truth</span>
                                         </button>
                                         <button
                                             onClick={() => castVote(juryCase.case_id, 'FAIL')}
                                             disabled={!!votingId}
-                                            className="px-6 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-black uppercase hover:bg-red-500/20 hover:border-red-500/40 transition-all flex items-center disabled:opacity-50"
+                                            className="px-6 py-4 bg-red-50 text-red-700 rounded-xl font-bold uppercase tracking-wider text-xs hover:bg-red-100 disabled:opacity-50 transition-all flex items-center gap-2"
                                         >
-                                            <XCircle className="w-4 h-4 mr-2" /> Reject
+                                            <XCircle size={16} />
+                                            <span>Reject</span>
                                         </button>
                                     </div>
                                 </div>
-                                <div className="px-6 py-2 bg-white/[0.02] border-t border-white/5 flex items-center justify-between">
-                                    <div className="flex items-center space-x-4 flex-1">
-                                        <span className="text-[9px] text-gray-600 uppercase font-bold tracking-tighter flex items-center">
-                                            <Shield className="w-2.5 h-2.5 mr-1" /> ECDSA Handshake required
+
+                                <div className="mt-8 pt-6 border-t border-gray-50 flex items-center justify-between">
+                                    <div className="flex items-center gap-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                        <span className="flex items-center gap-1.5">
+                                            <Shield size={12} /> ECDSA Handshake Required
                                         </span>
-                                        <span className="text-[9px] text-gray-600 uppercase font-bold tracking-tighter flex items-center">
-                                            <AlertTriangle className="w-2.5 h-2.5 mr-1" /> Irreversible Decision
+                                        <span className="flex items-center gap-1.5">
+                                            <AlertTriangle size={12} /> Irreversible
                                         </span>
                                     </div>
-                                    <span className="text-[10px] text-cyan-500/30 font-bold italic">NB_PROTOCOL_CORE_7.1</span>
                                 </div>
                             </motion.div>
                         ))}
-
-                        {cases.length === 0 && !isRefreshing && (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="flex-1 flex flex-col items-center justify-center py-20 text-center"
-                            >
-                                <div className="w-20 h-20 bg-cyan-500/5 rounded-full flex items-center justify-center mb-6 border border-cyan-500/10">
-                                    <CheckCircle2 className="w-10 h-10 text-cyan-500/20" />
-                                </div>
-                                <h2 className="text-lg font-bold text-gray-400 mb-1">ALL TRUTHS ANCHORED</h2>
-                                <p className="text-gray-600 text-xs max-w-xs">The lattice is currently stable. No pending escalations found in the OMEGA cluster.</p>
-                            </motion.div>
-                        )}
                     </AnimatePresence>
+
+                    {cases.length === 0 && !isRefreshing && (
+                        <div className="text-center py-24 bg-gray-50 rounded-[2rem] border border-gray-100 border-dashed">
+                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-gray-100 text-green-500">
+                                <CheckCircle2 size={32} />
+                            </div>
+                            <h3 className="text-lg font-black text-gray-900 mb-2">ALL TRUTHS ANCHORED</h3>
+                            <p className="text-sm font-medium text-gray-400">The knowledge lattice is stable. No conflicts detected.</p>
+                        </div>
+                    )}
                 </div>
             </main>
-
-            {/* DECORATIVE GRID */}
-            <div className="fixed inset-0 z-[-1] pointer-events-none opacity-5">
-                <div className="w-full h-full bg-[linear-gradient(to_right,#111_1px,transparent_1px),linear-gradient(to_bottom,#111_1px,transparent_1px)] bg-[size:60px_60px]" />
-            </div>
         </div>
     );
 }
