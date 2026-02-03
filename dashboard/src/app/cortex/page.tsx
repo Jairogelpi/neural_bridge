@@ -7,8 +7,8 @@ import { ZoomIn, ZoomOut, Share2, RefreshCcw } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 export default function CortexPage() {
-    const [graphData, setGraphData] = useState({ nodes: [], links: [] });
-    const graphRef = useRef<any>();
+    const [graphData, setGraphData] = useState<{ nodes: any[], links: any[] }>({ nodes: [], links: [] });
+    const graphRef = useRef<any>(null);
 
     const fetchGraph = async () => {
         const { data: crystals } = await supabase

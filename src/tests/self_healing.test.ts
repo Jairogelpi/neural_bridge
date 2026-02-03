@@ -21,8 +21,8 @@ async function runSelfHealingProof() {
 
     // 2. Trigger Autonomous Gap Detection
     console.log("[Proof] Triggering Recursive Brain Audit...");
-    const gaps = await RecursiveBrain.detectKnowledgeGaps(domain);
-    console.log(`[Proof] Detected Gaps in Knowledge: ${JSON.stringify(gaps)}`);
+    const audit = await RecursiveBrain.performEpistemicAudit(domain);
+    console.log(`[Proof] Detected Gaps in Knowledge: ${JSON.stringify(audit)}`);
 
     // 3. The Pulse: Filling the Gap
     console.log("[Proof] Initiating Learning Pulse to heal voids...");
@@ -31,10 +31,10 @@ async function runSelfHealingProof() {
     // 4. Verification: Querying the new knowledge
     console.log("[Proof] Querying the autonomously acquired knowledge...");
     // We assume the brain picked something related to the gaps it found.
-    const results = await nb.ask(gaps[0]);
+    const results = await nb.ask(audit[0].gap);
 
     console.log(`--- AUTONOMOUS DISCOVERY RESULT ---`);
-    console.log(`Query: "${gaps[0]}"`);
+    console.log(`Query: "${audit[0].gap}"`);
     console.log(`Discovered Truth: ${results.content}`);
     console.log(`Verification Status: ${results.proof_valid ? '✅ VERIFIED' : '❌ UNVERIFIED'}`);
     console.log(`Author: ${results.metadata.author}`);

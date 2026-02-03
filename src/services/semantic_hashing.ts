@@ -283,4 +283,16 @@ export class SemanticHasher {
         const fortress = vecContext.bind(vecVaccine);
         return fortress.toString();
     }
+
+    /**
+     * Verifies if two texts are semantically equivalent.
+     * Uses Holographic Similarity with a high threshold.
+     */
+    static async verifyEquivalence(textA: string, textB: string): Promise<boolean> {
+        const hashA = this.computeHolographicHash(textA);
+        const hashB = this.computeHolographicHash(textB);
+        const similarity = this.holographicSimilarity(hashA, hashB);
+        console.log(`[SemanticHasher] Equivalence Check: ${similarity.toFixed(4)}`);
+        return similarity > 0.85; // High threshold for equivalence
+    }
 }

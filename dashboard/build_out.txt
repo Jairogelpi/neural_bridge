@@ -1,0 +1,16 @@
+
+> dashboard@0.1.0 build
+> next build
+
+   ▲ Next.js 15.1.6
+
+   Creating an optimized production build ...
+Failed to compile.
+
+./src/app/cortex/page.tsx
+Module not found: Can't resolve 'react-force-graph-2d'
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+> Build failed because of webpack errors

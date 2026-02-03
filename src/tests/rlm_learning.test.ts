@@ -30,7 +30,7 @@ describe('Reinforcement Logic Modeling (RLM)', () => {
         }
     });
 
-    it('Evolution: Good Crystal climbs to the top', () => {
+    it('Evolution: Good Crystal climbs to the top', async () => {
         console.log('\n--- 🧠 RLM EVOLUTION TEST ---');
 
         let goodCrystal = createCrystal('good_crystal', 0.5); // Started average
@@ -39,10 +39,10 @@ describe('Reinforcement Logic Modeling (RLM)', () => {
         // Simulation: 5 rounds of learning
         for (let i = 0; i < 5; i++) {
             // User accepts Good Crystal (+1)
-            goodCrystal = RLMEngine.updateCrystalUtility(goodCrystal, 1);
+            goodCrystal = await RLMEngine.updateCrystalUtility(goodCrystal, 1);
 
             // User rejects Bad Crystal (-1)
-            badCrystal = RLMEngine.updateCrystalUtility(badCrystal, -1);
+            badCrystal = await RLMEngine.updateCrystalUtility(badCrystal, -1);
 
             console.log(`[Round ${i + 1}] Good Q: ${goodCrystal.rlm_stats!.q_score.toFixed(3)} | Bad Q: ${badCrystal.rlm_stats!.q_score.toFixed(3)}`);
         }
@@ -51,11 +51,11 @@ describe('Reinforcement Logic Modeling (RLM)', () => {
         expect(badCrystal.rlm_stats!.q_score).toBeLessThan(0.4);
 
         // Ranking Check
-        const ranked = RLMEngine.rankCandidates([badCrystal, goodCrystal], 100);
+        const ranked = await RLMEngine.rankCandidates([badCrystal, goodCrystal], 100);
         expect(ranked[0].context_id).toBe('good_crystal'); // Winner
     });
 
-    it('Exploration: New Crystal gets a chance (UCB Boost)', () => {
+    it('Exploration: New Crystal gets a chance (UCB Boost)', async () => {
         const establishedCrystal = createCrystal('old_reliable', 0.8);
         establishedCrystal.rlm_stats!.usage_count = 1000; // Used a lot
 
@@ -63,7 +63,7 @@ describe('Reinforcement Logic Modeling (RLM)', () => {
         newCrystal.rlm_stats!.usage_count = 0; // Never used
 
         // Even though Old Reliable has high score (0.8), New Contender has Infinite Curiosity Bonus
-        const ranked = RLMEngine.rankCandidates([establishedCrystal, newCrystal], 1000);
+        const ranked = await RLMEngine.rankCandidates([establishedCrystal, newCrystal], 1000);
 
         // First time, the New Crystal should win due to exploration bonus
         console.log(`\nWinner (Exploration): ${ranked[0].context_id}`);

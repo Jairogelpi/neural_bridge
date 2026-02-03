@@ -1,0 +1,24 @@
+
+> dashboard@0.1.0 build
+> next build
+
+   ▲ Next.js 15.1.6
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+ ⨯ ESLint: Cannot find module 'C:\Users\jairo\Desktop\neural_bridge\dashboard\node_modules\eslint-config-next\typescript' imported from C:\Users\jairo\Desktop\neural_bridge\dashboard\eslint.config.mjs Did you mean to import "eslint-config-next/typescript.js"?
+Failed to compile.
+
+./src/app/chat/page.tsx:267:60
+Type error: Type '{ children: string; className: string; }' is not assignable to type 'IntrinsicAttributes & Readonly<Options>'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & Readonly<Options>'.
+
+[0m [90m 265 |[39m [32m                                            : 'bg-white border border-gray-100 text-gray-700 rounded-tl-none'[39m[0m
+[0m [90m 266 |[39m [32m                                            }`[39m}[33m>[39m[0m
+[0m[31m[1m>[22m[39m[90m 267 |[39m                                             [33m<[39m[33mReactMarkdown[39m className[33m=[39m[32m"prose prose-sm max-w-none prose-invert={msg.role === 'user'}"[39m[33m>[39m[0m
+[0m [90m     |[39m                                                            [31m[1m^[22m[39m[0m
+[0m [90m 268 |[39m                                                 {msg[33m.[39mcontent}[0m
+[0m [90m 269 |[39m                                             [33m<[39m[33m/[39m[33mReactMarkdown[39m[33m>[39m[0m
+[0m [90m 270 |[39m                                         [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m[0m
+Static worker exited with code: 1 and signal: null

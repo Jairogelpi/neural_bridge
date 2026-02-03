@@ -161,7 +161,7 @@ export default function ChatPage() {
                 { role: 'user', content: input }
             ];
 
-            const response = await api.post('/v1/chat/completions', {
+            const response = await api.post<any>('/v1/chat/completions', {
                 model: "neural-bridge-oracle",
                 messages: apiMessages
             });
@@ -264,9 +264,11 @@ export default function ChatPage() {
                                             ? 'bg-black text-white rounded-tr-none'
                                             : 'bg-white border border-gray-100 text-gray-700 rounded-tl-none'
                                             }`}>
-                                            <ReactMarkdown className="prose prose-sm max-w-none prose-invert={msg.role === 'user'}">
-                                                {msg.content}
-                                            </ReactMarkdown>
+                                            <div className={`prose prose-sm max-w-none ${msg.role === 'user' ? 'prose-invert' : ''}`}>
+                                                <ReactMarkdown>
+                                                    {msg.content}
+                                                </ReactMarkdown>
+                                            </div>
                                         </div>
                                     </div>
                                 </motion.div>

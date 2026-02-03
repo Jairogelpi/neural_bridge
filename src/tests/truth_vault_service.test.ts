@@ -57,7 +57,11 @@ describe('THE HOLOGRAPHIC TRUTH VAULT (Service)', () => {
                 intent: { primary: "Test intent", status: "active" },
                 constraints: [],
                 verification: {}
-            })
+            }),
+            model: 'mock',
+            tokens: { prompt: 0, completion: 0, total: 0 },
+            cost: 0,
+            latency: 0
         });
 
         // Use Proto-Crystal for speed (no LLM verification needed for ID check)
