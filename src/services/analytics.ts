@@ -74,21 +74,21 @@ export class AnalyticsService {
             tierStats
         ] = await Promise.all([
             // Total crystals
-            supabase.from('crystals').select('context_id', { count: 'exact' }),
+            supabase.from('crystals').select('context_id', { count: 'exact', head: true }),
 
-            // Total users (unique authors)
-            supabase.from('crystals').select('author'),
+            // Total users (unique author_ids)
+            supabase.from('crystals').select('author_id'),
 
             // Crystals today
             supabase
                 .from('crystals')
-                .select('context_id', { count: 'exact' })
+                .select('context_id', { count: 'exact', head: true })
                 .gte('created_at', todayStart),
 
             // Crystals this week
             supabase
                 .from('crystals')
-                .select('context_id', { count: 'exact' })
+                .select('context_id', { count: 'exact', head: true })
                 .gte('created_at', weekStart),
 
             // Domain distribution
@@ -96,10 +96,10 @@ export class AnalyticsService {
                 .from('crystals')
                 .select('domain'),
 
-            // Tier distribution (from metadata)
+            // Tier distribution (from metadata JSONB)
             supabase
                 .from('crystals')
-                .select('metadata')
+                .select('tier')
         ]);
 
         // Process domain stats
@@ -115,7 +115,7 @@ export class AnalyticsService {
         // Process tier stats
         const tierCounts: Record<string, number> = {};
         tierStats.data?.forEach((c: any) => {
-            const tier = c.metadata?.tier || 'flash';
+            const tier = c.tier || 'community';
             tierCounts[tier] = (tierCounts[tier] || 0) + 1;
         });
         const tierDistribution = Object.entries(tierCounts)
@@ -123,7 +123,7 @@ export class AnalyticsService {
 
         return {
             total_crystals: totalCrystals.count || 0,
-            total_users: new Set(totalUsers.data?.map((u: any) => u.author)).size,
+            total_users: new Set(totalUsers.data?.map((u: any) => u.author_id).filter(Boolean)).size,
             crystals_today: crystalsToday.count || 0,
             crystals_this_week: crystalsThisWeek.count || 0,
             avg_crystallization_time_ms: 1500, // TODO: Track this in events
