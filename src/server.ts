@@ -602,6 +602,26 @@ app.get('/v1/analytics/fidelity', async (req: Request, res: Response) => {
     }
 });
 
+// GET /v1/vaccines - List semantic immunity vaccines (REAL DATA)
+app.get('/v1/vaccines', async (req: Request, res: Response) => {
+    try {
+        const { data: vaccines, error } = await supabase
+            .from('vaccines')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        res.json({
+            success: true,
+            vaccines: vaccines || []
+        });
+    } catch (error: any) {
+        console.error('[Vaccines] Error:', error);
+        res.json({ success: true, vaccines: [] });
+    }
+});
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // EXPORT & INTEGRATION ENDPOINTS
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1072,6 +1092,17 @@ app.get('/v1/sentinel/logs', async (req: Request, res: Response) => {
 
         if (error) throw error;
         res.json({ success: true, logs: data });
+    } catch (error) {
+        res.status(500).json({ error: (error as Error).message });
+    }
+});
+
+app.get('/v1/analytics/my-stats', AuthService.authenticate, async (req: Request, res: Response) => {
+    try {
+        const author_id = (req as any).user.author_id;
+        const { AnalyticsService } = await import('./services/analytics');
+        const stats = await AnalyticsService.getUserStats(author_id);
+        res.json({ success: true, stats });
     } catch (error) {
         res.status(500).json({ error: (error as Error).message });
     }

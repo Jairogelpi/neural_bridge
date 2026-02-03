@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #020202;
+  --background: #050505;
+  --foreground: #ffffff;
 
-  /* Blue Accent Palette */
-  --bg-panel: #f8fafc;
-  --crystal-blue: #3b82f6;
-  --crystal-blue-dark: #1e40af;
-  --border-glow: rgba(59, 130, 246, 0.15);
-  --crystal-glass: rgba(255, 255, 255, 0.9);
-  --text-muted: #64748b;
+  /* Obsidian & Electric Indigo Palette */
+  --bg-obsidian: #050505;
+  --indigo-electric: #6366f1;
+  --indigo-glow: rgba(99, 102, 241, 0.2);
+  --border-glass: rgba(255, 255, 255, 0.05);
+  --text-muted: #94a3b8;
+  --accent-cyan: #22d3ee;
 }
 
 @theme inline {
@@ -20,24 +20,21 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&family=Bebas+Neue&display=swap');
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--background);
+  color: var(--foreground);
 
-  /* Textured Background with Blue Gradients */
-  background:
-    radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.04) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 90% 10%, rgba(96, 165, 250, 0.02) 0%, transparent 50%),
-    repeating-linear-gradient(45deg,
-      transparent,
-      transparent 12px,
-      rgba(148, 163, 184, 0.015) 12px,
-      rgba(148, 163, 184, 0.015) 13px),
-    linear-gradient(180deg, #fafbfc 0%, #f8fafc 100%);
+  /* Quantum Mesh Background */
+  background-image:
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(34, 211, 238, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(34, 211, 238, 0.05) 0px, transparent 50%);
   background-attachment: fixed;
   min-height: 100vh;
 }
@@ -49,100 +46,106 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+
+.font-bebas {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.1em;
 }
 
 h1 {
-  font-size: 2.5rem;
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
+  font-size: clamp(3rem, 10vw, 8rem);
+  line-height: 0.85;
+  font-style: italic;
+  background: linear-gradient(to bottom, #fff 30%, rgba(255, 255, 255, 0.3) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
-h2 {
-  font-size: 2rem;
-  color: #1e293b;
+/* Glassmorphism Evolution */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
-h3 {
-  font-size: 1.5rem;
-  color: #334155;
+.glass-panel:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* UI Noise Overlay */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Hide scrollbars but keep functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Premium Buttons */
+.btn-premium {
+  @apply relative px-8 py-3 rounded-full font-black uppercase text-xs tracking-widest transition-all overflow-hidden flex items-center gap-3;
+  background: linear-gradient(90deg, #6366f1, #22d3ee);
+  color: #000;
+}
+
+.btn-premium::after {
+  content: "";
+  @apply absolute inset-0 bg-white opacity-0 transition-opacity;
+}
+
+.btn-premium:hover::after {
+  @apply opacity-20;
+}
+
+.btn-premium:hover {
+  @apply scale-105 shadow-xl shadow-indigo-500/20 active:scale-95;
 }
 
 /* Custom Selection */
 ::selection {
-  background: rgba(59, 130, 246, 0.15);
-  color: #1e40af;
+  background: var(--indigo-electric);
+  color: #fff;
 }
 
-/* Glass Effect Utility */
-.glass-card {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(59, 130, 246, 0.08);
-  box-shadow:
-    0 4px 6px -1px rgba(59, 130, 246, 0.05),
-    0 2px 4px -1px rgba(59, 130, 246, 0.03);
+/* Animated Glow */
+.glow-card {
+  position: relative;
 }
 
-.glass-card:hover {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(59, 130, 246, 0.15);
-  box-shadow:
-    0 10px 15px -3px rgba(59, 130, 246, 0.08),
-    0 4px 6px -2px rgba(59, 130, 246, 0.05);
+.glow-card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(135deg, var(--indigo-electric), var(--accent-cyan));
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0.2;
+  transition: opacity 0.3s;
 }
 
-/* Blue Gradient Button */
-.btn-blue {
-  background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
-  color: white;
-  font-weight: 500;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.75rem;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
-  transition: all 0.2s ease;
-}
-
-.btn-blue:hover {
-  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
-  transform: translateY(-1px);
-}
-
-/* Blue Text Gradient */
-.text-blue-gradient {
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Animated Grid Background (subtle) */
-.animated-grid-bg {
-  background-image:
-    linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
-  background-size: 60px 60px;
-  animation: grid-drift 30s linear infinite;
-}
-
-@keyframes grid-drift {
-  0% {
-    background-position: 0 0;
-  }
-
-  100% {
-    background-position: 60px 60px;
-  }
-}
-
-/* Smooth transitions */
-* {
-  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
-  transition-duration: 200ms;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+.glow-card:hover::before {
+  opacity: 0.5;
 }

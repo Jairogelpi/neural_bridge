@@ -83,28 +83,31 @@ export default function CortexPage() {
     }, [crystals]);
 
     return (
-        <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-blue-100 selection:text-blue-900 flex">
+        <div className="min-h-screen bg-black text-white selection:bg-indigo-500/30 selection:text-white flex">
             <Sidebar />
 
-            <main className="flex-1 md:ml-64 relative overflow-hidden h-screen bg-gray-50">
+            <main className="flex-1 md:ml-64 relative overflow-hidden h-screen bg-[#050505]">
                 {/* Overlay Header */}
-                <div className="absolute top-8 left-8 z-10 pointer-events-none">
-                    <div className="inline-flex items-center px-4 py-1.5 bg-white/80 backdrop-blur-md rounded-full mb-4 border border-gray-200 shadow-lg shadow-gray-200/50">
-                        <span className="w-2 h-2 bg-purple-500 rounded-full animate-pulse mr-2" />
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-purple-700">Live Synaptic Activity</span>
+                <div className="absolute top-12 left-12 z-10 pointer-events-none">
+                    <div className="inline-flex items-center px-4 py-1.5 bg-indigo-500/10 backdrop-blur-3xl rounded-full mb-6 border border-indigo-500/20 shadow-[0_0_30px_rgba(99,102,241,0.1)]">
+                        <span className="w-2 h-2 bg-indigo-400 rounded-full animate-pulse mr-3" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">Live Synaptic Activity</span>
                     </div>
-                    <h1 className="text-5xl font-black italic tracking-tighter text-gray-900">CORTEX <span className="text-purple-600">GRAPH.</span></h1>
+                    <h1 className="font-bebas text-8xl md:text-9xl italic leading-[0.8] text-white">
+                        OMNI_<span className="text-white/20">CORTEX.</span>
+                    </h1>
+                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 ml-2 mt-4">Multi-dimensional ontological mapping engine</p>
                 </div>
 
                 {/* Controls */}
-                <div className="absolute bottom-8 right-8 z-10 flex flex-col gap-2">
-                    <button className="p-3 bg-white border border-gray-100 rounded-xl shadow-xl hover:bg-gray-50 text-gray-600 hover:text-purple-600 transition-colors" onClick={() => graphRef.current?.zoomIn()}>
+                <div className="absolute bottom-12 right-12 z-10 flex flex-col gap-3">
+                    <button className="p-4 bg-white/5 border border-white/5 rounded-2xl backdrop-blur-3xl text-white/40 hover:text-indigo-400 hover:bg-white/10 transition-all shadow-2xl" onClick={() => graphRef.current?.zoomIn()}>
                         <ZoomIn size={20} />
                     </button>
-                    <button className="p-3 bg-white border border-gray-100 rounded-xl shadow-xl hover:bg-gray-50 text-gray-600 hover:text-purple-600 transition-colors" onClick={() => graphRef.current?.zoomOut()}>
+                    <button className="p-4 bg-white/5 border border-white/5 rounded-2xl backdrop-blur-3xl text-white/40 hover:text-indigo-400 hover:bg-white/10 transition-all shadow-2xl" onClick={() => graphRef.current?.zoomOut()}>
                         <ZoomOut size={20} />
                     </button>
-                    <button className="p-3 bg-black border border-black rounded-xl shadow-xl hover:bg-gray-800 text-white transition-colors">
+                    <button className="p-4 bg-indigo-500 border border-indigo-400 rounded-2xl text-white shadow-[0_0_30px_rgba(99,102,241,0.3)] hover:scale-110 active:scale-95 transition-all">
                         <Share2 size={20} />
                     </button>
                 </div>
@@ -114,14 +117,14 @@ export default function CortexPage() {
                         ref={graphRef}
                         graphData={graphData}
                         nodeColor={node => {
-                            const colors = ['#06b6d4', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
+                            const colors = ['#6366f1', '#22d3ee', '#8b5cf6', '#ec4899', '#10b981'];
                             return colors[(node as any).group % colors.length];
                         }}
-                        linkColor={link => (link as any).type === 'genealogy' ? '#4f46e5' : '#cbd5e1'}
-                        backgroundColor="#f8fafc"
+                        linkColor={link => (link as any).type === 'genealogy' ? 'rgba(99, 102, 241, 0.4)' : 'rgba(255, 255, 255, 0.05)'}
+                        backgroundColor="#050505"
                         nodeLabel="label"
                         nodeRelSize={6}
-                        linkWidth={1.5}
+                        linkWidth={link => (link as any).type === 'genealogy' ? 2 : 1}
                         enableNodeDrag={false}
                         d3VelocityDecay={0.6}
                         cooldownTicks={100}

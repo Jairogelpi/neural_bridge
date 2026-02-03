@@ -13,6 +13,7 @@ interface CrystalCardProps {
     intent: string;
     reputation: number;
     className?: string;
+    onClick?: () => void;
 }
 
 export const CrystalCard: React.FC<CrystalCardProps> = ({
@@ -21,6 +22,7 @@ export const CrystalCard: React.FC<CrystalCardProps> = ({
     intent,
     reputation,
     className,
+    onClick
 }) => {
     return (
         <motion.div
@@ -66,7 +68,10 @@ export const CrystalCard: React.FC<CrystalCardProps> = ({
                         <span className="text-xs font-bold text-cyan-400">Sovereign</span>
                     </div>
                 </div>
-                <button className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors">
+                <button
+                    onClick={onClick}
+                    className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+                >
                     <ChevronRight size={16} />
                 </button>
             </div>
