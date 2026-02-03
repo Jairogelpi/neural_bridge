@@ -6,7 +6,7 @@ export function buildManifest() {
         description: "Semantic Continuity Protocol (SCP) bridge with verifiable context transfer.",
         action: {
             default_title: "Neural Bridge",
-            default_popup: "extension.html"
+            default_popup: "src/ui/popup.html"
         },
         icons: {
             "16": "icons/icon16.png",
@@ -43,7 +43,7 @@ export function buildManifest() {
         ],
         web_accessible_resources: [
             {
-                resources: ["extension.html", "nx/*", "icons/*"],
+                resources: ["src/ui/popup.html", "assets/*", "icons/*"],
                 matches: ["<all_urls>"]
             }
         ]

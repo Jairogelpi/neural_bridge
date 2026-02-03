@@ -68,12 +68,28 @@ export class DomConqueror {
     private start() {
         if (!document.body) {
             // Wait for body to be ready
-            window.addEventListener('DOMContentLoaded', () => this.start());
+            if (document.readyState === 'loading') {
+                window.addEventListener('DOMContentLoaded', () => this.start());
+            } else {
+                // If readyState is interactive/complete but body is still null (rare but possible in frames), retry shortly
+                setTimeout(() => this.start(), 100);
+            }
             return;
         }
-        this.observer.observe(document.body, { childList: true, subtree: true });
-        this.scanExisting();
-        this.injectFAB();
+
+        try {
+            this.observer.observe(document.body, { childList: true, subtree: true });
+            this.scanExisting();
+            this.injectFAB();
+        } catch (e) {
+            console.warn('[NeuralBridge] Observer failed to start:', e);
+            // Retry once after a short delay in case of weird DOM state
+            setTimeout(() => {
+                if (document.body) {
+                    this.observer.observe(document.body, { childList: true, subtree: true });
+                }
+            }, 500);
+        }
     }
 
     private injectFAB() {

@@ -17,6 +17,7 @@
     "dev": "vite build --watch",
     "build": "npm run build:all",
     "build:all": "npm run build:ext && npm run build:content && npm run build:dash && npm run build:sync-ext && npm run build:sdk && npm run build:icons && npm run build:manifest && npm run build:bundle",
+    "build:extension": "npm run build:ext && npm run build:content && npm run build:icons && npm run build:manifest",
     "build:dash": "cd dashboard && npm run build",
     "build:sync-ext": "tsx scripts/sync-next-ext.ts",
     "build:bundle": "tsx scripts/bundle-extension.ts",

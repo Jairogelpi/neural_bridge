@@ -63,7 +63,7 @@ export class Sentinel {
         let healedCount = 0;
         for (const crystal of crystals) {
             // REAL SEMANTIC SCAN
-            const comparison = SMTRuntime.compare(JSON.stringify(crystal), String(vaccine.meta_invariant || ""));
+            const comparison = await SMTRuntime.compare(JSON.stringify(crystal), String(vaccine.meta_invariant || ""));
             const isVulnerable = comparison.contradiction_detected || (comparison.semantic_similarity > threshold);
 
             if (isVulnerable) {
