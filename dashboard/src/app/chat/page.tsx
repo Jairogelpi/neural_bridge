@@ -9,6 +9,7 @@ import { Sidebar } from '@/components/Sidebar';
 import { ChatList } from '@/components/Chat/ChatList';
 import { CrystalContext } from '@/components/Chat/CrystalContext';
 import { CrystalPicker } from '@/components/Chat/CrystalPicker';
+import { supabase } from '@/lib/supabase';
 
 interface Message {
     id: string;
@@ -42,33 +43,6 @@ export default function ChatPage() {
     const [isPickerOpen, setIsPickerOpen] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    // Let's refine createNewSession to be stable
-    const createNewSessionStable = useCallback(() => {
-        const newSession: ChatSession = {
-            id: Date.now().toString(),
-            title: 'New Dialogue',
-            lastMessage: '',
-            timestamp: Date.now(),
-            crystals: [],
-            messages: [{
-                id: '1',
-                role: 'assistant',
-                content: "I am the Neural Surface. Accessing your Sovereign Knowledge Manifold. How may I assist?",
-                timestamp: Date.now()
-            }]
-        };
-        setSessions(prev => [newSession, ...prev]);
-        setActiveSessionId(newSession.id);
-        setMessages(newSession.messages);
-        setActiveCrystals(newSession.crystals);
-    }, []);
-
-    const loadSession = useCallback((session: ChatSession) => {
-        setActiveSessionId(session.id);
-        setMessages(session.messages);
-        setActiveCrystals(session.crystals);
-    }, []);
-
     // Initial Load
     useEffect(() => {
         const savedSessions = localStorage.getItem('nb_chat_sessions');
@@ -79,12 +53,12 @@ export default function ChatPage() {
                 // Load most recent
                 loadSession(parsed[0]);
             } else {
-                createNewSessionStable();
+                createNewSession();
             }
         } else {
-            createNewSessionStable();
+            createNewSession();
         }
-    }, [createNewSessionStable, loadSession]);
+    }, []);
 
     // Save on change
     useEffect(() => {
@@ -118,7 +92,7 @@ export default function ChatPage() {
         }
     }, [messages]);
 
-    const createNewSession = useCallback(() => {
+    const createNewSession = () => {
         const newSession: ChatSession = {
             id: Date.now().toString(),
             title: 'New Dialogue',
@@ -134,7 +108,13 @@ export default function ChatPage() {
         };
         setSessions(prev => [newSession, ...prev]);
         loadSession(newSession);
-    }, [sessions, loadSession]);
+    };
+
+    const loadSession = (session: ChatSession) => {
+        setActiveSessionId(session.id);
+        setMessages(session.messages);
+        setActiveCrystals(session.crystals);
+    };
 
     const deleteSession = (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -193,7 +173,7 @@ export default function ChatPage() {
                 timestamp: Date.now()
             };
             setMessages(prev => [...prev, aiMsg]);
-        } catch {
+        } catch (err) {
             const errorMsg: Message = {
                 id: (Date.now() + 1).toString(),
                 role: 'assistant',
@@ -224,7 +204,7 @@ export default function ChatPage() {
                                 sessions={sessions}
                                 activeId={activeSessionId}
                                 onSelect={(id) => loadSession(sessions.find(s => s.id === id)!)}
-                                onCreate={createNewSessionStable}
+                                onCreate={createNewSession}
                                 onDelete={deleteSession}
                             />
                         </motion.div>

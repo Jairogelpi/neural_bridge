@@ -36,17 +36,19 @@ const PLATFORMS: Record<string, PlatformConfig> = {
 };
 
 export class DomConqueror {
-    private observer: MutationObserver | null = null;
+    private observer: MutationObserver;
     private config: PlatformConfig | null = null;
     private processedNodes = new Set<HTMLElement>();
 
     constructor() {
+        this.observer = new MutationObserver(this.handleMutations.bind(this));
         this.detectPlatform();
     }
 
     private detectPlatform() {
         const host = window.location.hostname;
         if (host.includes('openai') || host.includes('chatgpt')) this.config = PLATFORMS['chatgpt'] || null;
+        else if (host.includes('claude')) this.config = PLATFORMS['claude'] || null;
         else {
             // UNIVERSAL MODE (RAG Portable)
             this.config = {
@@ -57,8 +59,10 @@ export class DomConqueror {
             };
         }
 
-        console.log(`[NeuralBridge] ⚔️ Conquering ${this.config?.name || 'Unknown'} UI...`);
-        this.start();
+        if (this.config) {
+            console.log(`[NeuralBridge] ⚔️ Conquering ${this.config.name} UI...`);
+            this.start();
+        }
     }
 
     private start() {
@@ -74,36 +78,20 @@ export class DomConqueror {
         }
 
         try {
-            if (typeof window === 'undefined') return;
-            const ObserverClass = window.MutationObserver || (window as any).WebKitMutationObserver;
-
-            if (!ObserverClass) {
-                console.error('[NeuralBridge] MutationObserver not supported');
-                return;
-            }
-
-            if (!this.observer) {
-                this.observer = new ObserverClass(this.handleMutations.bind(this));
-            }
-
-            if (this.observer && document.body) {
-                this.observer.observe(document.body, { childList: true, subtree: true });
-                this.scanExisting();
-            }
+            this.observer.observe(document.body, { childList: true, subtree: true });
+            this.scanExisting();
         } catch (e) {
             console.warn('[NeuralBridge] Observer failed to start:', e);
-            // Retry once after a short delay
+            // Retry once after a short delay in case of weird DOM state
             setTimeout(() => {
-                const ObserverClass = window.MutationObserver || (window as any).WebKitMutationObserver;
-                if (document.body && ObserverClass && !this.observer) {
+                if (document.body) {
                     try {
-                        this.observer = new ObserverClass(this.handleMutations.bind(this));
                         this.observer.observe(document.body, { childList: true, subtree: true });
                     } catch (retryError) {
                         console.error('[NeuralBridge] Observer retry failed:', retryError);
                     }
                 }
-            }, 1000);
+            }, 500);
         }
 
         // Always attempt to inject FAB, regardless of observer status

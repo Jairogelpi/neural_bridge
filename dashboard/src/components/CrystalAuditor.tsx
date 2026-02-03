@@ -11,7 +11,6 @@ interface CrystalAuditorProps {
 }
 
 export const CrystalAuditor: React.FC<CrystalAuditorProps> = ({ isOpen, onClose, crystal }) => {
-    const [showAdvanced, setShowAdvanced] = React.useState(false);
     if (!isOpen || !crystal) return null;
 
     return (
@@ -23,115 +22,105 @@ export const CrystalAuditor: React.FC<CrystalAuditorProps> = ({ isOpen, onClose,
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={onClose}
-                    className="absolute inset-0 bg-slate-900/10 backdrop-blur-sm"
+                    className="absolute inset-0 bg-black/80 backdrop-blur-md"
                 />
 
                 {/* Modal Container */}
                 <motion.div
-                    initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                    initial={{ scale: 0.9, opacity: 0, y: 20 }}
                     animate={{ scale: 1, opacity: 1, y: 0 }}
-                    exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                    className={`relative w-full ${showAdvanced ? 'max-w-6xl' : 'max-w-2xl text-center'} transition-all duration-500 bg-white rounded-[3rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden flex flex-col md:flex-row`}
+                    exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                    className="relative w-full max-w-5xl h-[85vh] bg-white rounded-[3rem] shadow-2xl overflow-hidden flex flex-col md:flex-row"
                 >
                     {/* Header (Mobile) */}
-                    <div className="md:hidden p-6 border-b border-slate-50 flex justify-between items-center bg-white">
-                        <h2 className="text-xl font-black tracking-tighter text-slate-900">IDEA INSPECTOR</h2>
-                        <button onClick={onClose} className="p-2 bg-slate-50 rounded-xl"><X size={20} /></button>
+                    <div className="md:hidden p-6 border-b border-gray-100 flex justify-between items-center bg-white">
+                        <h2 className="text-xl font-black italic tracking-tighter">CRYSTAL AUDITOR</h2>
+                        <button onClick={onClose} className="p-2 bg-gray-100 rounded-xl"><X size={20} /></button>
                     </div>
 
                     {/* Left Panel: Visual Analysis */}
                     <div className="flex-1 p-8 md:p-12 overflow-y-auto">
                         <div className="hidden md:flex justify-between items-center mb-12">
-                            <div className="inline-flex items-center px-4 py-1.5 bg-indigo-50 rounded-full border border-indigo-100">
-                                <Shield size={12} className="text-indigo-600 mr-2" />
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-700">Digital Mind Secure</span>
+                            <div className="inline-flex items-center px-4 py-1.5 bg-cyan-50 rounded-full border border-cyan-100">
+                                <Shield size={12} className="text-cyan-600 mr-2" />
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-cyan-700">Forensic Inspection Active</span>
                             </div>
-                            <div className="flex items-center gap-4">
-                                <button
-                                    onClick={() => setShowAdvanced(!showAdvanced)}
-                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${showAdvanced ? 'bg-indigo-600 text-white' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
-                                >
-                                    {showAdvanced ? 'Expert View' : 'Simple View'}
-                                </button>
-                                <button onClick={onClose} className="p-3 hover:bg-slate-50 rounded-2xl text-slate-300 hover:text-slate-900 transition-all">
-                                    <X size={20} />
-                                </button>
-                            </div>
+                            <button onClick={onClose} className="p-3 bg-gray-50 border border-gray-100 rounded-2xl text-gray-400 hover:text-gray-900 transition-all">
+                                <X size={20} />
+                            </button>
                         </div>
 
-                        <header className={`${!showAdvanced && 'flex flex-col items-center'} mb-12`}>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-2">Memory Path: {crystal.context_id?.substring(0, 12)}</p>
-                            <h2 className="text-4xl font-black tracking-tighter text-slate-900 leading-none">
-                                {crystal.domain.toUpperCase()}<span className="text-slate-200">.IDEAS</span>
+                        <header className="mb-12">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-cyan-500 mb-2">Knowledge Context ID: {crystal.context_id}</p>
+                            <h2 className="text-4xl font-black italic tracking-tighter text-gray-900 leading-none">
+                                {crystal.domain.toUpperCase()}<span className="text-gray-300">.MANIFOLD</span>
                             </h2>
                         </header>
 
                         <div className="space-y-8">
                             {/* Summary Card */}
-                            <div className={`bg-slate-50 rounded-[2.5rem] p-12 border border-slate-100 ${!showAdvanced && 'shadow-xl shadow-slate-200/20'}`}>
-                                <h3 className={`text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2 ${!showAdvanced && 'justify-center'}`}>
-                                    <Database size={14} /> Meaning of this Idea
+                            <div className="bg-gray-50 rounded-[2.5rem] p-8 border border-gray-100">
+                                <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-6 flex items-center gap-2">
+                                    <Database size={14} /> Semantic Intent
                                 </h3>
-                                <p className={`text-2xl font-black text-slate-900 leading-relaxed ${!showAdvanced && 'max-w-md mx-auto'}`}>
-                                    &quot;{crystal.intent?.primary || 'Undisclosed'}&quot;
+                                <p className="text-xl font-bold text-gray-900 leading-relaxed italic">
+                                    "{crystal.intent?.primary || 'Undisclosed'}"
                                 </p>
                             </div>
 
-                            {showAdvanced && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-xl shadow-slate-200/20">
-                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
-                                            <Fingerprint size={12} /> Tech Signature
-                                        </h4>
-                                        <code className="text-[10px] font-mono text-indigo-600 bg-indigo-50/50 p-4 rounded-2xl block break-all border border-indigo-100/50">
-                                            {crystal.verification?.canonical_hash || 'SHA256_0x' + Math.random().toString(16).substring(2, 20)}
-                                        </code>
-                                    </div>
-                                    <div className="p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-xl shadow-slate-200/20">
-                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
-                                            <Zap size={12} /> Reliability Check
-                                        </h4>
-                                        <div className="flex flex-wrap gap-2">
-                                            {(crystal.constraints || ['Structural', 'Logical', 'Semantic']).map((c: any, i: number) => (
-                                                <span key={i} className="px-4 py-2 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-full border border-emerald-100">
-                                                    {typeof c === 'string' ? c : c.rule}
-                                                </span>
-                                            ))}
-                                        </div>
+                            {/* HDC Verification Matrix */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="p-6 bg-white border border-gray-100 rounded-3xl">
+                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 flex items-center gap-2">
+                                        <Fingerprint size={12} /> Holographic Hash
+                                    </h4>
+                                    <code className="text-[10px] font-mono text-cyan-600 bg-cyan-50 p-2 rounded block break-all">
+                                        {crystal.verification?.canonical_hash || 'SHA256_0x' + Math.random().toString(16).substring(2, 20)}
+                                    </code>
+                                </div>
+                                <div className="p-6 bg-white border border-gray-100 rounded-3xl">
+                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 flex items-center gap-2">
+                                        <Zap size={12} /> Truth Invariants
+                                    </h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {(crystal.constraints || ['Structural', 'Logical', 'Semantic']).map((c: any, i: number) => (
+                                            <span key={i} className="px-3 py-1 bg-green-50 text-green-700 text-[10px] font-bold rounded-full border border-green-100">
+                                                {typeof c === 'string' ? c : c.rule}
+                                            </span>
+                                        ))}
                                     </div>
                                 </div>
-                            )}
+                            </div>
                         </div>
                     </div>
 
-                    {showAdvanced && (
-                        <div className="w-full md:w-[450px] bg-slate-50 p-8 md:p-12 flex flex-col h-full overflow-hidden border-l border-slate-100">
-                            <div className="flex items-center justify-between mb-8">
-                                <h3 className="text-slate-900 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                                    <Code size={14} className="text-indigo-600" /> RAW_DATA.JSON
-                                </h3>
-                                <button className="text-slate-300 hover:text-indigo-600 transition-colors">
-                                    <Share2 size={16} />
-                                </button>
-                            </div>
+                    {/* Right Panel: Code & Metadata */}
+                    <div className="w-full md:w-[400px] bg-gray-900 p-8 md:p-12 flex flex-col h-full overflow-hidden">
+                        <div className="flex items-center justify-between mb-8">
+                            <h3 className="text-white text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                                <Code size={14} className="text-cyan-400" /> RAW_CRYSTAL.JSON
+                            </h3>
+                            <button className="text-gray-500 hover:text-white transition-colors">
+                                <Share2 size={16} />
+                            </button>
+                        </div>
 
-                            <div className="flex-1 bg-white rounded-[2.5rem] p-8 font-mono text-[11px] text-slate-500 overflow-y-auto custom-scrollbar border border-slate-100 shadow-inner">
-                                <pre className="whitespace-pre-wrap leading-relaxed">
-                                    {JSON.stringify(crystal, null, 2)}
-                                </pre>
-                            </div>
+                        <div className="flex-1 bg-black/30 rounded-3xl p-6 font-mono text-[10px] text-cyan-400/80 overflow-y-auto custom-scrollbar border border-white/5">
+                            <pre className="whitespace-pre-wrap leading-relaxed italic">
+                                {JSON.stringify(crystal, null, 2)}
+                            </pre>
+                        </div>
 
-                            <div className="mt-8 pt-8 border-t border-slate-200 space-y-4">
-                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                                    <span className="text-slate-400">System Compliance</span>
-                                    <span className="text-indigo-600">Secure</span>
-                                </div>
-                                <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                                    <div className="h-full bg-indigo-600 w-full" />
-                                </div>
+                        <div className="mt-8 pt-8 border-t border-white/10 space-y-4">
+                            <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
+                                <span className="text-gray-500">Node Compliance</span>
+                                <span className="text-white">100% Secure</span>
+                            </div>
+                            <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+                                <div className="h-full bg-cyan-400 w-full" />
                             </div>
                         </div>
-                    )}
+                    </div>
                 </motion.div>
             </div>
         </AnimatePresence>

@@ -1,6 +1,7 @@
 "use client";
 
-import { MessageSquarePlus, Trash2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { MessageSquarePlus, Trash2, MessageSquare } from 'lucide-react';
 
 interface ChatSession {
     id: string;

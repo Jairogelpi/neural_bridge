@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { X, Search, Database, Check, Cpu, Calendar, User, ShieldCheck } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Search, Database, Check, Cpu, Calendar, User, Clock, ShieldCheck, Activity } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Tooltip } from '@/components/Tooltip';
 

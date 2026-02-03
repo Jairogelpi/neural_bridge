@@ -68,105 +68,102 @@ export default function JuryPage() {
     if (authLoading || !user) return null;
 
     return (
-        <div className="min-h-screen bg-black text-white selection:bg-red-500/30 selection:text-white flex">
+        <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-blue-100 selection:text-blue-900 flex">
             <Sidebar />
 
             <main className="flex-1 md:ml-64 p-8 md:p-12 overflow-y-auto">
-                <header className="flex flex-col lg:flex-row lg:items-end justify-between mb-16 gap-8">
+                <header className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6">
                     <div>
-                        <div className="inline-flex items-center px-4 py-1.5 bg-red-500/10 rounded-full mb-6 border border-red-500/20 shadow-[0_0_30px_rgba(239,68,68,0.1)]">
-                            <Gavel size={12} className="text-red-400 mr-2" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-red-400">Sovereign Decision Node</span>
+                        <div className="inline-flex items-center px-4 py-1.5 bg-red-50 rounded-full mb-4 border border-red-100">
+                            <Gavel size={12} className="text-red-600 mr-2" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-red-700">Sovereign Decision Node</span>
                         </div>
-                        <h1 className="font-bebas text-8xl md:text-9xl italic leading-[0.8] text-white">
-                            JURY_<span className="text-red-500/30">PROTOCOL.</span>
+                        <h1 className="text-4xl md:text-5xl font-black italic tracking-tighter text-gray-900 mb-2">
+                            JURY <span className="text-red-600">PROTOCOL.</span>
                         </h1>
-                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 ml-2 mt-4">Adjudicate truth conflicts in the neural lattice</p>
+                        <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Adjudicate truth conflicts in the lattice.</p>
                     </div>
 
                     <button
                         onClick={fetchCases}
                         disabled={isRefreshing}
-                        className="h-12 flex items-center gap-3 rounded-2xl bg-white/5 border border-white/10 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:bg-white/10 hover:scale-105 active:scale-95 transition-all"
+                        className="flex items-center px-6 py-3 bg-white border border-gray-200 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-50 transition-all shadow-sm hover:shadow-md disabled:opacity-50"
                     >
-                        <RefreshCcw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                        <span>Rescan_Lattice</span>
+                        <RefreshCcw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                        <span>Rescan Lattice</span>
                     </button>
                 </header>
 
-                <div className="space-y-8">
+                <div className="space-y-6">
                     <AnimatePresence mode="popLayout">
                         {cases.map((juryCase) => (
                             <motion.div
                                 key={juryCase.case_id}
-                                initial={{ opacity: 0, y: 30 }}
+                                initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
-                                className="glass-panel rounded-[3rem] p-10 group relative overflow-hidden"
+                                className="bg-white border border-gray-100 rounded-[2rem] p-8 shadow-sm hover:shadow-xl hover:shadow-red-500/5 transition-all group"
                             >
-                                <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-red-500/5 blur-[100px]" />
-
-                                <div className="flex flex-col xl:flex-row xl:items-center gap-12 relative z-10">
+                                <div className="flex flex-col lg:flex-row lg:items-center gap-8">
                                     <div className="flex-1">
-                                        <div className="flex items-center gap-4 mb-6">
-                                            <span className="px-3 py-1 bg-red-500/20 text-red-400 rounded-lg text-[10px] font-black uppercase tracking-widest border border-red-500/30">
-                                                CONTRADICTION_DETECTED
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <span className="px-3 py-1 bg-red-50 text-red-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-red-100">
+                                                Contradiction Detected
                                             </span>
-                                            <span className="text-[10px] font-mono text-white/20 uppercase tracking-widest">
-                                                NODE_HEX: {juryCase.context_id.substring(0, 12)}
+                                            <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">
+                                                ID: {juryCase.context_id.substring(0, 8)}
                                             </span>
                                         </div>
 
-                                        <h3 className="text-2xl font-black text-white mb-6 leading-tight italic">
+                                        <h3 className="text-xl font-bold text-gray-900 mb-4 leading-tight">
                                             {juryCase.issue_description}
                                         </h3>
 
-                                        <div className="flex items-center gap-8">
-                                            <div className="flex items-center gap-4">
-                                                <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">AI_CONSENSUS</span>
-                                                <div className="w-32 h-1 bg-white/5 rounded-full overflow-hidden">
-                                                    <motion.div
-                                                        initial={{ width: 0 }}
-                                                        animate={{ width: `${juryCase.consensus_score_ai * 100}%` }}
+                                        <div className="flex items-center gap-6">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-[10px] font-bold text-gray-400 uppercase">AI Consensus</span>
+                                                <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                                    <div
                                                         className="h-full bg-gradient-to-r from-red-500 to-orange-500"
+                                                        style={{ width: `${juryCase.consensus_score_ai * 100}%` }}
                                                     />
                                                 </div>
-                                                <span className="text-xs font-black text-white">{(juryCase.consensus_score_ai * 100).toFixed(0)}%</span>
+                                                <span className="text-sm font-black text-gray-900">{(juryCase.consensus_score_ai * 100).toFixed(0)}%</span>
                                             </div>
-                                            <div className="w-px h-4 bg-white/10" />
-                                            <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">
+                                            <div className="w-px h-4 bg-gray-200" />
+                                            <span className="text-[10px] font-bold text-gray-400 uppercase">
                                                 {new Date(juryCase.created_at).toLocaleDateString()}
                                             </span>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-3">
                                         <button
                                             onClick={() => castVote(juryCase.case_id, 'ACCEPT')}
                                             disabled={!!votingId}
-                                            className="px-8 py-5 bg-indigo-500 text-white rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[10px] hover:bg-indigo-400 hover:scale-105 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-3 shadow-2xl shadow-indigo-500/20"
+                                            className="px-6 py-4 bg-green-50 text-green-700 rounded-xl font-bold uppercase tracking-wider text-xs hover:bg-green-100 disabled:opacity-50 transition-all flex items-center gap-2"
                                         >
                                             <CheckCircle2 size={16} />
-                                            <span>Accept_Truth</span>
+                                            <span>Accept Truth</span>
                                         </button>
                                         <button
                                             onClick={() => castVote(juryCase.case_id, 'FAIL')}
                                             disabled={!!votingId}
-                                            className="px-8 py-5 bg-white/5 border border-white/10 text-white rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[10px] hover:bg-white/10 hover:scale-105 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-3"
+                                            className="px-6 py-4 bg-red-50 text-red-700 rounded-xl font-bold uppercase tracking-wider text-xs hover:bg-red-100 disabled:opacity-50 transition-all flex items-center gap-2"
                                         >
                                             <XCircle size={16} />
-                                            <span>Reject_Entry</span>
+                                            <span>Reject</span>
                                         </button>
                                     </div>
                                 </div>
 
-                                <div className="mt-10 pt-8 border-t border-white/5 flex items-center justify-between">
-                                    <div className="flex items-center gap-6 text-[9px] font-black text-white/20 uppercase tracking-[0.3em]">
-                                        <span className="flex items-center gap-2">
-                                            <Shield size={12} className="text-indigo-400" /> ECDSA_HANDSHAKE_REQUIRED
+                                <div className="mt-8 pt-6 border-t border-gray-50 flex items-center justify-between">
+                                    <div className="flex items-center gap-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                        <span className="flex items-center gap-1.5">
+                                            <Shield size={12} /> ECDSA Handshake Required
                                         </span>
-                                        <span className="flex items-center gap-2">
-                                            <AlertTriangle size={12} className="text-red-400" /> IRREVERSIBLE_ACTION
+                                        <span className="flex items-center gap-1.5">
+                                            <AlertTriangle size={12} /> Irreversible
                                         </span>
                                     </div>
                                 </div>
@@ -175,12 +172,12 @@ export default function JuryPage() {
                     </AnimatePresence>
 
                     {cases.length === 0 && !isRefreshing && (
-                        <div className="flex flex-col items-center justify-center py-40 rounded-[4rem] bg-white/[0.01] border border-white/5 border-dashed">
-                            <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mb-10 shadow-[0_0_50px_rgba(16,185,129,0.1)] border border-emerald-500/20">
-                                <CheckCircle2 size={40} className="text-emerald-400" />
+                        <div className="text-center py-24 bg-gray-50 rounded-[2rem] border border-gray-100 border-dashed">
+                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-gray-100 text-green-500">
+                                <CheckCircle2 size={32} />
                             </div>
-                            <h3 className="font-bebas text-4xl italic tracking-wider text-white mb-2">ALL_TRUTHS_ANCHORED.</h3>
-                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">The knowledge lattice is stable. No conflicts detected.</p>
+                            <h3 className="text-lg font-black text-gray-900 mb-2">ALL TRUTHS ANCHORED</h3>
+                            <p className="text-sm font-medium text-gray-400">The knowledge lattice is stable. No conflicts detected.</p>
                         </div>
                     )}
                 </div>

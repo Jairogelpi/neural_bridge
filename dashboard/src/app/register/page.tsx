@@ -31,119 +31,109 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="min-h-screen bg-white text-slate-900 flex items-center justify-center p-6 selection:bg-indigo-100 selection:text-indigo-700 font-sans relative overflow-hidden">
-            {/* SUBTLE BACKGROUND DECOR */}
-            <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-40">
-                <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-50 rounded-full blur-[120px]" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-cyan-50 rounded-full blur-[120px]" />
-            </div>
-
-            <div className="w-full max-w-lg relative z-10">
+        <div className="min-h-screen bg-white flex items-center justify-center p-6 selection:bg-blue-100 selection:text-blue-900 font-sans">
+            <div className="w-full max-w-md">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    transition={{ duration: 0.5 }}
                 >
-                    <div className="flex flex-col items-center mb-12">
-                        <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-xl shadow-indigo-500/20">
-                            <Shield className="w-6 h-6 text-white" />
+                    <div className="flex flex-col items-center mb-10">
+                        <div className="w-16 h-16 bg-gradient-to-tr from-cyan-400 to-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-xl shadow-blue-500/20">
+                            <Shield className="w-8 h-8 text-white" />
                         </div>
-                        <h2 className="text-3xl font-black tracking-tight mb-2">Create Identity.</h2>
-                        <p className="text-slate-500 font-medium">Initialize your sovereign bridge link.</p>
+                        <h1 className="text-3xl font-black italic tracking-tighter text-gray-900">INIT PROTOCOL</h1>
+                        <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mt-2">Forge a new sovereign identity</p>
                     </div>
 
-                    <div className="bg-white border border-slate-100 rounded-[2.5rem] p-10 shadow-2xl shadow-indigo-500/5">
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            {error && (
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    className="p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 text-[11px] font-bold uppercase tracking-widest text-center"
-                                >
-                                    {error}
-                                </motion.div>
-                            )}
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400 pl-4 block">Sovereign_Name</label>
-                                    <div className="relative group">
-                                        <User className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
-                                        <input
-                                            type="text"
-                                            value={name}
-                                            onChange={(e) => setName(e.target.value)}
-                                            className="w-full bg-slate-50 border border-slate-50 rounded-2xl py-5 pl-14 pr-6 text-sm font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-600/20 focus:ring-4 focus:ring-indigo-600/2 transition-all placeholder:text-slate-300"
-                                            placeholder="Sentinel One"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400 pl-4 block">Handle</label>
-                                    <div className="relative group">
-                                        <User className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
-                                        <input
-                                            type="text"
-                                            value={handle}
-                                            onChange={(e) => setHandle(e.target.value)}
-                                            className="w-full bg-slate-50 border border-slate-50 rounded-2xl py-5 pl-14 pr-6 text-sm font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-600/20 focus:ring-4 focus:ring-indigo-600/2 transition-all placeholder:text-slate-300"
-                                            placeholder="@sentinel"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400 pl-4 block">Identity_Hash</label>
-                                <div className="relative group">
-                                    <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
-                                    <input
-                                        type="email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full bg-slate-50 border border-slate-50 rounded-2xl py-5 pl-14 pr-6 text-sm font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-600/20 focus:ring-4 focus:ring-indigo-600/2 transition-all placeholder:text-slate-300"
-                                        placeholder="agent@neuralbridge.ai"
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400 pl-4 block">Secure_Passkey</label>
-                                <div className="relative group">
-                                    <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
-                                    <input
-                                        type="password"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full bg-slate-50 border border-slate-50 rounded-2xl py-5 pl-14 pr-6 text-sm font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-600/20 focus:ring-4 focus:ring-indigo-600/2 transition-all placeholder:text-slate-300"
-                                        placeholder="••••••••"
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled={isLoading}
-                                className="w-full btn-indigo justify-center py-5 shadow-xl shadow-indigo-500/10"
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {error && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                className="p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-xs font-bold text-center"
                             >
-                                {isLoading ? (
-                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                ) : (
-                                    <>
-                                        Forge Matrix Identity <ArrowRight className="w-4 h-4" />
-                                    </>
-                                )}
-                            </button>
-                        </form>
-                    </div>
+                                {error}
+                            </motion.div>
+                        )}
 
-                    <p className="text-center mt-10 text-sm font-medium text-slate-500">
-                        Already active? <Link href="/login" className="text-indigo-600 hover:text-indigo-700 font-bold ml-1">Identify yourself</Link>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 pl-4">Sovereign Name</label>
+                            <div className="relative group">
+                                <User className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                                <input
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-14 pr-6 text-sm font-bold text-gray-900 outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all placeholder:text-gray-300"
+                                    placeholder="Sentinel One"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 pl-4">Sovereign Handle</label>
+                            <div className="relative group">
+                                <User className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                                <input
+                                    type="text"
+                                    value={handle}
+                                    onChange={(e) => setHandle(e.target.value)}
+                                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-14 pr-6 text-sm font-bold text-gray-900 outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all placeholder:text-gray-300"
+                                    placeholder="@sentinel"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 pl-4">Email Identity</label>
+                            <div className="relative group">
+                                <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-14 pr-6 text-sm font-bold text-gray-900 outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all placeholder:text-gray-300"
+                                    placeholder="agent@neuralbridge.ai"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 pl-4">Secure Passkey</label>
+                            <div className="relative group">
+                                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-14 pr-6 text-sm font-bold text-gray-900 outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all placeholder:text-gray-300"
+                                    placeholder="••••••••"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full bg-black text-white py-5 rounded-2xl font-black uppercase tracking-wider text-xs hover:bg-gray-900 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-black/10 flex items-center justify-center gap-2 group disabled:opacity-70 disabled:pointer-events-none"
+                        >
+                            {isLoading ? (
+                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            ) : (
+                                <>
+                                    Initialize <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                </>
+                            )}
+                        </button>
+                    </form>
+
+                    <p className="text-center mt-8 text-xs font-medium text-gray-400">
+                        Already active? <Link href="/login" className="text-blue-600 hover:text-blue-700 font-bold ml-1">Identify yourself</Link>
                     </p>
                 </motion.div>
             </div>

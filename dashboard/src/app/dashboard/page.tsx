@@ -8,66 +8,74 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Button, Card, CardHeader, CardTitle, CardContent, Badge } from '@/design';
 import { motion } from 'framer-motion';
 import {
     Plus,
+    Zap,
+    TrendingUp,
     Clock,
+    Users,
     Sparkles,
     ArrowRight,
+    Menu,
     ShieldAlert,
     Wallet,
     Target,
-    Activity,
-    Brain,
-    Layers
+    Activity
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { Sidebar } from '@/components/Sidebar';
+import { MobileNav } from '@/components/MobileNav';
 
 interface DashboardStats {
-    total_crystals: number;
-    today_crystals: number;
-    cache_hit_rate: number;
-    estimated_savings_usd: number;
-    truth_fidelity: number;
-    threats_neutralized: number;
-    neural_density: number;
-    time_saved_hours: number;
+    totalCrystals: number;
+    todayCrystals: number;
+    cacheHitRate: number;
+    activeJobs: number;
+    savingsUsd: number;
+    fidelity: number;
+    threatsBlocked: number;
+    neuralDensity: number;
 }
 
 export default function PremiumDashboard() {
     const router = useRouter();
     const [stats, setStats] = useState<DashboardStats>({
-        total_crystals: 0,
-        today_crystals: 0,
-        cache_hit_rate: 92,
-        estimated_savings_usd: 0,
-        truth_fidelity: 0.992,
-        threats_neutralized: 0,
-        neural_density: 0.2,
-        time_saved_hours: 0
+        totalCrystals: 0,
+        todayCrystals: 0,
+        cacheHitRate: 0,
+        activeJobs: 0,
+        savingsUsd: 0,
+        fidelity: 0.984,
+        threatsBlocked: 0,
+        neuralDensity: 0.45
     });
 
     const [recentCrystals, setRecentCrystals] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     useEffect(() => {
-        const token = localStorage.getItem('nb_auth_token');
-        const headers = { 'Authorization': `Bearer ${token}` };
-
-        // Load personalized stats
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/analytics/my-stats`, { headers })
+        // Load stats from real backend
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/analytics/stats`)
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.stats) {
-                    setStats(data.stats);
+                    setStats({
+                        totalCrystals: data.stats.total_crystals || 0,
+                        todayCrystals: data.stats.crystals_today || 0,
+                        cacheHitRate: data.stats.cacheHitRate || 0,
+                        activeJobs: 0, // Calculated dynamically in backend
+                        savingsUsd: data.stats.estimated_savings_usd || 0,
+                        fidelity: data.stats.truth_fidelity || 0.984,
+                        threatsBlocked: data.stats.threats_neutralized || 0,
+                        neuralDensity: data.stats.neural_density || 0.45
+                    });
                 }
             })
-            .catch(console.error)
-            .finally(() => setIsLoading(false));
+            .catch(console.error);
 
-        // Load recent crystals
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/crystals?limit=5&sort=recent`, { headers })
+        // Load recent crystals from backend
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/crystals?limit=5&sort=recent`)
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.crystals) {
@@ -79,192 +87,232 @@ export default function PremiumDashboard() {
 
     const statCards = [
         {
-            label: 'Money Saved',
-            value: `$${stats.estimated_savings_usd.toFixed(2)}`,
-            subValue: 'Personal wealth preserved',
+            label: 'Sovereign Savings',
+            value: `$${stats.savingsUsd.toFixed(2)}`,
+            subValue: 'Tokens optimized by Bridge',
             icon: Wallet,
-            gradient: 'bg-emerald-50 text-emerald-600',
-            description: 'The amount of money you saved by avoiding repeated AI costs for the same information.'
+            color: 'green',
+            gradient: 'from-emerald-500 to-green-600',
+            description: 'Cumulative USD saved by using Semantic Cache instead of direct LLM calls.'
         },
         {
-            label: 'Time Earned',
-            value: `${stats.time_saved_hours.toFixed(1)}h`,
-            subValue: 'Manual work avoided',
-            icon: Clock,
-            gradient: 'bg-blue-50 text-blue-600',
-            description: 'Total hours you won back by letting the system find and organize information for you.'
-        },
-        {
-            label: 'Knowledge Quality',
-            value: `${(stats.truth_fidelity * 100).toFixed(1)}%`,
-            subValue: 'Truth Accuracy Index',
+            label: 'Truth Fidelity',
+            value: `${(stats.fidelity * 100).toFixed(1)}%`,
+            subValue: 'Network-wide truth index',
             icon: Target,
-            gradient: 'bg-purple-50 text-purple-600',
-            description: 'The proven accuracy of the information stored in your private knowledge base.'
+            color: 'blue',
+            gradient: 'from-blue-500 to-indigo-600',
+            description: 'The overall mathematical certainty of your knowledge base across all crystals.'
         },
         {
-            label: 'Ideas Captured',
-            value: `+${stats.total_crystals}`,
-            subValue: 'Memories in your mind',
+            label: 'Threats Neutralized',
+            value: stats.threatsBlocked.toString(),
+            subValue: 'Manipulations blocked',
+            icon: ShieldAlert,
+            color: 'red',
+            gradient: 'from-rose-500 to-red-600',
+            description: 'Count of logical fallacies and semantic threats detected and blocked by the Sentinel.'
+        },
+        {
+            label: 'Neural Density',
+            value: (stats.neuralDensity * 100).toFixed(0),
+            subValue: 'Knowledge connectivity',
             icon: Activity,
-            gradient: 'bg-indigo-50 text-indigo-600',
-            description: 'The total number of unique ideas and facts safely stored in your personal digital brain.'
+            color: 'purple',
+            gradient: 'from-purple-500 to-fuchsia-600',
+            description: 'How deeply interconnected your ideas are. Higher density means stronger reasoning capabilities.'
         },
     ];
 
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-900 flex font-sans">
-            <Sidebar />
-
-            <div className="flex-1 md:ml-72 relative">
-                {/* Header - Minimalist Premium */}
-                <div className="bg-white border-b border-slate-100 sticky top-0 z-40 px-8 sm:px-12 py-10">
-                    <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6">
-                        <div>
-                            <div className="inline-flex items-center px-3 py-1 bg-emerald-50 rounded-full border border-emerald-100 mb-6">
-                                <ShieldAlert size={12} className="text-emerald-600 mr-2" />
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700">Safe Sync Active</span>
-                            </div>
-                            <h1 className="text-5xl sm:text-6xl font-black tracking-tight text-slate-900">
-                                Personal <span className="text-indigo-600">Intelligence.</span>
-                            </h1>
-                            <p className="text-sm font-medium text-slate-400 mt-4 max-w-lg">
-                                Everything you teach your AI is captured here in your own private memory, saving you time and money.
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <button className="btn-indigo">
-                                <Plus size={16} /> New Capture
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Main Content */}
-                <div className="max-w-7xl mx-auto px-8 sm:px-12 py-12">
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-                        {statCards.map((stat, idx) => {
-                            const Icon = stat.icon;
-                            return (
-                                <motion.div
-                                    key={stat.label}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: idx * 0.1 }}
-                                    className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 hover:shadow-2xl hover:shadow-indigo-500/5 transition-all group"
-                                >
-                                    <div className="flex flex-col gap-8">
-                                        <div className="flex items-center justify-between">
-                                            <div className={`p-4 rounded-2xl ${stat.gradient} transition-transform group-hover:scale-110`}>
-                                                <Icon size={20} />
-                                            </div>
-                                            <span className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">v2.4_Stable</span>
-                                        </div>
-
-                                        <div>
-                                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-3">
-                                                {stat.label}
-                                            </p>
-                                            <p className="text-4xl font-black text-slate-900 tracking-tight">
-                                                {stat.value}
-                                            </p>
-                                            <p className="text-[10px] font-bold text-slate-400 mt-3 uppercase tracking-wider">
-                                                {stat.subValue}
-                                            </p>
-                                        </div>
-
-                                        <p className="text-[11px] font-medium text-slate-400 leading-relaxed pt-6 border-t border-slate-50">
-                                            {stat.description}
-                                        </p>
-                                    </div>
-                                </motion.div>
-                            );
-                        })}
+        <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 pb-20 md:pb-0">
+            {/* Header - Mobile optimized */}
+            <div className="bg-white/70 backdrop-blur-xl border-b border-white/20 sticky top-0 z-40">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                        <h1 className="text-xl sm:text-2xl md:text-3xl font-black bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent truncate">
+                            Neural Bridge
+                        </h1>
+                        <p className="text-xs sm:text-sm text-gray-600 mt-0.5 sm:mt-1 hidden sm:block">
+                            Your knowledge, crystallized
+                        </p>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                        {/* Recent Activity Feed */}
-                        <div className="lg:col-span-2 bg-white rounded-[3rem] border border-slate-100 p-12 shadow-xl shadow-slate-200/40">
-                            <div className="flex items-center justify-between mb-10">
-                                <div>
-                                    <h3 className="text-2xl font-black text-slate-900 tracking-tight">Recent Captured Ideas.</h3>
-                                    <p className="text-xs font-medium text-slate-400 mt-1">Latest pieces of knowledge saved to your brain</p>
-                                </div>
-                                <button
-                                    onClick={() => router.push('/library')}
-                                    className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 hover:text-indigo-700 underline underline-offset-8"
-                                >
-                                    View Full Library
-                                </button>
-                            </div>
+                    {/* Desktop button */}
+                    <Button
+                        icon={<Plus size={20} />}
+                        onClick={() => router.push('/ingest')}
+                        className="hidden sm:flex"
+                    >
+                        New Crystal
+                    </Button>
 
-                            <div className="space-y-4">
-                                {isLoading ? (
-                                    [...Array(3)].map((_, i) => (
-                                        <div key={i} className="h-24 bg-slate-50 rounded-2xl animate-pulse" />
-                                    ))
-                                ) : recentCrystals.length > 0 ? recentCrystals.map((crystal, idx) => (
-                                    <motion.div
-                                        key={crystal.id}
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.2 + idx * 0.05 }}
-                                        className="flex items-center justify-between p-6 rounded-2xl border border-slate-50 hover:bg-slate-50 transition-all cursor-pointer group"
-                                        onClick={() => router.push(`/library`)}
-                                    >
-                                        <div className="flex items-center gap-6">
-                                            <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center group-hover:bg-indigo-50 transition-colors">
-                                                <Sparkles className="text-slate-300 group-hover:text-indigo-600 transition-colors" size={20} />
-                                            </div>
-                                            <div>
-                                                <h3 className="font-bold text-sm text-slate-900">{crystal.title}</h3>
-                                                <div className="flex items-center gap-4 mt-1">
-                                                    <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded uppercase tracking-wider">{crystal.domain}</span>
-                                                    <span className="text-[10px] font-medium text-slate-400 flex items-center gap-2">
-                                                        <Clock size={12} /> {new Date(crystal.created_at).toLocaleDateString()}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <ArrowRight size={18} className="text-slate-200 group-hover:text-indigo-600 transition-all group-hover:translate-x-1" />
-                                    </motion.div>
-                                )) : (
-                                    <div className="text-center py-20 bg-slate-50 rounded-[2rem] border border-dashed border-slate-200">
-                                        <p className="text-xs font-bold text-slate-300 uppercase tracking-widest">No artifacts discovered yet</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Quick Actions */}
-                        <div className="space-y-6">
-                            {[
-                                { title: 'Idea Map', icon: Brain, path: '/cortex', desc: 'See how your thoughts connect', color: 'bg-indigo-50 text-indigo-600', hover: 'hover:bg-indigo-100' },
-                                { title: 'Knowledge Hub', icon: Layers, path: '/loom', desc: 'Combine your ideas', color: 'bg-purple-50 text-purple-600', hover: 'hover:bg-purple-100' },
-                                { title: 'Connections', icon: Activity, path: '/nexus', desc: 'Manage AI tool links', color: 'bg-emerald-50 text-emerald-600', hover: 'hover:bg-emerald-100' }
-                            ].map((action, i) => (
-                                <motion.div
-                                    key={i}
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.3 + i * 0.1 }}
-                                    onClick={() => router.push(action.path)}
-                                    className={`bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 cursor-pointer transition-all hover:-translate-y-1 group`}
-                                >
-                                    <div className={`w-14 h-14 rounded-2xl ${action.color} flex items-center justify-center mb-6 transition-transform group-hover:scale-110 group-hover:rotate-6`}>
-                                        <action.icon size={24} />
-                                    </div>
-                                    <h3 className="text-xl font-black text-slate-900 tracking-tight mb-2 uppercase italic">{action.title}</h3>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                        {action.desc}
-                                    </p>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </div>
+                    {/* Mobile FAB */}
+                    <motion.button
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => router.push('/ingest')}
+                        className="sm:hidden w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-lg"
+                    >
+                        <Plus size={24} />
+                    </motion.button>
                 </div>
             </div>
+
+            {/* Main Content */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-8">
+                {/* Stats Row - Responsive Grid */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
+                    {statCards.map((stat, idx) => {
+                        const Icon = stat.icon;
+                        return (
+                            <motion.div
+                                key={stat.label}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: idx * 0.1 }}
+                            >
+                                <Card glass className="bg-white/40 border-white/40 hover:bg-white/60 transition-all group overflow-hidden">
+                                    <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-[0.03] transition-opacity duration-500 pointer-events-none" />
+                                    <CardContent className="p-4 sm:p-5 md:p-6">
+                                        <div className="flex flex-col gap-4">
+                                            <div className="flex items-center justify-between">
+                                                <div className={`p-2 sm:p-2.5 rounded-xl bg-gradient-to-br ${stat.gradient} shadow-lg shadow-${stat.color}-500/20`}>
+                                                    <Icon className="text-white" size={14} />
+                                                </div>
+                                                <span className="text-[8px] font-black uppercase tracking-[0.2em] text-gray-400">Omega v1.0</span>
+                                            </div>
+
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-[10px] sm:text-[11px] text-gray-400 font-black uppercase tracking-widest flex items-center gap-2">
+                                                    {stat.label}
+                                                </p>
+                                                <p className="text-2xl sm:text-3xl font-black text-gray-900 mt-1 tracking-tighter">
+                                                    {stat.value}
+                                                </p>
+                                                <p className="text-[10px] font-bold text-gray-900/40 mt-1 uppercase tracking-tighter">
+                                                    {stat.subValue}
+                                                </p>
+                                            </div>
+
+                                            <div className="pt-3 border-t border-gray-100/50">
+                                                <p className="text-[9px] font-medium text-gray-400 leading-tight">
+                                                    {stat.description}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </motion.div>
+                        );
+                    })}
+                </div>
+
+                {/* Recent Crystals */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                >
+                    <Card glass={false} hover={false} className="border-2">
+                        <CardHeader className="p-4 sm:p-6">
+                            <div className="flex flex-row items-start sm:items-center justify-between gap-2">
+                                <div className="flex-1 min-w-0">
+                                    <CardTitle className="text-lg sm:text-xl">Recent Crystals</CardTitle>
+                                    <p className="text-xs sm:text-sm text-gray-600 mt-1 hidden sm:block">
+                                        Your latest knowledge captures
+                                    </p>
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => router.push('/cortex')}
+                                    className="shrink-0"
+                                >
+                                    <span className="hidden sm:inline">View All</span>
+                                    <ArrowRight size={16} />
+                                </Button>
+                            </div>
+                        </CardHeader>
+
+                        <CardContent className="p-4 sm:p-6 pt-0 space-y-3 sm:space-y-4">
+                            {recentCrystals.map((crystal, idx) => (
+                                <motion.div
+                                    key={crystal.id}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.5 + idx * 0.1 }}
+                                    className="flex items-center justify-between p-3 sm:p-4 rounded-xl hover:bg-gray-50/50 transition-colors cursor-pointer group active:bg-gray-100/50"
+                                    onClick={() => router.push(`/crystals/${crystal.id}`)}
+                                >
+                                    <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shrink-0">
+                                            <Sparkles className="text-white" size={18} />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-semibold text-sm sm:text-base text-gray-900 group-hover:text-purple-600 transition-colors truncate">
+                                                {crystal.title}
+                                            </h3>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <Badge variant="primary" className="text-xs">{crystal.domain}</Badge>
+                                                <span className="text-xs text-gray-500 hidden sm:inline">{crystal.time}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <ArrowRight className="text-gray-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all shrink-0" size={18} />
+                                </motion.div>
+                            ))}
+                        </CardContent>
+                    </Card>
+                </motion.div>
+
+                {/* Quick Actions - Mobile: 1 col, Tablet: 2 cols, Desktop: 3 cols */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 }}
+                    className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6"
+                >
+                    <Card glass onClick={() => router.push('/ingest')} className="cursor-pointer active:scale-95 transition-transform">
+                        <CardContent className="text-center py-6 sm:py-8">
+                            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                                <Plus className="text-white" size={28} />
+                            </div>
+                            <h3 className="font-bold text-base sm:text-lg text-gray-900">Create Crystal</h3>
+                            <p className="text-xs sm:text-sm text-gray-600 mt-2 px-2">
+                                Transform any content into knowledge
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                    <Card glass onClick={() => router.push('/cortex')} className="cursor-pointer active:scale-95 transition-transform">
+                        <CardContent className="text-center py-6 sm:py-8">
+                            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                                <Sparkles className="text-white" size={28} />
+                            </div>
+                            <h3 className="font-bold text-base sm:text-lg text-gray-900">Explore Cortex</h3>
+                            <p className="text-xs sm:text-sm text-gray-600 mt-2 px-2">
+                                Navigate your knowledge graph
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                    <Card glass className="cursor-pointer active:scale-95 transition-transform sm:col-span-2 md:col-span-1">
+                        <CardContent className="text-center py-6 sm:py-8">
+                            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                                <Users className="text-white" size={28} />
+                            </div>
+                            <h3 className="font-bold text-base sm:text-lg text-gray-900">Collaborate</h3>
+                            <p className="text-xs sm:text-sm text-gray-600 mt-2 px-2">
+                                Share and edit with your team
+                            </p>
+                        </CardContent>
+                    </Card>
+                </motion.div>
+            </div>
+
+            {/* Mobile Bottom Navigation */}
+            <MobileNav />
         </div>
     );
 }

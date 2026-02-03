@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/Sidebar';
 import { Award, Shield, Fingerprint, Activity, TrendingUp, History, Star, Zap } from 'lucide-react';
+import { motion } from 'framer-motion';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 
@@ -25,10 +26,10 @@ interface ExpertProfile {
 }
 
 export default function ExpertHubPage() {
-    useAuth();
+    const { user } = useAuth();
     const [profile, setProfile] = useState<ExpertProfile | null>(null);
     const [ledger, setLedger] = useState<ReputationEvent[]>([]);
-    const [, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -58,37 +59,35 @@ export default function ExpertHubPage() {
     ];
 
     return (
-        <div className="min-h-screen bg-black text-white selection:bg-yellow-500/30 selection:text-white flex">
+        <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-blue-100 selection:text-blue-900 flex">
             <Sidebar />
 
             <main className="flex-1 md:ml-64 p-8 md:p-12 overflow-y-auto">
-                <header className="mb-16">
-                    <div className="inline-flex items-center px-4 py-1.5 bg-yellow-500/10 rounded-full mb-6 border border-yellow-500/20 shadow-[0_0_30px_rgba(234,179,8,0.1)]">
-                        <Award size={12} className="text-yellow-400 mr-2" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-yellow-400">Sovereign Expert Verified</span>
+                <header className="mb-12">
+                    <div className="inline-flex items-center px-4 py-1.5 bg-yellow-50 rounded-full mb-4 border border-yellow-100">
+                        <Award size={12} className="text-yellow-600 mr-2" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-yellow-700">Sovereign Expert Verified</span>
                     </div>
-                    <h1 className="font-bebas text-8xl md:text-9xl italic leading-[0.8] text-white">
-                        EXPERT_<span className="text-yellow-500/30">IDENTITY.</span>
+                    <h1 className="text-4xl md:text-5xl font-black italic tracking-tighter text-gray-900 mb-2">
+                        EXPERT <span className="text-yellow-600">IDENTITY.</span>
                     </h1>
-                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 ml-2 mt-4">Your cryptographic reputation and neural contribution matrix</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Your cryptographic reputation and neural contribution matrix.</p>
                 </header>
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                     {/* Left: Profile & Stats */}
-                    <div className="lg:col-span-1 space-y-8">
-                        <div className="glass-panel rounded-[3rem] p-10 relative overflow-hidden group">
-                            <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-yellow-500/5 blur-3xl group-hover:bg-yellow-500/10 transition-colors duration-700" />
-
+                    <div className="lg:col-span-1 space-y-6">
+                        <div className="bg-black text-white rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group">
                             <div className="relative z-10">
-                                <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mb-8 border border-white/5 backdrop-blur-3xl shadow-2xl">
-                                    <Fingerprint size={32} className="text-yellow-400" />
+                                <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-md">
+                                    <Fingerprint size={32} />
                                 </div>
-                                <h2 className="text-3xl font-black italic tracking-tight mb-2 text-white">{profile?.name}</h2>
-                                <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">@{profile?.handle}</p>
+                                <h2 className="text-2xl font-black italic tracking-tight mb-1">{profile?.name}</h2>
+                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">@{profile?.handle}</p>
 
-                                <div className="mt-10 pt-10 border-t border-white/5">
-                                    <span className="block text-[8px] font-black uppercase tracking-[0.4em] text-white/20 mb-4">PUBLIC_KEY_HEX</span>
-                                    <code className="text-[9px] font-mono break-all text-white/40 leading-relaxed">
+                                <div className="mt-8 pt-8 border-t border-white/10">
+                                    <span className="block text-[10px] font-black uppercase tracking-widest text-white/40 mb-2">Public Key</span>
+                                    <code className="text-[10px] font-mono break-all opacity-60">
                                         {profile?.public_key}
                                     </code>
                                 </div>
@@ -97,14 +96,14 @@ export default function ExpertHubPage() {
 
                         <div className="space-y-4">
                             {stats.map((s, i) => (
-                                <div key={i} className="bg-white/[0.02] p-6 rounded-[2rem] border border-white/5 hover:bg-white/5 transition-colors">
-                                    <div className="flex items-center gap-5">
-                                        <div className={`w-12 h-12 bg-white/5 ${s.color} rounded-xl flex items-center justify-center border border-white/5`}>
-                                            <s.icon size={22} />
+                                <div key={i} className="bg-gray-50 p-6 rounded-[2rem] border border-gray-100">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-10 h-10 ${s.bg} ${s.color} rounded-xl flex items-center justify-center`}>
+                                            <s.icon size={20} />
                                         </div>
                                         <div>
-                                            <span className="block text-[8px] font-black uppercase tracking-[0.3em] text-white/20 mb-1">{s.label}</span>
-                                            <span className="text-xl font-black text-white tracking-tight italic">{s.value}</span>
+                                            <span className="block text-[8px] font-black uppercase tracking-widest text-gray-400">{s.label}</span>
+                                            <span className="text-lg font-black text-gray-900 tracking-tight">{s.value}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -113,58 +112,57 @@ export default function ExpertHubPage() {
                     </div>
 
                     {/* Right: Reputation Ledger */}
-                    <div className="lg:col-span-3 space-y-12">
-                        <div className="glass-panel rounded-[3.5rem] p-12">
-                            <div className="flex items-center justify-between mb-12">
-                                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 flex items-center gap-3">
-                                    <History size={16} /> REPUTATION_LEDGER.
+                    <div className="lg:col-span-3 space-y-8">
+                        <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm">
+                            <div className="flex items-center justify-between mb-8">
+                                <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                                    <History size={14} /> Reputation Ledger
                                 </h3>
-                                <div className="flex items-center gap-3 text-[10px] font-black text-emerald-400 bg-emerald-500/10 px-5 py-2 rounded-full uppercase tracking-[0.2em] border border-emerald-500/20">
-                                    <TrendingUp size={14} />
-                                    Growth: +12.4%
+                                <div className="flex items-center gap-2 text-[10px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full uppercase tracking-wider">
+                                    <TrendingUp size={12} />
+                                    Growth: +12%
                                 </div>
                             </div>
 
-                            <div className="space-y-6">
+                            <div className="space-y-4">
                                 {ledger.length > 0 ? ledger.map((event) => (
-                                    <div key={event.id} className="flex items-center justify-between p-6 bg-white/[0.01] rounded-[1.5rem] border border-white/2 hover:border-white/10 hover:bg-white/[0.03] transition-all group">
-                                        <div className="flex items-center gap-6">
-                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center border ${event.delta > 0 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>
-                                                <Activity size={18} />
+                                    <div key={event.id} className="flex items-center justify-between p-4 bg-gray-50/50 rounded-2xl border border-gray-50 hover:border-gray-100 transition-all">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${event.delta > 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                                                <Activity size={14} />
                                             </div>
                                             <div>
-                                                <p className="text-sm font-black text-white group-hover:text-yellow-400 transition-colors uppercase tracking-widest italic">{event.reason}</p>
-                                                <span className="text-[10px] font-bold text-white/20 uppercase tracking-[0.1em] mt-1 block">
-                                                    {new Date(event.created_at).toLocaleDateString()} • {new Date(event.created_at).toLocaleTimeString()}
+                                                <p className="text-sm font-bold text-gray-900">{event.reason}</p>
+                                                <span className="text-[10px] font-medium text-gray-400">
+                                                    {new Date(event.created_at).toLocaleDateString()} · {new Date(event.created_at).toLocaleTimeString()}
                                                 </span>
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <span className={`text-lg font-black italic ${event.delta > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                            <span className={`text-sm font-black ${event.delta > 0 ? 'text-green-600' : 'text-red-600'}`}>
                                                 {event.delta > 0 ? '+' : ''}{event.delta.toFixed(4)}
                                             </span>
-                                            <span className="block text-[8px] font-black uppercase text-white/20 tracking-[0.2em] mt-1">NEW_SCORE: {event.new_reputation.toFixed(3)}</span>
+                                            <span className="block text-[8px] font-black uppercase text-gray-400 tracking-tighter">New Score: {event.new_reputation.toFixed(3)}</span>
                                         </div>
                                     </div>
                                 )) : (
-                                    <div className="flex flex-col items-center justify-center py-32 rounded-[3rem] bg-white/[0.01] border border-white/5 border-dashed">
-                                        <Award className="text-white/5 mb-6" size={60} />
-                                        <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Your contribution history is empty.</p>
+                                    <div className="text-center py-20 bg-gray-50/30 rounded-[2rem] border border-dashed border-gray-200">
+                                        <Award className="mx-auto text-gray-200 mb-4" size={48} />
+                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Your contribution history is empty.</p>
                                     </div>
                                 )}
                             </div>
                         </div>
 
                         {/* Badges/Credentials Section */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {['Early Adopter', 'Lattice Defender', 'HDC Pioneer'].map((badge, i) => (
-                                <div key={i} className="glass-panel border-white/5 p-8 rounded-[2.5rem] flex flex-col items-center text-center group hover:scale-105 transition-all relative overflow-hidden">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-6 border border-white/5 shadow-2xl relative z-10 group-hover:rotate-12 transition-transform duration-500">
-                                        <Star className="text-yellow-500" size={32} fill="currentColor" />
+                                <div key={i} className="bg-gradient-to-br from-gray-50 to-gray-100/50 border border-gray-200/50 p-6 rounded-[2rem] flex flex-col items-center text-center group hover:scale-105 transition-all">
+                                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm border border-gray-100 group-hover:rotate-12 transition-transform">
+                                        <Star className="text-yellow-400" size={24} fill="currentColor" />
                                     </div>
-                                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white mb-2 relative z-10">{badge}</span>
-                                    <span className="text-[8px] font-bold text-white/20 uppercase tracking-[0.2em] relative z-10">Verified 2026 • Tier S</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-900">{badge}</span>
+                                    <span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter mt-1">Verified 2026</span>
                                 </div>
                             ))}
                         </div>

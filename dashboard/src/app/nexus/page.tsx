@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/Sidebar';
 import { supabase } from '@/lib/supabase';
-import { Network, Globe, Radio, Shield, Fingerprint, Activity } from 'lucide-react';
+import { Network, Globe, Radio, Shield, Fingerprint, Activity, Code, Terminal } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface SentinelStats {
@@ -17,17 +17,21 @@ export default function NexusPage() {
     const [stats, setStats] = useState<SentinelStats | null>(null);
     const [latency, setLatency] = useState<number>(0);
     const [isPinging, setIsPinging] = useState(false);
+    const [logs, setLogs] = useState<any[]>([]);
 
     useEffect(() => {
         const loadStats = async () => {
             try {
-                // Fetch real stats from crystals table as a proxy for sentinel stats
-                const { count } = await supabase.from('crystals').select('*', { count: 'exact', head: true });
+                // TODO: Create sentinel_stats table or use alternative endpoint
+                // const { data } = await supabase.from('sentinel_stats').select('*').single();
+                // if (data) setStats(data);
+
+                // Temporary: Use default values
                 setStats({
-                    totalCrystals: count || 0,
-                    verifiedCrystals: count || 0,
+                    totalCrystals: 0,
+                    verifiedCrystals: 0,
                     pendingVerifications: 0,
-                    avgFidelity: 0.99
+                    avgFidelity: 0
                 });
             } catch (err) {
                 console.error('Stats load error:', err);
@@ -36,137 +40,163 @@ export default function NexusPage() {
 
         loadStats();
 
-        // Latency Heartbeat
+        // Real-time updates disabled until sentinel_stats exists
+        // const channel = supabase.channel('sentinel-stats')
+        //     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'sentinel_stats' }, (payload) => {
+        //         setStats(payload.new as any);
+        //     })
+        //     .subscribe();
+
+        // Check table exists
+        const checkTable = async () => {
+            // await supabase.from('sentinel_stats').select('id').limit(1);
+        };
+        checkTable();
+
+        // Latency Heartbeat simulation (pinging supabase)
         const pingInterval = setInterval(async () => {
             setIsPinging(true);
             const start = performance.now();
-            await supabase.from('crystals').select('context_id').limit(1);
+            // await supabase.from('sentinel_stats').select('id').limit(1);
             const end = performance.now();
             setLatency(Math.round(end - start));
             setIsPinging(false);
         }, 5000);
 
-        return () => clearInterval(pingInterval);
+        const fetchLogs = async () => {
+            try {
+                const { data } = await supabase.from('sentinel_logs').select('*').order('timestamp', { ascending: false }).limit(20);
+                if (data) setLogs(data);
+            } catch (err) {
+                console.error('Logs fetch error:', err);
+            }
+        };
+
+        fetchLogs();
+        const logsInterval = setInterval(fetchLogs, 4000);
+
+        return () => {
+            // supabase.removeChannel(channel);
+            clearInterval(pingInterval);
+            clearInterval(logsInterval);
+        };
     }, []);
 
     const healthPercentage = stats ? Math.round(stats.avgFidelity * 100) : 0;
 
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-purple-100 selection:text-purple-900 flex font-sans">
+        <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-blue-100 selection:text-blue-900 flex">
             <Sidebar />
 
-            <main className="flex-1 md:ml-72 p-8 md:p-12 overflow-y-auto">
-                <header className="mb-16">
-                    <div className="inline-flex items-center px-4 py-1.5 bg-purple-50 rounded-full mb-6 border border-purple-100 shadow-xl shadow-purple-500/5">
+            <main className="flex-1 md:ml-64 p-8 md:p-12 overflow-y-auto">
+                <header className="mb-12">
+                    <div className="inline-flex items-center px-4 py-1.5 bg-purple-50 rounded-full mb-4 border border-purple-100">
                         <Network size={12} className="text-purple-600 mr-2" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-700">Secure Sync Active</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-purple-700">Bridge Protocol Active</span>
                     </div>
-                    <h1 className="text-6xl font-black tracking-tight text-slate-900">
-                        Connected <span className="text-indigo-600">Tools.</span>
+                    <h1 className="text-4xl md:text-5xl font-black italic tracking-tighter text-gray-900 mb-2">
+                        SYSTEM <span className="text-purple-600">NEXUS.</span>
                     </h1>
-                    <p className="text-sm font-medium text-slate-400 mt-4 max-w-lg">Manage how your AI tools connect to your personal memory bank.</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Monitor external interfaces and neural bridges.</p>
                 </header>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* OpenWebUI Bridge Card */}
-                    <div className="bg-white rounded-[3rem] p-12 border border-slate-100 shadow-xl shadow-slate-200/40 relative overflow-hidden group hover:shadow-2xl hover:shadow-purple-500/5 transition-all">
-                        <div className="absolute top-0 right-0 p-12 opacity-[0.03] group-hover:opacity-10 group-hover:scale-110 transition-all duration-700">
-                            <Globe size={180} />
+                    <div className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-purple-500/10 transition-all border-l-4 border-l-purple-500 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <Globe size={100} />
                         </div>
 
-                        <div className="flex justify-between items-start mb-12 relative z-10">
-                            <div className="w-16 h-16 bg-purple-50 rounded-[1.5rem] flex items-center justify-center border border-purple-100 text-purple-600">
-                                <Globe size={28} />
+                        <div className="flex justify-between items-start mb-8 relative z-10">
+                            <div className="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center shadow-inner text-purple-600">
+                                <Globe size={24} />
                             </div>
-                            <div className={`px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 border ${latency > 0 ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-300 border-slate-100'}`}>
-                                <span className={`w-2 h-2 rounded-full ${latency > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-slate-200'}`} />
-                                {latency > 0 ? 'Connected' : 'Connecting...'}
+                            <div className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${latency > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${latency > 0 ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
+                                {latency > 0 ? 'Online' : 'Connecting...'}
                             </div>
                         </div>
-
-                        <h3 className="text-3xl font-black tracking-tight text-slate-900 mb-4 relative z-10 group-hover:text-purple-600 transition-colors">AI Desktop Link</h3>
-                        <p className="text-sm font-medium text-slate-400 mb-10 leading-relaxed relative z-10 max-w-sm">
-                            Maintains a secure link to your desktop AI tools. Ideas are saved automatically as you chat.
+                        <h3 className="text-xl font-black italic tracking-tight text-gray-900 mb-2 relative z-10">OPEN WEBUI BRIDGE</h3>
+                        <p className="text-xs font-medium text-gray-400 mb-6 leading-relaxed relative z-10">
+                            Active connection to external LLM interfaces. Crystals are being injected into chat contexts via <code className="bg-gray-100 px-1 py-0.5 rounded text-gray-600 font-mono">port:3000</code>.
                         </p>
-
-                        <div className="grid grid-cols-2 gap-8 relative z-10">
-                            <div className="bg-slate-50/50 p-8 rounded-[2.5rem] border border-slate-100 group-hover:bg-purple-50 group-hover:border-purple-100 transition-all">
-                                <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4">Sync Speed</span>
-                                <span className="text-3xl font-black text-slate-900 flex items-center gap-3">
+                        <div className="grid grid-cols-2 gap-4 relative z-10">
+                            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                <span className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Latency</span>
+                                <span className="text-lg font-black text-gray-900 flex items-center gap-2">
                                     {latency}ms
-                                    {isPinging && <span className="w-2.5 h-2.5 bg-purple-500 rounded-full animate-ping" />}
+                                    {isPinging && <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-ping" />}
                                 </span>
                             </div>
-                            <div className="bg-slate-50/50 p-8 rounded-[2.5rem] border border-slate-100 group-hover:bg-purple-50 group-hover:border-purple-100 transition-all">
-                                <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4">Ideas Saved</span>
-                                <span className="text-3xl font-black text-purple-600 block">
+                            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                <span className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Total Injections</span>
+                                <motion.span
+                                    className="text-lg font-black text-purple-600 block"
+                                    key={stats?.totalCrystals}
+                                    initial={{ scale: 1.2, color: '#9333ea' }}
+                                    animate={{ scale: 1, color: '#9333ea' }}
+                                >
                                     {stats?.totalCrystals || 0}
-                                </span>
+                                </motion.span>
                             </div>
                         </div>
                     </div>
 
                     {/* Chrome Extension Card */}
-                    <div className="bg-white rounded-[3rem] p-12 border border-slate-100 shadow-xl shadow-slate-200/40 relative overflow-hidden group hover:shadow-2xl hover:shadow-blue-500/5 transition-all">
-                        <div className="absolute top-0 right-0 p-12 opacity-[0.03] group-hover:opacity-10 group-hover:scale-110 transition-all duration-700">
-                            <Radio size={180} />
+                    <div className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-blue-500/10 transition-all border-l-4 border-l-blue-500 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <Radio size={100} />
                         </div>
 
-                        <div className="flex justify-between items-start mb-12 relative z-10">
-                            <div className="w-16 h-16 bg-blue-50 rounded-[1.5rem] flex items-center justify-center border border-blue-100 text-blue-600">
-                                <Radio size={28} />
+                        <div className="flex justify-between items-start mb-8 relative z-10">
+                            <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center shadow-inner text-blue-600">
+                                <Radio size={24} />
                             </div>
-                            <div className="px-5 py-2 bg-slate-50 text-slate-400 border border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3">
-                                <span className="w-2 h-2 bg-slate-300 rounded-full" />
+                            <div className="px-3 py-1 bg-gray-100 text-gray-500 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
                                 Standby
                             </div>
                         </div>
-
-                        <h3 className="text-3xl font-black tracking-tight text-slate-900 mb-4 relative z-10 group-hover:text-blue-600 transition-colors">Browser Assistant</h3>
-                        <p className="text-sm font-medium text-slate-400 mb-10 leading-relaxed relative z-10 max-w-sm">
-                            Saves what you learn while browsing the web to your personal knowledge base automatically.
+                        <h3 className="text-xl font-black italic tracking-tight text-gray-900 mb-2 relative z-10">NEURAL SURFACE EXTENSION</h3>
+                        <p className="text-xs font-medium text-gray-400 mb-6 leading-relaxed relative z-10">
+                            Browser-level grounding. Analyzes visited pages for truth compliance and automatically captures semantic anchors.
                         </p>
-
-                        <div className="space-y-4 relative z-10">
-                            <div className="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border border-slate-100 group-hover:bg-blue-50 group-hover:border-blue-100 transition-all">
-                                <span className="flex items-center gap-4 text-[11px] font-black uppercase tracking-widest text-slate-600">
-                                    <Shield size={16} className="text-blue-500" /> Fact Checker
-                                </span>
-                                <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] bg-blue-100/50 px-3 py-1 rounded-full border border-blue-200">Active</span>
+                        <div className="space-y-3 relative z-10">
+                            <div className="flex items-center justify-between text-xs font-bold text-gray-500 border-b border-gray-50 pb-2">
+                                <span className="flex items-center gap-2"><Shield size={14} className="text-blue-400" /> Truth Filter</span>
+                                <span className="text-blue-600 bg-blue-50 px-2 py-0.5 rounded">Active</span>
                             </div>
-                            <div className="flex items-center justify-between p-6 bg-slate-50/50 rounded-2xl border border-slate-50 group-hover:bg-slate-50 transition-all">
-                                <span className="flex items-center gap-4 text-[11px] font-black uppercase tracking-widest text-slate-300">
-                                    <Fingerprint size={16} className="text-slate-200" /> Auto Capture
-                                </span>
-                                <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Off</span>
+                            <div className="flex items-center justify-between text-xs font-bold text-gray-500 border-b border-gray-50 pb-2">
+                                <span className="flex items-center gap-2"><Fingerprint size={14} className="text-gray-400" /> Auto-Capture</span>
+                                <span className="text-gray-400">Disabled</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Local Inference Status */}
-                    <div className="col-span-1 md:col-span-2 bg-white rounded-[4rem] p-16 border border-slate-100 shadow-xl shadow-slate-200/40 relative overflow-hidden group hover:shadow-2xl transition-all">
-                        <div className="absolute top-0 right-0 p-16 opacity-[0.02] group-hover:scale-110 transition-transform duration-1000">
-                            <Activity size={400} />
+                    <div className="bg-gray-900 rounded-[2rem] p-8 border border-gray-800 col-span-1 md:col-span-2 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
+                            <Activity size={200} className="text-white" />
                         </div>
-                        <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-16">
-                            <div className="max-w-2xl text-center lg:text-left">
-                                <h3 className="text-5xl font-black tracking-tight text-slate-900 mb-8">Personal Knowledge.</h3>
-                                <p className="text-sm font-medium text-slate-400 leading-relaxed">
-                                    Everything you save remains private. Your information is encrypted and only you have the key.
-                                    <span className="text-indigo-600 ml-4 font-black uppercase tracking-widest text-[10px] bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">Private & Secure</span>
+                        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                            <div>
+                                <h3 className="text-2xl font-black italic tracking-tight text-white mb-2">LOCAL SOVEREIGN INFERENCE</h3>
+                                <p className="text-xs font-medium text-gray-400 leading-relaxed max-w-lg">
+                                    Your system communicates with the Neural Bridge Oracle but maintains a local cryptographic signature on all operations.
+                                    <span className="text-white font-bold ml-1">Zero-Knowledge Proofs enabled.</span>
                                 </p>
                             </div>
-                            <div className="bg-slate-50 p-12 rounded-[3.5rem] border border-slate-100 min-w-[360px] shadow-inner">
-                                <div className="flex justify-between items-end mb-8">
-                                    <span className="block text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Memory Quality</span>
-                                    <span className="block text-6xl font-black text-slate-900 tracking-tighter">{healthPercentage}<span className="text-2xl text-slate-200 ml-1">%</span></span>
+                            <div className="bg-white/5 backdrop-blur-md p-6 rounded-2xl border border-white/10 min-w-[240px]">
+                                <div className="flex justify-between items-end mb-2">
+                                    <span className="block text-[10px] font-bold uppercase text-white/40">System Potency</span>
+                                    <span className="block text-3xl font-black text-white">{healthPercentage}<span className="text-sm text-gray-500">%</span></span>
                                 </div>
-                                <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden shadow-inner">
+                                <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
                                     <motion.div
-                                        className="h-full bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-500"
+                                        className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
                                         initial={{ width: 0 }}
                                         animate={{ width: `${healthPercentage}%` }}
-                                        transition={{ duration: 1.5, ease: "circOut" }}
+                                        transition={{ duration: 1, ease: "easeOut" }}
                                     />
                                 </div>
                             </div>

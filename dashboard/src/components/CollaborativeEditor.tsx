@@ -10,7 +10,7 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { useCollaboration } from '@/hooks/useCollaboration';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Users, Save, Share2, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -26,6 +26,7 @@ export default function CollaborativeEditor({
     onSave
 }: CollaborativeEditorProps) {
     const router = useRouter();
+    const [content, setContent] = useState(initialContent);
     const [isSaving, setIsSaving] = useState(false);
 
     // TODO: Get from auth context when available
@@ -34,7 +35,9 @@ export default function CollaborativeEditor({
 
     const {
         isConnected,
-        activeUsers
+        activeUsers,
+        currentUser,
+        sendCursor
     } = useCollaboration(crystalId, userId, userName);
 
     // Initialize TipTap editor
@@ -46,6 +49,10 @@ export default function CollaborativeEditor({
                 class: 'prose prose-lg max-w-none focus:outline-none p-8 min-h-[400px]'
             }
         },
+        onUpdate: ({ editor }: { editor: any }) => {
+            const newContent = editor.getHTML();
+            setContent(newContent);
+        }
     });
 
     // Handle save

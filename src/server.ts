@@ -478,10 +478,11 @@ app.get('/v1/jobs/stats/all', async (req: Request, res: Response) => {
 // ANALYTICS ENDPOINTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-app.get('/v1/analytics/stats', async (req: Request, res: Response) => {
+app.get('/v1/analytics/stats', AuthService.authenticate, async (req: Request, res: Response) => {
     try {
+        const author_id = (req as any).user.author_id;
         const { AnalyticsService } = await import('./services/analytics');
-        const stats = await AnalyticsService.getSystemStats();
+        const stats = await AnalyticsService.getSystemStats(author_id);
         res.json({ success: true, stats });
     } catch (error) {
         res.status(500).json({ error: (error as Error).message });
@@ -1092,17 +1093,6 @@ app.get('/v1/sentinel/logs', async (req: Request, res: Response) => {
 
         if (error) throw error;
         res.json({ success: true, logs: data });
-    } catch (error) {
-        res.status(500).json({ error: (error as Error).message });
-    }
-});
-
-app.get('/v1/analytics/my-stats', AuthService.authenticate, async (req: Request, res: Response) => {
-    try {
-        const author_id = (req as any).user.author_id;
-        const { AnalyticsService } = await import('./services/analytics');
-        const stats = await AnalyticsService.getUserStats(author_id);
-        res.json({ success: true, stats });
     } catch (error) {
         res.status(500).json({ error: (error as Error).message });
     }

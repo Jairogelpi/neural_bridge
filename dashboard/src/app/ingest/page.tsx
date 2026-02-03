@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Sidebar } from '@/components/Sidebar';
 import { Upload, FileText, Database, Sparkles, CheckCircle, AlertCircle } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 import api from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 

@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 
 const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), { ssr: false });
 import { Sidebar } from '@/components/Sidebar';
-import { ZoomIn, ZoomOut, Share2 } from 'lucide-react';
+import { ZoomIn, ZoomOut, Share2, RefreshCcw, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { usePagination, useInfiniteScroll } from '@/hooks/usePagination';
 
@@ -25,7 +25,7 @@ export default function CortexPage() {
         fetchPage: async (page, pageSize) => {
             const { data } = await supabase
                 .from('crystals')
-                .select('context_id, domain, author, intent')
+                .select('context_id, domain, author, intent, metadata')
                 .range(page * pageSize, (page + 1) * pageSize - 1)
                 .order('created_at', { ascending: false });
 
@@ -47,21 +47,34 @@ export default function CortexPage() {
             return {
                 id: c.context_id,
                 group: generation,
-                label: c.domain,
-                val: (generation + 1) * 2,
+                label: `[Layer ${generation}] ${c.domain}`,
+                val: (generation + 1) * 2, // Bigger nodes for higher generations
                 details: c.intent?.primary
             };
         });
 
         const links: any[] = [];
 
-        // 1. GENEALOGY LINKS (Implicit Fallback)
+        // 1. GENEALOGY LINKS (The Fractal Backbone)
+        crystals.forEach((c: any) => {
+            if (c.metadata?.genealogy?.parents) {
+                c.metadata.genealogy.parents.forEach((parentId: string) => {
+                    links.push({
+                        source: parentId,
+                        target: c.context_id,
+                        type: 'genealogy'
+                    });
+                });
+            }
+        });
+
+        // 2. TEMPORAL/DOMAIN LINKS (Implicit)
         for (let i = 0; i < nodes.length - 1; i++) {
             if (nodes[i].group === nodes[i + 1].group) {
                 links.push({
                     source: nodes[i].id,
                     target: nodes[i + 1].id,
-                    type: 'associative'
+                    type: 'temporal'
                 });
             }
         }
@@ -70,31 +83,28 @@ export default function CortexPage() {
     }, [crystals]);
 
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-indigo-100 selection:text-indigo-900 flex font-sans">
+        <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-blue-100 selection:text-blue-900 flex">
             <Sidebar />
 
-            <main className="flex-1 md:ml-72 relative overflow-hidden h-screen bg-white">
+            <main className="flex-1 md:ml-64 relative overflow-hidden h-screen bg-gray-50">
                 {/* Overlay Header */}
-                <div className="absolute top-12 left-12 z-10 pointer-events-none">
-                    <div className="inline-flex items-center px-4 py-1.5 bg-indigo-50 rounded-full mb-6 border border-indigo-100 shadow-xl shadow-indigo-500/5">
-                        <span className="w-2 h-2 bg-indigo-600 rounded-full animate-pulse mr-3" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-700">Live Synaptic Lattice</span>
+                <div className="absolute top-8 left-8 z-10 pointer-events-none">
+                    <div className="inline-flex items-center px-4 py-1.5 bg-white/80 backdrop-blur-md rounded-full mb-4 border border-gray-200 shadow-lg shadow-gray-200/50">
+                        <span className="w-2 h-2 bg-purple-500 rounded-full animate-pulse mr-2" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-purple-700">Live Synaptic Activity</span>
                     </div>
-                    <h1 className="text-6xl font-black tracking-tight text-slate-900 uppercase italic">
-                        Omni_<span className="text-slate-200">Cortex.</span>
-                    </h1>
-                    <p className="text-xs font-bold uppercase tracking-[0.4em] text-slate-400 ml-2 mt-4">Knowledge Topology Engine</p>
+                    <h1 className="text-5xl font-black italic tracking-tighter text-gray-900">CORTEX <span className="text-purple-600">GRAPH.</span></h1>
                 </div>
 
                 {/* Controls */}
-                <div className="absolute bottom-12 right-12 z-10 flex flex-col gap-4">
-                    <button className="p-4 bg-white border border-slate-100 rounded-[2rem] text-slate-400 hover:text-indigo-600 hover:shadow-2xl transition-all shadow-xl shadow-slate-200/40" onClick={() => graphRef.current?.zoomIn()}>
+                <div className="absolute bottom-8 right-8 z-10 flex flex-col gap-2">
+                    <button className="p-3 bg-white border border-gray-100 rounded-xl shadow-xl hover:bg-gray-50 text-gray-600 hover:text-purple-600 transition-colors" onClick={() => graphRef.current?.zoomIn()}>
                         <ZoomIn size={20} />
                     </button>
-                    <button className="p-4 bg-white border border-slate-100 rounded-[2rem] text-slate-400 hover:text-indigo-600 hover:shadow-2xl transition-all shadow-xl shadow-slate-200/40" onClick={() => graphRef.current?.zoomOut()}>
+                    <button className="p-3 bg-white border border-gray-100 rounded-xl shadow-xl hover:bg-gray-50 text-gray-600 hover:text-purple-600 transition-colors" onClick={() => graphRef.current?.zoomOut()}>
                         <ZoomOut size={20} />
                     </button>
-                    <button className="p-5 bg-indigo-600 border border-indigo-500 rounded-[2rem] text-white shadow-xl shadow-indigo-600/30 hover:bg-indigo-700 hover:-translate-y-1 active:translate-y-0 transition-all">
+                    <button className="p-3 bg-black border border-black rounded-xl shadow-xl hover:bg-gray-800 text-white transition-colors">
                         <Share2 size={20} />
                     </button>
                 </div>
@@ -104,16 +114,17 @@ export default function CortexPage() {
                         ref={graphRef}
                         graphData={graphData}
                         nodeColor={node => {
-                            const colors = ['#6366f1', '#4f46e5', '#818cf8', '#312e81', '#1e1b4b'];
+                            const colors = ['#06b6d4', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
                             return colors[(node as any).group % colors.length];
                         }}
-                        linkColor={() => 'rgba(226, 232, 240, 0.4)'}
-                        backgroundColor="transparent"
+                        linkColor={link => (link as any).type === 'genealogy' ? '#4f46e5' : '#cbd5e1'}
+                        backgroundColor="#f8fafc"
                         nodeLabel="label"
-                        nodeRelSize={7}
+                        nodeRelSize={6}
                         linkWidth={1.5}
-                        enableNodeDrag={true}
-                        d3VelocityDecay={0.4}
+                        enableNodeDrag={false}
+                        d3VelocityDecay={0.6}
+                        cooldownTicks={100}
                         onEngineStop={() => graphRef.current?.zoomToFit(400)}
                     />
                 </div>
