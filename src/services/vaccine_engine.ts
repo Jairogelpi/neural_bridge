@@ -194,19 +194,37 @@ export class VaccineEngine {
     }
 
     /**
-     * Returns relevant vaccines for a given source text to be used as pre-emptive guards.
+     * Returns relevant vaccines for a given source text using GEOMETRIC SEARCH (HDC)
      */
     static async getActiveGuards(source: string, domain: string): Promise<SemanticVaccine[]> {
-        // In a real system, we'd use vector search to find vaccines with similar 'prohibited_patterns'
-        // For this implementation, we pull top vaccines for the domain.
+        const { SemanticHasher } = await import('./semantic_hashing');
+
+        // 1. Retrieve candidate vaccines for the domain (Broad filter)
         const { data, error } = await supabase
             .from('vaccines')
             .select('*')
             .eq('context_domain', domain)
-            .order('severity', { ascending: false })
-            .limit(5);
+            .limit(20);
 
-        if (error || !data) return [];
-        return data as SemanticVaccine[];
+        if (error || !data || data.length === 0) return [];
+
+        // 2. GEOMETRIC FILTERING (HDC)
+        // We compute the holographic hash of the source once
+        const sourceHash = SemanticHasher.computeHolographicHash(source);
+
+        // 3. Rank vaccines by similarity to the source context
+        const ranked = data.map(v => {
+            const vaccinePattern = v.meta_invariant?.prohibited_pattern || v.fallacy_type;
+            const vaccineHash = SemanticHasher.computeHolographicHash(vaccinePattern);
+            const similarity = SemanticHasher.holographicSimilarity(sourceHash, vaccineHash);
+            return { vaccine: v as SemanticVaccine, similarity };
+        });
+
+        // 4. Return vaccines that cross the resonance threshold (e.g., > 0.4)
+        return ranked
+            .filter(r => r.similarity > 0.4)
+            .sort((a, b) => b.similarity - a.similarity)
+            .slice(0, 5)
+            .map(r => r.vaccine);
     }
 }

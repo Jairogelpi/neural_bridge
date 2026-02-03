@@ -10,6 +10,7 @@ export interface CrystallizationOptions {
     domain?: string;
     author?: { id: string; name: string; reputation: number };
     compress?: boolean;
+    tier?: 'community' | 'trusted' | 'sovereign';
 }
 
 /**
@@ -107,7 +108,7 @@ CRITICAL RULES:
             context_id: `cry_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
             created_at: new Date().toISOString(),
             version: '1.0.0',
-            tier: 'community',
+            tier: options.tier || 'community',
             domain: domain,
             source: {
                 platform: 'neural-bridge-refinery',

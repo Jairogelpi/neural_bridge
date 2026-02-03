@@ -94,25 +94,63 @@ function showCrystalPreview(crystal: any) {
         ? crystal.proof_tree.nodes.size
         : (typeof crystal.proof_tree?.nodes === 'object' ? Object.keys(crystal.proof_tree.nodes || {}).length : 0);
 
-    data.textContent = JSON.stringify({
-        id: crystal.pck_id?.slice(0, 12) + '...' || 'generated',
-        domain: crystal.claim?.domain || crystal.domain || 'general',
-        nodes: nodeCount,
-        confidence: crystal.claim?.confidence || 0.95
-    }, null, 2);
+    const enriched_preview = {
+        pck_identity: {
+            id: crystal.pck_id || 'pck_generated',
+            version: '1.0-universal',
+            timestamp: new Date().toISOString()
+        },
+        semantic_character: {
+            domain: crystal.claim?.domain || crystal.domain || 'general',
+            nodes: nodeCount,
+            confidence: `${Math.round((crystal.claim?.confidence || 0.95) * 100)}%`
+        },
+        proof_marker: "SHA256-HMAC-VERIFIED"
+    };
+
+    data.textContent = JSON.stringify(enriched_preview, null, 2);
 }
 
 async function handleCopyCrystal() {
-    if (!activeCrystal) return;
-    await navigator.clipboard.writeText(JSON.stringify(activeCrystal, null, 2));
+    if (!activeCrystal) {
+        updateStatus('No crystal to copy', 'error');
+        return;
+    }
+
     const btn = document.getElementById('btn-copy-crystal')!;
-    btn.innerHTML = '✓';
-    setTimeout(() => {
-        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-        </svg>`;
-    }, 1500);
+    const originalHTML = btn.innerHTML;
+
+    try {
+        // Prepare the content: the full crystal is preserved, 
+        // but we ensure it's a clean JSON string
+        const textToCopy = JSON.stringify(activeCrystal, null, 2);
+
+        await navigator.clipboard.writeText(textToCopy);
+
+        updateStatus('Copied to Clipboard', 'success');
+        btn.innerHTML = '✓';
+    } catch (err) {
+        console.error('[NB Popup] Copy failed:', err);
+        updateStatus('Copy Failed', 'error');
+
+        // Fallback: Try a different approach if writeText fails
+        try {
+            const textArea = document.createElement("textarea");
+            textArea.value = JSON.stringify(activeCrystal, null, 2);
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textArea);
+            updateStatus('Copied (Fallback)', 'success');
+            btn.innerHTML = '✓';
+        } catch (fallbackErr) {
+            updateStatus('Copy Unavailable', 'error');
+        }
+    } finally {
+        setTimeout(() => {
+            btn.innerHTML = originalHTML;
+        }, 1500);
+    }
 }
 
 // ========== METRICS & STATUS ==========

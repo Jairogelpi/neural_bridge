@@ -269,4 +269,18 @@ export class SemanticHasher {
             is_stable: true
         };
     }
+
+    /**
+     * LATENT BINDING 🔗
+     * Binds a Vaccine vector to a context vector via XOR operation.
+     * This creates a "Fortress Vector" that is inherently resistant to the vaccine's pattern.
+     */
+    static latentBind(contextHash: string, vaccineHash: string): string {
+        const vecContext = Hypervector.fromString(contextHash);
+        const vecVaccine = Hypervector.fromString(vaccineHash);
+
+        // In HDC, B = C ^ V. The vaccine is now bundled into the context's latent space.
+        const fortress = vecContext.bind(vecVaccine);
+        return fortress.toString();
+    }
 }

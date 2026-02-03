@@ -62,15 +62,33 @@ export class DreamingService {
             // Use CrystalFuser to synthesize the weighted truth
             const fused = await CrystalFuser.fuseHolographic([c1, c2]);
 
+            // 🚀 DIALECTICAL SINGULARITY: EVOLVE THE FUSED TRUTH
+            // Every dream-synthesis must survive its own antithesis.
+            try {
+                const { DialecticalEngine } = await import('./dialectical_engine');
+                const synthesis = await DialecticalEngine.evolve(fused.intent.primary, `Synthesized from ${c1.context_id} and ${c2.context_id}`);
+
+                if (synthesis.is_resilient) {
+                    console.log(`[Dreaming] ✨ HEGELIAN SYNTHESIS SUCCESS: "${synthesis.final_thesis.substring(0, 50)}..."`);
+                    fused.intent.primary = synthesis.final_thesis;
+                    fused.metadata = {
+                        ...(fused.metadata || {}),
+                        dream_evolution: true,
+                        dialectic_iterations: synthesis.iterations
+                    };
+                }
+            } catch (e) {
+                console.warn("[Dreaming] ⚖️ Dialectic bypassed in dream:", e);
+            }
+
             // 4. Elevate to SOVEREIGN Status
             fused.tier = 'sovereign';
-            fused.intent.primary = `Universal Law: ${domain.toUpperCase()}`;
             fused.created_at = new Date().toISOString();
             fused.context_id = `axiom_${Date.now()}`;
 
             // 5. Persist the new Axiom
             await supabase.from('crystals').insert(fused);
-            console.log(`[Dreaming] ✨ NEW AXIOM SYNTHESIZED: ${fused.context_id}`);
+            console.log(`[Dreaming] ✨ NEW AXIOM CRYSTALLIZED: ${fused.context_id}`);
         }
     }
 }

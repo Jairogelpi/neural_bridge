@@ -214,6 +214,13 @@ export interface CrystalVerification {
 
     /** Optional: Retroactively applied vaccine IDs for safety hardening */
     retroactive_vaccines?: string[];
+
+    /** FRACTAL: Merkle proof for recursive verification */
+    merkle_proof?: {
+        root: string;
+        path: string[];
+        leaf: string;
+    };
 }
 
 export interface CrystalDependency {
@@ -311,6 +318,17 @@ export interface Crystal {
     /** Dependencies on other Crystals */
     dependencies?: CrystalDependency[];
 
+    // ========== FRACTAL KNOWLEDGE (SMT/PCK) ==========
+
+    /** Semantic Merkle Root (Hash of Meaning) */
+    smt_root?: string;
+
+    /** Embedded Proof-Carrying Knowledge Tree */
+    proof_tree?: Record<string, any>; // Serialized Map<string, ProofNode>
+
+    /** Fractal depth (0 = atomic, >0 = meta-reality) */
+    fractal_depth?: number;
+
     // ========== REALITY PROOF (RCI) ==========
 
     /** 
@@ -368,6 +386,19 @@ export interface Crystal {
 
     /** Custom metadata */
     metadata?: Record<string, any>;
+
+    // ========== PHASE OMEGA - ZK PROOFS ==========
+
+    /** 
+     * Zero-Knowledge Receipts 
+     * Verifiable proofs of private data validity without exposing the data itself.
+     */
+    zkp_receipts?: Array<{
+        commitment: string;
+        proof: string;
+        nullifier: string;
+        target_constraint_id: string;
+    }>;
 }
 
 // ============================================

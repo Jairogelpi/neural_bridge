@@ -97,14 +97,27 @@ Do these conflict?`;
                 updated_at: new Date().toISOString()
             });
 
-            // 2. 💉 SYNTHESIZE VACCINE
-            // Extract the "Logical DNA" to prevent this error globally.
-            const { VaccineEngine } = await import('./vaccine_engine');
+            // 2. 🧬 DARWINIAN SYNTHESIS
+            // Instead of just flagging, we breed the conflicting crystals to find a superior resolution.
+            const { EvolutionEngine } = await import('./evolution_engine');
+            const { data: crystalA } = await supabase.from('crystals').select('*').eq('context_id', c.crystal_id_a).single();
+            const { data: crystalB } = await supabase.from('crystals').select('*').eq('context_id', c.crystal_id_b).single();
 
-            // Reconstruct a partial crystal for context
-            const { data: crystalData } = await supabase.from('crystals').select('*').eq('context_id', c.crystal_id_a).single();
-            if (crystalData) {
-                await VaccineEngine.synthesizeFromContradiction(crystalData, c);
+            if (crystalA && crystalB) {
+                console.log(`[TruthVault] 🧬 Breeding resolution for contradiction: ${c.crystal_id_a} x ${c.crystal_id_b}`);
+                const child = EvolutionEngine.breed(crystalA as unknown as Crystal, crystalB as unknown as Crystal);
+
+                // Save the evolved child as a new verified truth
+                await this.saveTruth(child);
+
+                // Mark parents as "superseded" or "reconciled"
+                await supabase.from('crystals').update({ status: 'archived' }).in('context_id', [c.crystal_id_a, c.crystal_id_b]);
+            }
+
+            // 3. 💉 SYNTHESIZE VACCINE (Immunization against the error pattern)
+            const { VaccineEngine } = await import('./vaccine_engine');
+            if (crystalA) {
+                await VaccineEngine.synthesizeFromContradiction(crystalA as unknown as Crystal, c);
             }
         }
     }
@@ -204,36 +217,142 @@ Do these conflict?`;
             .slice(0, 10)
             .map(s => s.crystal);
 
-        // 4. RLM RE-RANKING (Brain Upgrade) 🧠
-        // Re-ranks based on learned utility and global certainty.
-        const totalSystemUsage = (await supabase.from('crystals').select('usage_count', { count: 'exact' })).count || 1000;
+        // 4. ACTIVE INFERENCE (RLM RANKING) 🧠
+        // Re-ranks based on learned utility, exploration bonus, and Fisher certainty.
+        const { data: usageData } = await supabase.from('crystals').select('usage_count');
+        const totalSystemUsage = (usageData || []).reduce((sum, c) => sum + (c.usage_count || 0), 0) || 1000;
 
+        const { RLMEngine } = await import('./rlm_engine');
         return RLMEngine.rankCandidates(topCrystals, totalSystemUsage, domain);
     }
 
     /**
      * Checks if the incoming text contradicts previously verified truths.
+     * Use LSH/HDC Similarity to find relevant truths quickly.
      */
-    static checkReality(text: string): { is_conflict: boolean; contradiction_reason?: string; conflicting_entry?: any } {
-        // In a real implementation, this would perform a semantic similarity search
-        // against the local Truth Vault (indexed by SHA-256 and SMT hashes).
-        // For the MVP, we simulate consistency checks.
+    static async checkReality(text: string, domain: string): Promise<{ is_conflict: boolean; contradiction_reason?: string; conflicting_entry?: any }> {
+        console.log(`[TruthVault] 🛡️ Defending reality for domain: ${domain}...`);
+
+        // 1. Compute Semantic Hash of the input to find candidates
+        const queryHash = SemanticHasher.computeSimHash(text);
+
+        // 2. Fetch candidates in domain
+        const { data: candidates, error } = await supabase
+            .from('crystals')
+            .select('*')
+            .eq('domain', domain)
+            .limit(10); // Check top 10 most relevant
+
+        if (error || !candidates || candidates.length === 0) return { is_conflict: false };
+
+        // 3. Perform Logic Scan using LLM Arbiter (The Truth Arbiter)
+        for (const raw of candidates) {
+            const crystal = raw as unknown as Crystal;
+
+            // Check relevance via Hamming Distance first (Geometric gate)
+            const lshTag = (crystal.tags || []).find((t: string) => t.startsWith('lsh:'));
+            const storedHash = lshTag ? lshTag.replace('lsh:', '') : crystal.verification?.canonical_hash;
+
+            if (storedHash) {
+                const distance = SemanticHasher.hammingDistance(queryHash, storedHash);
+                if (distance > 32) continue; // Too semantically distant to conflict
+            }
+
+            const arbiterPrompt = `
+            REALITY ARBITRATION
+            ---
+            You are a Neural Bridge Truth Arbiter. Verify if the NEW TEXT contradicts the established FOUNDATION TRUTH.
+            
+            FOUNDATION TRUTH (Crystal):
+            "${JSON.stringify(crystal.constraints)}"
+            
+            NEW TEXT:
+            "${text}"
+            
+            TASK: Identify if the new text has a logic-level contradiction with the truth.
+            
+            Return JSON:
+            {
+                "is_conflict": boolean,
+                "reason": "precise explanation of the logic failure"
+            }
+            `;
+
+            try {
+                const res = await SCPService.resilientCallLLM(arbiterPrompt, 'nvidia/nemotron-3-nano-30b-a3b:free', 'Arbiter of Reality');
+                const result = JSON.parse(res.content.match(/\{[\s\S]*\}/)?.[0] || '{}');
+
+                if (result.is_conflict) {
+                    return {
+                        is_conflict: true,
+                        contradiction_reason: result.reason,
+                        conflicting_entry: crystal
+                    };
+                }
+            } catch (e) {
+                console.warn("[TruthVault] Arbitration failed for candidate:", crystal.context_id);
+            }
+        }
+
         return { is_conflict: false };
     }
 
     /**
      * Corrects a conflicting reality based on the Truth Vault's source of truth.
      */
-    static healReality(text: string, conflict: any): string {
-        return text; // Return as-is if no healing logic implemented yet
+    static async healReality(text: string, conflict: { reason: string, entry: any }): Promise<string> {
+        console.log(`[TruthVault] 💉 Healing reality conflict: "${conflict.reason}"...`);
+
+        const healingPrompt = `
+        ONTOLOGICAL HEALING
+        ---
+        The following text contains a contradiction with the Truth Vault.
+        
+        ERROR: "${conflict.reason}"
+        TRUTH: "${JSON.stringify(conflict.entry.constraints)}"
+        ORIGINAL TEXT: "${text}"
+        
+        TASK: Rewrite the ORIGINAL TEXT so that it is factually consistent with the TRUTH.
+        Keep the user's intent but remove the contradiction.
+        
+        Return ONLY the healed text.
+        `;
+
+        const res = await SCPService.resilientCallLLM(healingPrompt, 'google/gemini-2.0-flash-exp:free', 'Time-Traveling Truth Healer');
+        return res.content.trim();
     }
 
     /**
      * Crystallizes a new truth into the global archive.
      */
-    static async saveTruth(params: { content: string; domain: string; smt: any; pck?: any; score: number }): Promise<void> {
-        console.log(`[TruthVault] 💎 Crystallizing new truth in domain: ${params.domain}`);
-        // Insert into Supabase logic would go here
+    static async saveTruth(crystal: Crystal): Promise<void> {
+        console.log(`[TruthVault] 💎 Crystallizing new truth: ${crystal.context_id.substring(0, 8)}`);
+
+        // Add LSH tag for fast future retrieval
+        const queryHash = SemanticHasher.computeSimHash(crystal.intent.primary);
+        const tags = [...(crystal.tags || []), `lsh:${queryHash}`];
+
+        const { error } = await supabase
+            .from('crystals')
+            .upsert({
+                context_id: crystal.context_id,
+                domain: crystal.domain,
+                intent: crystal.intent,
+                constraints: crystal.constraints,
+                entities: crystal.entities,
+                verification: crystal.verification,
+                tags: tags,
+                usage_count: (crystal as any).usage_count || 1,
+                author: crystal.author,
+                source: crystal.source,
+                created_at: crystal.created_at || new Date().toISOString()
+            });
+
+        if (error) {
+            console.error('[TruthVault] ❌ Failed to save truth:', error.message);
+        } else {
+            console.log('[TruthVault] ✅ Knowledge persistent in collective lattice.');
+        }
     }
 }
 

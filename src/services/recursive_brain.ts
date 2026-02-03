@@ -64,6 +64,48 @@ export class RecursiveBrain {
     }
 
     /**
+     * ABDUCTIVE SINGULARITY: Proposes "Hidden Laws" or "Theories" 
+     * based on existing knowledge. This is where true abstraction happens.
+     */
+    static async detectAbductiveHypotheses(domain: string): Promise<Array<{ theory: string; rationale: string; confidence: number }>> {
+        console.log(`[RecursiveBrain] 🌀 Performing Abductive Synthesis for domain: ${domain}...`);
+
+        const { data: crystals } = await supabase
+            .from('crystals')
+            .select('intent, constraints')
+            .eq('domain', domain)
+            .limit(10);
+
+        if (!crystals || crystals.length < 3) return [];
+
+        const context = crystals.map(c => `- Intent: ${c.intent.primary}\n  - Constraints: ${(c.constraints || []).map((cn: any) => cn.value).join(', ')}`).join("\n");
+
+        const abductionPrompt = `
+        ACT AS A PHILOSOPHER OF SCIENCE AND ABDUCTIVE REASONER.
+        Given the following observed Knowledge Crystals in the domain '${domain}':
+        
+        OBSERVATIONS:
+        ${context}
+        
+        TASK:
+        Perform ABDUCTION. What is a "Hidden Law", "Meta-Pattern", or "Theoretical Framework" that MUST exist to explain all these observations, but hasn't been explicitly stated yet? 
+        Propose a NOVEL IDEA that unifies or transcends these observations.
+        
+        Return ONLY a JSON array of objects:
+        [{"theory": "...", "rationale": "...", "confidence": 0-1}]
+        `;
+
+        const res = await SCPService.resilientCallLLM(abductionPrompt, 'anthropic/claude-3.5-sonnet', 'Abductive Reasoner');
+
+        try {
+            const match = res.content.match(/\[[\s\S]*\]/);
+            return JSON.parse(match?.[0] || '[]');
+        } catch {
+            return [];
+        }
+    }
+
+    /**
      * Generates a "Probe Question" for a specific gap.
      */
     static async generateProbe(gap: string, domain: string): Promise<string> {
@@ -72,32 +114,44 @@ export class RecursiveBrain {
 
     /**
      * Performs a single "Learning Pulse".
+     * Now includes both Inductive Gap-Filling and Abductive Idea Generation.
      */
     static async learningPulse(domain: string) {
-        // 1. Detect Gaps
+        // 1. Inductive Path: Fill Gaps
         const gaps = await this.detectKnowledgeGaps(domain);
-        const target = gaps[0]; // Take the highest priority gap
+        if (gaps.length > 0) {
+            const target = gaps[0];
+            console.log(`[RecursiveBrain] 💡 Found Gap: "${target}". Initiating Discovery...`);
+            const probe = await this.generateProbe(target!, domain);
+            const discoveryRes = await SCPService.resilientCallLLM(probe, 'anthropic/claude-3.5-sonnet', 'Autonomous Discoverer');
+            const crystal = await CrystallizationService.mineCrystal(discoveryRes.content, {
+                domain,
+                author: { id: 'recursive_brain', name: 'Neural Bridge Self-Healing Engine', reputation: 0.95 }
+            });
+            await supabase.from('crystals').upsert(crystal);
+            console.log(`[RecursiveBrain] ✅ Gap "${target}" filled.`);
+        }
 
-        if (!target) return;
+        // 2. Abductive Path: Propose Hypotheses (New Ideas)
+        const hypotheses = await this.detectAbductiveHypotheses(domain);
+        const topHypothesis = hypotheses.sort((a, b) => b.confidence - a.confidence)[0];
 
-        console.log(`[RecursiveBrain] 💡 Found Gap: "${target}". Initiating Discovery...`);
+        if (topHypothesis && topHypothesis.confidence > 0.7) {
+            console.log(`[RecursiveBrain] 🌀 ABDUCING NEW IDEA: "${topHypothesis.theory}"`);
 
-        // 2. Generate Probe
-        const probe = await this.generateProbe(target, domain);
+            // Trigger a Dialectical Evolution of the new hypothesis
+            const { DialecticalEngine } = await import('./dialectical_engine');
+            const synthesis = await DialecticalEngine.evolve(topHypothesis.theory, `Rationale: ${topHypothesis.rationale}`);
 
-        // 3. Autonomous Discovery (External Call)
-        const discoveryRes = await SCPService.resilientCallLLM(probe, 'anthropic/claude-3.5-sonnet', 'Autonomous Discoverer');
-
-        // 4. Crystallization (Self-Ingest)
-        console.log(`[RecursiveBrain] 💎 Crystallizing new discovery...`);
-        const crystal = await CrystallizationService.mineCrystal(discoveryRes.content, {
-            domain,
-            author: { id: 'recursive_brain', name: 'Neural Bridge Self-Healing Engine', reputation: 0.95 }
-        });
-
-        // 5. Persist to Vault
-        await supabase.from('crystals').upsert(crystal);
-
-        console.log(`[RecursiveBrain] ✅ Self-Healed: Gap "${target}" filled and verified.`);
+            if (synthesis.is_resilient) {
+                const crystal = await CrystallizationService.mineCrystal(synthesis.final_thesis, {
+                    domain,
+                    tier: 'sovereign',
+                    author: { id: 'recursive_brain_abductor', name: 'Abductive Synthesis Engine', reputation: 1.0 }
+                });
+                await supabase.from('crystals').upsert(crystal);
+                console.log(`[RecursiveBrain] 🌌 Sovereign Axiom Crystalized: "${topHypothesis.theory.substring(0, 50)}..."`);
+            }
+        }
     }
 }

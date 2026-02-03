@@ -115,36 +115,53 @@ function findDominantFeatures(distribution: Record<string, number>, n: number = 
  * Generate an emergent domain label based on the mathematical signature
  * No hardcoded domains - labels are DERIVED from the feature profile
  */
+/**
+ * Find the most semantically "heavy" concepts in the distribution.
+ * These are the pivots that define the character of the content.
+ */
+function extractPivotConcepts(features: Array<{ type: string; canonical: string; confidence: number }>): string[] {
+    const weights: Record<string, number> = {};
+
+    for (const f of features) {
+        // We only care about substantial entities or claims as pivots
+        if (f.type === 'entity' || f.type === 'claim') {
+            const key = f.canonical.toLowerCase();
+            if (key.length > 2) {
+                weights[key] = (weights[key] || 0) + f.confidence;
+            }
+        }
+    }
+
+    return Object.entries(weights)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 2)
+        .map(([k, _]) => k.charAt(0).toUpperCase() + k.slice(1));
+}
+
+/**
+ * Generate an emergent domain label based on the mathematical signature
+ * No hardcoded domains or concept maps - labels are DERIVED from content gravity.
+ */
 function generateEmergentLabel(
     distribution: Record<string, number>,
     entropy: number,
-    dominants: string[]
+    dominants: string[],
+    pivots: string[]
 ): string {
-    // If very low entropy (< 1.5), content is highly focused on one type
-    // If high entropy (> 2.5), content is diverse/general
-
     const primary = dominants[0] || 'mixed';
-    const secondary = dominants[1];
 
-    // Labels are descriptive, not categorical
-    // Based purely on mathematical characteristics
+    // Entropy levels (Logarithmic focus)
+    let focusLabel = 'universal';
+    if (entropy < 1.0) focusLabel = 'focused';
+    else if (entropy < 1.8) focusLabel = 'structured';
+    else if (entropy < 2.5) focusLabel = 'diverse';
 
-    if (entropy < 1.0) {
-        // Very focused content
-        return primary;
-    } else if (entropy < 2.0) {
-        // Moderately focused with secondary characteristic
-        if (secondary && distribution[secondary] > 0.15) {
-            return `${primary}-${secondary}`;
-        }
-        return primary;
-    } else if (entropy < 2.8) {
-        // Balanced content - describe the mix
-        return secondary ? `${primary}+${secondary}` : `diverse-${primary}`;
-    } else {
-        // High entropy - very diverse content
-        return 'comprehensive';
+    // If we have pivots, they define the domain. Otherwise fall back to type character.
+    if (pivots.length > 0) {
+        return `${focusLabel}: ${pivots.join('-')}`;
     }
+
+    return `${focusLabel}: ${primary}`;
 }
 
 async function detectDomainWithSMT(): Promise<SemanticProfile> {
@@ -168,7 +185,7 @@ async function detectDomainWithSMT(): Promise<SemanticProfile> {
         }
 
         // 2. Collect all features from all nodes
-        const allFeatures: Array<{ type: string; confidence: number; position: number }> = [];
+        const allFeatures: Array<{ type: string; canonical: string; confidence: number; position: number }> = [];
 
         const nodesIterable = tree.nodes instanceof Map
             ? Array.from(tree.nodes.values())
@@ -179,6 +196,7 @@ async function detectDomainWithSMT(): Promise<SemanticProfile> {
                 for (const f of node.features) {
                     allFeatures.push({
                         type: f.type || 'unknown',
+                        canonical: f.canonical || f.original || 'concept',
                         confidence: f.confidence || 0.5,
                         position: f.position || 0
                     });
@@ -212,9 +230,10 @@ async function detectDomainWithSMT(): Promise<SemanticProfile> {
         const entropy = calculateEntropy(distribution);
         const avgConfidence = totalConfidence / total;
         const dominants = findDominantFeatures(distribution, 3);
+        const pivots = extractPivotConcepts(allFeatures);
 
         // 5. Generate emergent label (no hardcoded domains!)
-        const domain = generateEmergentLabel(distribution, entropy, dominants);
+        const domain = generateEmergentLabel(distribution, entropy, dominants, pivots);
 
         // 6. Calculate confidence based on feature concentration
         // Lower entropy = higher confidence (more focused content)
@@ -263,6 +282,11 @@ export async function runDetection() {
             nb_last_detected_url: window.location.href,
             nb_detection_ts: new Date().toISOString()
         });
+
+        // Sync with agent if it exists
+        if (agent) {
+            agent.setDomain(profile.domain as any);
+        }
     } catch (err: any) {
         if (err?.message?.includes('Extension context invalidated')) {
             extensionContextValid = false;

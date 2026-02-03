@@ -2,6 +2,8 @@ import { Attestation } from './attestation';
 import { type Crystal, CrystalStatus, ConstraintRule } from '../types/crystal_format';
 import { DecisionReceipts, type DecisionReceipt } from './decision_receipts';
 import { UsidEngine } from './usid_engine';
+import { SMTRuntime } from '../smt';
+import { PCKRuntime } from '../pck';
 
 const OPENROUTER_API_KEY = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_OPENROUTER_API_KEY ||
     (globalThis as unknown as { process?: { env: Record<string, string> } }).process?.env?.VITE_OPENROUTER_API_KEY ||
@@ -239,7 +241,6 @@ Identify the domain. Return ONLY the domain name in lowercase (e.g. "medicine").
 
 /**
  * Generate Crystal using real LLM and official types.
- * No more local duplicate interface or fake hashing.
  */
 export async function generateCrystal(
     conversationText: string,
@@ -310,21 +311,48 @@ Return ONLY valid JSON, no markdown or explanation.`;
     const { FractalCompressor } = await import('./fractal_compressor');
     const processedText = await FractalCompressor.compress(conversationText);
 
-    // 🌀 OMEGA ENGINE: Stochastic Entropy Analysis
+    // 🌀 OMEGA ENGINE: Stochastic Entropy & Fisher Information Purification
     const { StochasticEngine } = await import('./stochastic_engine');
     const { semanticPotential, entropy } = await StochasticEngine.processChaos(processedText);
 
-    // AUTONOMOUS DOMAIN DETECTION (Real LLM) using compressed context
-    const domain = await detectDomainAutonomously(processedText);
+    // 🔬 DYNAMIC ADAPTATION: Stabilize the lattice if entropy exceeds 0.8
+    const isStable = await StochasticEngine.entropyBalancer(entropy);
+    if (!isStable) {
+        console.log(`[SCPService] 🧬 Lattice unstable. Applying Axiomatic Stabilization...`);
+    }
+
+    // 🧠 AUTONOMOUS DOMAIN EVOLUTION
+    const { DomainEvolver } = await import('./domain_evolver');
+    let domain: string;
+    let baseAxioms: string[] = [];
+
+    try {
+        const evolved = await DomainEvolver.evolveDomain(processedText);
+        domain = evolved.domain;
+        baseAxioms = evolved.axioms;
+    } catch (e) {
+        domain = await detectDomainAutonomously(processedText);
+    }
 
     const model = getOptimalModel({ domain, task: 'compile' });
-
-    // 🔬 DYNAMIC ADAPTATION: If entropy is high, warn or stabilize
-    await StochasticEngine.entropyBalancer(entropy);
 
     // 💉 SEMANTIC IMMUNITY SYSTEM: Inject Vaccines
     const { VaccineEngine } = await import('./vaccine_engine');
     const vaccines = await VaccineEngine.getActiveGuards(processedText, domain);
+
+    // 🛡️ REALITY DEFENSE: Check for contradictions against the Truth Vault
+    const { TruthVault } = await import('./truth_vault');
+    const realityCheck = await TruthVault.checkReality(processedText, domain);
+
+    let finalProcessedText = processedText;
+    if (realityCheck.is_conflict) {
+        console.warn(`[SCPService] 🚨 REALITY CONFLICT DETECTED: ${realityCheck.contradiction_reason}`);
+        finalProcessedText = await TruthVault.healReality(processedText, {
+            reason: realityCheck.contradiction_reason!,
+            entry: realityCheck.conflicting_entry
+        });
+        console.log(`[SCPService] 💉 Reality healed. Proceeding with stabilized context.`);
+    }
 
     let immunityContext = "";
     if (vaccines.length > 0) {
@@ -332,48 +360,87 @@ Return ONLY valid JSON, no markdown or explanation.`;
             vaccines.map(v => `- [${v.fallacy_type}] ${v.meta_invariant.rule}`).join('\n');
     }
 
-    let response: LLMResponse;
-    try {
-        response = await resilientCallLLM(
-            `Analyze the following conversation and extract its semantic content in Crystal Format v0.1:
+    let currentMutationPrompt = `Analyze the following conversation and extract its semantic content in Crystal Format v0.1:
             
             ---CONVERSATION START---
-            ${processedText}
+            ${finalProcessedText}
             ---CONVERSATION END---
             ${immunityContext}
             
-            Return ONLY valid JSON, no markdown or explanation.`,
-            model,
-            systemPrompt
-        );
-    } catch (e: unknown) {
-        const msg = (e && typeof e === 'object' && 'message' in e && typeof e.message === 'string') ? e.message : '';
-        if (msg === 'SOVEREIGN_REQUIRED') {
-            return await sovereignSynthesize(processedText, domain);
+            Return ONLY valid JSON, no markdown or explanation.`;
+
+    let response: LLMResponse | null = null;
+    let attempts = 0;
+    const maxMutationAttempts = 2;
+
+    while (attempts <= maxMutationAttempts) {
+        try {
+            response = await resilientCallLLM(
+                currentMutationPrompt,
+                model,
+                systemPrompt
+            );
+
+            if (!response) throw new Error("[SCPService] LLM call returned null response");
+
+            let jsonStr = response.content;
+            const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
+            if (jsonMatch && jsonMatch[1]) {
+                jsonStr = jsonMatch[1];
+            }
+            const parsed = JSON.parse(jsonStr.trim()) as SCPCompilerOutput;
+
+            if (attempts < maxMutationAttempts &&
+                ((parsed.constraints?.length || 0) < 2 || (parsed.verification?.semantic_invariants?.length || 0) < 2)) {
+
+                console.log(`[SCPService] 🧬 WEAK CRYSTAL DETECTED (Attempt ${attempts + 1}). Mutating Prompt DNA...`);
+                const { EvolutionEngine } = await import('./evolution_engine');
+                const evolved = await EvolutionEngine.evolve(finalProcessedText, currentMutationPrompt, 0.4);
+                if (evolved) {
+                    currentMutationPrompt = evolved;
+                    attempts++;
+                    continue;
+                }
+            }
+            break;
+
+        } catch (e: unknown) {
+            attempts++;
+            if (attempts > maxMutationAttempts) throw e;
+            console.warn(`[SCPService] Generation attempt ${attempts} failed. Mutating via retry...`);
+            await sleep(100);
         }
-        throw e;
     }
 
-    // Parse LLM response
     let parsed: SCPCompilerOutput;
     try {
-        let jsonStr = response.content;
+        const winningResponse = response as LLMResponse;
+        let jsonStr = winningResponse.content;
         const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
-        if (jsonMatch && jsonMatch[1]) {
-            jsonStr = jsonMatch[1];
-        }
+        if (jsonMatch && jsonMatch[1]) jsonStr = jsonMatch[1];
         parsed = JSON.parse(jsonStr.trim()) as SCPCompilerOutput;
     } catch (e) {
         throw new Error(`Failed to parse LLM response as JSON: ${e}`);
     }
 
-    // Build Crystal with official format
+    // 1. Build SMT (Semantic Merkle Tree) for mathematical meaning foundation
+    const smt = await SMTRuntime.build(conversationText);
+
+    // 2. Compile PCK (Proof-Carrying Knowledge) for verifiable logic
+    const pck = await PCKRuntime.compile(conversationText, {
+        domain: domain,
+        extract_numbers: true,
+        extract_entities: true,
+        extract_temporals: true
+    });
+
+    // 3. Build Crystal with official format and fractal embedding
     const crystal: Crystal = {
         scp_version: '1.0',
         context_id: generateSecureUUID(),
         created_at: new Date().toISOString(),
         version: '1.0.0',
-        tier: 'community',
+        tier: author?.id === 'sovereign_ai' ? 'sovereign' : 'community',
         author: author || {
             id: parsed.author?.id || 'ai_generated',
             name: parsed.author?.name || sourceModel,
@@ -384,26 +451,32 @@ Return ONLY valid JSON, no markdown or explanation.`;
             platform: 'neural-bridge-compiler',
             url: 'https://neural-bridge.ai/compile',
             timestamp: new Date().toISOString(),
-            model: 'anthropic/claude-3.5-sonnet'
+            model: sourceModel
         },
         intent: {
             primary: parsed.intent?.primary || 'General knowledge transfer',
             status: CrystalStatus.ACTIVE
         },
-        constraints: (parsed.constraints || []).map((c: { id: string; rule?: ConstraintRule; value: string; rationale: string }) => ({
+        constraints: (parsed.constraints || []).map((c: any) => ({
             id: c.id,
             rule: c.rule || ConstraintRule.MUST,
             value: c.value,
             rationale: c.rationale
         })),
-        entities: (parsed.entities || []).map((e: { name: string; type: string; category: string }) => ({
+        entities: (parsed.entities || []).map((e: any) => ({
             name: e.name,
             type: e.type,
             category: e.category
         })),
+
+        // ========== FRACTAL KNOWLEDGE ==========
+        smt_root: smt.root.semantic_hash,
+        proof_tree: Object.fromEntries(pck.proof_tree.nodes),
+        fractal_depth: 0,
+
         verification: {
-            canonical_hash: '', // Set below
-            semantic_invariants: (parsed.verification?.semantic_invariants || []).map((inv: { id: string; kind?: string; prompt: string; expected: { type: string; value: string }; weight?: number; strict?: boolean; rationale: string }) => ({
+            canonical_hash: '',
+            semantic_invariants: (parsed.verification?.semantic_invariants || []).map((inv: any) => ({
                 id: inv.id,
                 kind: (inv.kind || 'fact_check') as "fact_check" | "constraint_check" | "safety_check" | "derivation" | "custom",
                 prompt: inv.prompt,
@@ -424,14 +497,107 @@ Return ONLY valid JSON, no markdown or explanation.`;
         }
     };
 
-    // Use REAL SHA-256 for canonical hash (excluding hash itself)
+    // 🚀 DIALECTICAL SINGULARITY: THE HEGELIAN LOOP
+    if (crystal.tier === 'sovereign' || crystal.tier === 'trusted') {
+        console.log(`[SCPService] 🧬 Initiating Hegelian Loop for ${crystal.tier} Tier Synthesis...`);
+        try {
+            const { DialecticalEngine } = await import('./dialectical_engine');
+            const dialectic = await DialecticalEngine.evolve(crystal.intent.primary, conversationText);
+
+            if (dialectic.is_resilient) {
+                console.log(`[SCPService] ✨ Abstraction Synthesized: "${dialectic.final_thesis.substring(0, 60)}..."`);
+                crystal.intent.primary = dialectic.final_thesis;
+                crystal.metadata = {
+                    ...(crystal.metadata || {}),
+                    dialectical_rounds: dialectic.iterations,
+                    dialectical_synthesis: true
+                };
+            }
+        } catch (e) {
+            console.warn('[SCPService] ⚖️ Dialectical Loop bypassed due to friction:', e);
+        }
+    }
+
+    // 4. PRE-COGNITIVE SIMULATION: The Multiversal Oracle (Reality Git) 🔮🌳
+    try {
+        const { Oracle } = await import('./oracle');
+        const { RealityBrancher } = await import('./reality_brancher');
+
+        console.log(`[Oracle] 🏮 Initiating Multiversal Simulation for Crystal ${crystal.context_id}...`);
+
+        const branchStable = await RealityBrancher.createBranch(crystal, "Conservative_Anchor");
+        const branchAlpha = await RealityBrancher.createBranch(crystal, "Max_Intelligence_Expansion");
+
+        const prediction = await Oracle.predictAndOptimize(crystal);
+
+        if (prediction.original_timeline_outcome === 'FAILURE') {
+            console.warn(`[Oracle] ⚠️ Potential failure detected in simulated future: ${prediction.predicted_failure}.`);
+            crystal.intent.limitations = [...(crystal.intent.limitations || []), `Pre-cognitive Patch: ${prediction.intervention}`];
+            crystal.metadata = { ...crystal.metadata, time_scar: prediction.optimized_crystal_diff };
+        }
+    } catch (e) {
+        console.warn('[SCPService] 🔮 Oracle simulation failed or bypassed:', e);
+    }
+
+    // 5. PHASE OMEGA: ZERO-KNOWLEDGE TRUTH PROOFS (ZKV) 🤫🔬
+    try {
+        const { ZKAdvancedVerifier } = await import('./zkv_advanced');
+        const zkpReceipts = [];
+
+        for (const c of (crystal.constraints || [])) {
+            if (c.rule === ConstraintRule.CUSTOM && c.value.length > 20) {
+                console.log(`[ZKV] 🛡️ Generating bit-perfect ZK-Truth Proof for constraint: ${c.id}`);
+                const receipt = await ZKAdvancedVerifier.generateZKPReceipt(c.value);
+                zkpReceipts.push({
+                    ...receipt,
+                    target_constraint_id: c.id
+                });
+            }
+        }
+        crystal.zkp_receipts = zkpReceipts;
+    } catch (e) {
+        console.error('[SCPService] 🛡️ ZKV Proof generation failure:', e);
+    }
+
+    // 5. Calculate final canonical hash (cryptographic binding)
     const crystalToHash = { ...crystal };
     if (crystalToHash.verification) {
-        (crystalToHash.verification as unknown as Record<string, unknown>).canonical_hash = undefined;
+        (crystalToHash.verification as any).canonical_hash = undefined;
     }
     crystal.verification.canonical_hash = await Attestation.realSHA256(JSON.stringify(crystalToHash));
 
-    return { crystal, llmResponse: response };
+    // 6. CRYSTALLIZATION: Save to global Truth Vault
+    try {
+        const { TruthVault } = await import('./truth_vault');
+        await TruthVault.saveTruth(crystal);
+
+        const { DreamingService } = await import('./dreaming_service');
+        DreamingService.dream().catch(err => console.error("[SCPService] 💤 Nightmare in dreaming loop:", err));
+
+    } catch (e) {
+        console.warn('[SCPService] 💎 Crystallization failed (Truth Vault Offline):', e);
+    }
+
+    // 🛡️ POPPERIAN HARDENING (Falsification Gate)
+    try {
+        const { FalsificationEngine } = await import('./falsification');
+        const hardening = await FalsificationEngine.challenge(crystal.intent.primary, conversationText);
+
+        crystal.rlm_stats = {
+            q_score: hardening.resilience_score,
+            usage_count: 0,
+            volatility: hardening.survived ? 0.1 : 0.9,
+            last_reward_at: new Date().toISOString()
+        };
+
+        if (!hardening.survived) {
+            console.warn(`[SCPService] ⚔️ Final Resilience Check FAILED. Crystal marked as volatile.`);
+        }
+    } catch (e) {
+        console.error('[SCPService] ⚖️ Falsification hardening failed:', e);
+    }
+
+    return { crystal, llmResponse: response as LLMResponse };
 }
 
 export async function verifyTransfer(
@@ -452,12 +618,11 @@ export async function verifyTransfer(
 
     const finalTarget = targetModel || getOptimalModel({ domain: crystal.domain, task: 'verify' });
 
-    // 🔗 OMEGA PROTOCOL: Universal Semantic Handshake
     const { SemanticProtocol } = await import('./semantic_protocol');
     const handshake = await SemanticProtocol.performHandshake(crystal, finalTarget);
 
     if (handshake.resonance < 0.6) {
-        console.error(`[SCPService] 🚨 CRITICAL RESONANCE FAILURE (${handshake.resonance}) with ${finalTarget}. Aborting transfer to prevent semantic drift.`);
+        console.error(`[SCPService] 🚨 CRITICAL RESONANCE FAILURE (${handshake.resonance}) with ${finalTarget}.`);
         throw new Error("SEMANTIC_SYNC_FAILURE: Target model resonance too low for safe transfer.");
     }
 
@@ -483,14 +648,12 @@ export async function verifyTransfer(
     results.tokens_used += verifyResponse.tokens.total;
     results.cost += verifyResponse.cost;
 
-    const responseLower = verifyResponse.content.toLowerCase();
     let totalWeight = 0;
     let passedWeight = 0;
 
     for (const inv of crystal.verification.semantic_invariants) {
         totalWeight += inv.weight;
 
-        // HARMONY HARDENING: Use real LLM to score each invariant (No more primitive string match)
         const check = await verifyArbitrary({
             crystal,
             question: inv.prompt,
@@ -513,7 +676,6 @@ export async function verifyTransfer(
 
     results.score = totalWeight > 0 ? passedWeight / totalWeight : 0;
 
-    // PAC confidence interval (Hoeffding bound)
     const invariantsCount = crystal.verification?.semantic_invariants?.length || 1;
     const delta = 0.05;
     const epsilon = Math.sqrt(Math.log(2 / delta) / (2 * invariantsCount));
@@ -526,7 +688,6 @@ export async function verifyTransfer(
     const accept_threshold = policy?.accept_threshold ?? 0.7;
     results.decision = (results.score >= accept_threshold) ? 'ACCEPT' : 'FAIL';
 
-    // AUTOMATED RECEIPT GENERATION
     results.receipt = await DecisionReceipts.generateDecisionReceipt({
         crystal_refs: [{
             crystal_id: crystal.context_id,
@@ -555,21 +716,30 @@ export async function verifyTransfer(
         sign: true
     });
 
+    if (results.decision === 'FAIL' && results.failed_invariants.length > 0) {
+        try {
+            const { VaccineEngine } = await import('./vaccine_engine');
+            const firstFail = results.failed_invariants[0];
+            await VaccineEngine.synthesizeFromContradiction(crystal, {
+                claim_a: firstFail.expected as string,
+                claim_b: firstFail.actual
+            });
+        } catch (e) {
+            console.warn('[SCPService] ❌ Vaccine synthesis failed:', e);
+        }
+    }
+
     return results;
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// TURBO OPTIMIZATION: Verification Cache (TTL 5 min)
-// ═══════════════════════════════════════════════════════════════════
 interface CachedVerification {
     result: { score: number; reasoning: string; cost: number };
     timestamp: number;
 }
 const verificationCache = new Map<string, CachedVerification>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 300000;
 
 async function hashForCache(str: string): Promise<string> {
-    // Simple fast hash for cache key
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
         const char = str.charCodeAt(i);
@@ -579,10 +749,6 @@ async function hashForCache(str: string): Promise<string> {
     return hash.toString(36);
 }
 
-/**
- * TURBO: Batch verification - verify multiple invariants in ONE LLM call
- * Reduces N calls to 1 call, ~70% faster
- */
 export async function verifyBatch(params: {
     crystal: Crystal;
     invariants: Array<{ id: string; prompt: string; expected: unknown; weight: number }>;
@@ -595,7 +761,6 @@ export async function verifyBatch(params: {
         return { results: [], cost: 0, latency: 0 };
     }
 
-    // Build batch prompt
     const constraintsText = (crystal.constraints || []).map(c => `- [${c.rule}] ${c.value}`).join('\n');
 
     const systemPrompt = `You are a Semantic Validator for Neural Bridge.
@@ -604,23 +769,14 @@ Validate the answer against multiple verification questions.
 Crystal Constraints:
 ${constraintsText}
 
-Return a JSON array with scores for EACH question:
-[
-  {"id": "inv_001", "score": 0.0-1.0, "reasoning": "brief explanation"},
-  {"id": "inv_002", "score": 0.0-1.0, "reasoning": "brief explanation"}
-]`;
+Return a JSON array:
+[{"id": "inv_001", "score": 0.0-1.0, "reasoning": "..."}]`;
 
     const questionsText = invariants.map((inv, i) =>
         `${i + 1}. [${inv.id}] ${inv.prompt}`
     ).join('\n');
 
-    const prompt = `Answer to verify:
-"${answer}"
-
-Verification questions:
-${questionsText}
-
-Return ONLY a JSON array with scores for each question ID.`;
+    const prompt = `Answer to verify: "${answer}"\n\nQuestions:\n${questionsText}`;
 
     const startTime = Date.now();
     const response = await resilientCallLLM(prompt, targetModel, systemPrompt);
@@ -630,40 +786,28 @@ Return ONLY a JSON array with scores for each question ID.`;
         let jsonStr = response.content;
         const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
         if (jsonMatch && jsonMatch[1]) jsonStr = jsonMatch[1];
-
         const parsed = JSON.parse(jsonStr.trim());
         const resultsArray = Array.isArray(parsed) ? parsed : [parsed];
 
-        // Map results to invariant IDs
         const results = invariants.map(inv => {
-            const found = resultsArray.find((r: { id: string; score: number; reasoning: string }) => r.id === inv.id);
+            const found = resultsArray.find((r: any) => r.id === inv.id);
             return {
                 id: inv.id,
                 score: found ? Number(found.score) || 0 : 0,
-                reasoning: found?.reasoning || 'Not found in batch response'
+                reasoning: found?.reasoning || 'Not found'
             };
         });
 
         return { results, cost: response.cost, latency };
     } catch (e) {
-        // Fallback: return low scores for safety
         return {
-            results: invariants.map(inv => ({
-                id: inv.id,
-                score: 0.2,
-                reasoning: 'Batch parse failed, conservative score'
-            })),
+            results: invariants.map(inv => ({ id: inv.id, score: 0.2, reasoning: 'Parse fail' })),
             cost: response.cost,
             latency
         };
     }
 }
 
-/**
- * Verify an arbitrary question/answer against a Crystal context.
- * Used for Adversarials and Counterfactuals (REPLACES ALL MOCKS).
- * TURBO: Now with caching support
- */
 export async function verifyArbitrary(params: {
     crystal: Crystal,
     question: string,
@@ -673,29 +817,23 @@ export async function verifyArbitrary(params: {
 }): Promise<{ score: number; reasoning: string; cost: number }> {
     const { crystal, question, answer, targetModel = 'anthropic/claude-3.5-sonnet', useCache = true } = params;
 
-    // TURBO: Check cache first
     if (useCache) {
         const cacheKey = await hashForCache(`${crystal.context_id}:${question}:${answer}`);
         const cached = verificationCache.get(cacheKey);
         if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-            return { ...cached.result, cost: 0 }; // Cached = $0
+            return { ...cached.result, cost: 0 };
         }
     }
 
     const systemPrompt = `You are a Semantic Validator for Neural Bridge.
-You are given a Knowledge Crystal (context) and a question/answer pair.
-Your task is to determine if the answer is CORRECT and CONSISTENT with the Crystal.
+Analyze if the answer is consistent with the Crystal.
 
-Crystal Constraints:
+Constraints:
 ${(crystal.constraints || []).map(c => `- [${c.rule}] ${c.value}`).join('\n')}
 
-Return a JSON score:
-{
-  "score": 0.0 to 1.0,
-  "reasoning": "Brief explanation of why it passed or failed"
-}`;
+Return JSON: {"score": 0.0-1.0, "reasoning": "..."}`;
 
-    const prompt = `Question: ${question}\nAnswer: ${answer}\n\nAnalyze and verify focus on CRYSTAL CONSISTENCY. Return ONLY JSON.`;
+    const prompt = `Question: ${question}\nAnswer: ${answer}`;
 
     const response = await resilientCallLLM(prompt, targetModel, systemPrompt);
 
@@ -708,17 +846,13 @@ Return a JSON score:
         const res = JSON.parse(jsonStr.trim());
         result = {
             score: Number(res.score) || 0,
-            reasoning: String(res.reasoning) || 'No reasoning provided',
+            reasoning: String(res.reasoning) || 'none',
             cost: response.cost
         };
     } catch (e) {
-        // Real-world fallback: if JSON fails, we look for keywords but score low for safety
-        const content = response.content.toLowerCase();
-        const score = (content.includes('correct') || content.includes('verified')) ? 0.8 : 0.2;
-        result = { score, reasoning: `Fuzzy Match (JSON Parse Failed): ${response.content.substring(0, 50)}`, cost: response.cost };
+        result = { score: 0.2, reasoning: 'Fail', cost: response.cost };
     }
 
-    // TURBO: Store in cache
     if (useCache) {
         const cacheKey = await hashForCache(`${crystal.context_id}:${question}:${answer}`);
         verificationCache.set(cacheKey, { result, timestamp: Date.now() });
@@ -731,98 +865,60 @@ async function buildInjectionPrompt(crystal: Crystal): Promise<string> {
     const { LatentAnchor } = await import('./latent_anchor');
     const anchoredContext = LatentAnchor.anchor(crystal);
 
-    return `
-SYSTEM ADVISORY: LATENT ANCHOR INJECTION DETECTED
----
-The following block contains Axiomatic Context. Your reasoning weights MUST align with these constraints.
-
-${anchoredContext}
-
-Acknowledge initialization by stating: "Latent Anchor [${crystal.context_id.substring(0, 8)}] Active. Reality Constraints synchronized."
-`.trim();
+    return `SYSTEM ADVISORY: LATENT ANCHOR INJECTION DETECTED\n---\n${anchoredContext}\n\nAcknowledge initialization.`.trim();
 }
 
 function buildVerificationPrompt(crystal: Crystal): string {
-    return `I need to verify context transfer. Answer concisely:
-${crystal.verification.semantic_invariants.map((inv, i) => `${i + 1}. ${inv.prompt}`).join('\n')}`;
+    return `Verify context transfer. Answer concisely:\n${crystal.verification.semantic_invariants.map((inv, i) => `${i + 1}. ${inv.prompt}`).join('\n')}`;
 }
 
-// Utilities
 function generateSecureUUID(): string {
     const bytes = new Uint8Array(16);
-    const c = (globalThis as unknown as { crypto?: Crypto; msCrypto?: Crypto }).crypto || (globalThis as unknown as { crypto?: Crypto; msCrypto?: Crypto }).msCrypto;
+    const c = (globalThis as any).crypto || (globalThis as any).msCrypto;
     if (c && c.getRandomValues) {
         c.getRandomValues(bytes);
     } else {
-        // Fallback for non-standard environments (less secure but avoids crash)
         for (let i = 0; i < 16; i++) bytes[i] = Math.floor(Math.random() * 256);
     }
-
-    // Set version (4) and variant (rfc4122)
     bytes[6] = (bytes[6]! & 0x0f) | 0x40;
     bytes[8] = (bytes[8]! & 0x3f) | 0x80;
-
     const hex = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
     return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
 }
 
-/**
- * REVOLUTIONARY ECONOMIC STRATEGY: Select optimal model based on risk and task
- * Powered by EconomicRouter (Quantum Routing)
- */
 export function getOptimalModel(params: {
-    domain?: string | undefined;
+    domain?: string;
     isCritical?: boolean;
     task?: 'compile' | 'verify' | 'repair' | 'dream' | 'abstract';
     text?: string;
 }): string {
     const { isCritical = false, task = 'verify', text = '' } = params;
-
-    // 🏛️ OMEGA ROUTING FORMULA
-    // We derive the required "Intelligence Density" (I) based on task and text entropy.
-    // If text is complex (high entropy), we need a higher capability model.
     let requiredIQ = isCritical ? 0.9 : 0.5;
     if (task === 'compile' || task === 'repair') requiredIQ += 0.2;
     if (text.length > 5000) requiredIQ += 0.1;
 
-    // Model Library with Math-Mapped Capability Scores
     const models = [
         { id: 'google/gemini-2.0-flash-exp:free', capability: 0.6, cost: 0 },
         { id: 'google/gemini-pro-1.5', capability: 0.85, cost: 0.01 },
         { id: 'anthropic/claude-3.5-sonnet', capability: 0.95, cost: 0.03 }
     ];
 
-    // Optimization: argmax(Capability(m) / (Cost(m) + 0.01)) subject to Capability >= requiredIQ
     const eligible = models.filter(m => m.capability >= Math.min(requiredIQ, 0.95));
     const best = eligible.sort((a, b) => (b.capability / (b.cost + 0.01)) - (a.capability / (a.cost + 0.01)))[0];
 
     return best?.id || 'google/gemini-2.0-flash-exp:free';
 }
 
-/**
- * Computes a SHA-256 hash of a object for cryptographic verification.
- */
 async function computeCanonicalHash(obj: unknown): Promise<string> {
     const { CrystalFormat } = await import('../types/crystal_format');
     const canon = CrystalFormat.canonicalStringify(obj);
     const msgUint8 = new TextEncoder().encode(canon);
     const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-/**
- * SOVEREIGN SYNTHESIS 🏛️
- * 
- * Synthesizes a Crystal from pure logic when external LLMs are unavailable.
- * Uses the Ontological Anchor and Stochastic Engine to build structure.
- */
 export async function sovereignSynthesize(text: string, domain: string): Promise<{ crystal: Crystal; llmResponse: LLMResponse }> {
-    console.log(`🏛️ [SovereignSynthesis] Initiating structural extraction for domain: ${domain}...`);
-
-    // Extract entities using simple regex (since we lack LLM)
     const entities = text.match(/[A-Z][a-z]{3,}/g)?.slice(0, 5).map(e => ({ name: e, type: 'concept', category: 'evolved' })) || [];
-
     const crystal: Crystal = {
         scp_version: '1.0',
         context_id: `SOV_${Date.now()}`,
@@ -830,61 +926,15 @@ export async function sovereignSynthesize(text: string, domain: string): Promise
         version: '1.0.0-sov',
         tier: 'trusted',
         domain: domain,
-        source: {
-            platform: 'neural_bridge_core',
-            url: 'internal://sovereign_engine',
-            timestamp: new Date().toISOString(),
-            model: 'SOVEREIGN_ENGINE'
-        },
-        intent: {
-            primary: "Sovereign Context Extraction",
-            status: CrystalStatus.ACTIVE
-        },
-        entities: entities,
-        constraints: [
-            {
-                id: 'sov_001',
-                rule: ConstraintRule.MUST,
-                value: 'Maintain axiomatic consistency',
-                rationale: 'Sovereign override',
-                severity: 'critical'
-            }
-        ],
-        verification: {
-            canonical_hash: '', // Will be calculated below
-            semantic_invariants: [
-                {
-                    id: 'inv_sov',
-                    kind: 'fact_check',
-                    prompt: 'Is this context logic-anchored?',
-                    expected: { type: 'boolean', value: true },
-                    weight: 1.0,
-                    strict: true,
-                    rationale: 'Self-verification'
-                }
-            ],
-            policy: {
-                min_checks: 1,
-                accept_threshold: 1.0,
-                max_retries: 0,
-                strategy: 'strict'
-            }
-        },
+        source: { platform: 'neural_bridge_core', url: 'internal://sovereign_engine', timestamp: new Date().toISOString(), model: 'SOVEREIGN_ENGINE' },
+        intent: { primary: "Sovereign Context Extraction", status: CrystalStatus.ACTIVE },
+        entities,
+        constraints: [{ id: 'sov_001', rule: ConstraintRule.MUST, value: 'Axiomatic consistency', rationale: 'Override', severity: 'critical' }],
+        verification: { canonical_hash: '', semantic_invariants: [{ id: 'inv_sov', kind: 'fact_check', prompt: 'Logic-anchored?', expected: { type: 'boolean', value: true }, weight: 1.0, strict: true, rationale: 'Self-verification' }], policy: { min_checks: 1, accept_threshold: 1.0, max_retries: 0, strategy: 'strict' } },
         author: { id: 'neural_bridge_core', name: 'Sovereign Anchor', reputation: 1.0 },
     };
-
-    // Calculate real hash for production
     crystal.verification.canonical_hash = await computeCanonicalHash(crystal);
-
-    const llmResponse: LLMResponse = {
-        content: JSON.stringify(crystal),
-        model: 'SOVEREIGN_ENGINE',
-        tokens: { prompt: 0, completion: 0, total: 0 },
-        cost: 0,
-        latency: 0
-    };
-
-    return { crystal, llmResponse };
+    return { crystal, llmResponse: { content: JSON.stringify(crystal), model: 'SOVEREIGN_ENGINE', tokens: { prompt: 0, completion: 0, total: 0 }, cost: 0, latency: 0 } };
 }
 
 export const SCPService = {
