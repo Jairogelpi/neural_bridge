@@ -4,12 +4,12 @@
   --background: #ffffff;
   --foreground: #020202;
 
-  /* Sovereign Palette */
+  /* Blue Accent Palette */
   --bg-panel: #f8fafc;
-  --crystal-cyan: #06b6d4;
-  --crystal-purple: #8b5cf6;
-  --border-glow: rgba(6, 182, 212, 0.2);
-  --crystal-glass: rgba(255, 255, 255, 0.8);
+  --crystal-blue: #3b82f6;
+  --crystal-blue-dark: #1e40af;
+  --border-glow: rgba(59, 130, 246, 0.15);
+  --crystal-glass: rgba(255, 255, 255, 0.9);
   --text-muted: #64748b;
 }
 
@@ -20,15 +20,129 @@
   --font-mono: var(--font-geist-mono);
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Textured Background with Blue Gradients */
+  background:
+    radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 90% 10%, rgba(96, 165, 250, 0.02) 0%, transparent 50%),
+    repeating-linear-gradient(45deg,
+      transparent,
+      transparent 12px,
+      rgba(148, 163, 184, 0.015) 12px,
+      rgba(148, 163, 184, 0.015) 13px),
+    linear-gradient(180deg, #fafbfc 0%, #f8fafc 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+/* Premium Typography */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+h2 {
+  font-size: 2rem;
+  color: #1e293b;
+}
+
+h3 {
+  font-size: 1.5rem;
+  color: #334155;
 }
 
 /* Custom Selection */
 ::selection {
-  background: rgba(6, 182, 212, 0.1);
-  color: #0891b2;
+  background: rgba(59, 130, 246, 0.15);
+  color: #1e40af;
+}
+
+/* Glass Effect Utility */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(59, 130, 246, 0.08);
+  box-shadow:
+    0 4px 6px -1px rgba(59, 130, 246, 0.05),
+    0 2px 4px -1px rgba(59, 130, 246, 0.03);
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(59, 130, 246, 0.15);
+  box-shadow:
+    0 10px 15px -3px rgba(59, 130, 246, 0.08),
+    0 4px 6px -2px rgba(59, 130, 246, 0.05);
+}
+
+/* Blue Gradient Button */
+.btn-blue {
+  background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+  color: white;
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-blue:hover {
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
+  transform: translateY(-1px);
+}
+
+/* Blue Text Gradient */
+.text-blue-gradient {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Animated Grid Background (subtle) */
+.animated-grid-bg {
+  background-image:
+    linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: grid-drift 30s linear infinite;
+}
+
+@keyframes grid-drift {
+  0% {
+    background-position: 0 0;
+  }
+
+  100% {
+    background-position: 60px 60px;
+  }
+}
+
+/* Smooth transitions */
+* {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
