@@ -13,79 +13,263 @@ import { SMTRuntime } from '../smt';
 let agent: FirewallAgent | null = null;
 let observer: ContextObserver | null = null;
 let lastDetectedDomain: string = 'general';
+let extensionContextValid: boolean = true;
 
 /**
- * SMART DOMAIN DETECTION - Uses SMT semantic analysis
+ * Check if the extension context is still valid
  */
-async function detectDomainWithSMT(): Promise<{ domain: string; confidence: number }> {
-    const pageText = document.body.innerText.slice(0, 8000);
+function isExtensionContextValid(): boolean {
+    try {
+        // Accessing chrome.runtime.id throws if context is invalidated
+        return extensionContextValid && !!chrome.runtime?.id;
+    } catch {
+        extensionContextValid = false;
+        return false;
+    }
+}
+
+/**
+ * Safe wrapper for chrome.runtime.sendMessage
+ */
+async function safeSendMessage(message: any): Promise<any> {
+    if (!isExtensionContextValid()) {
+        console.warn('[NeuralBridge] Extension context invalidated, skipping message.');
+        return null;
+    }
+    try {
+        return await chrome.runtime.sendMessage(message);
+    } catch (err: any) {
+        if (err?.message?.includes('Extension context invalidated')) {
+            extensionContextValid = false;
+            console.warn('[NeuralBridge] Extension was reloaded. Please refresh the page.');
+        } else {
+            console.warn('[NeuralBridge] sendMessage failed:', err);
+        }
+        return null;
+    }
+}
+
+/**
+ * UNIVERSAL SEMANTIC DOMAIN DISCOVERY
+ * 
+ * Pure mathematical approach - ZERO hardcoded keywords, domains, or heuristics.
+ * 
+ * How it works:
+ * 1. Extract semantic features via SMT (entities, numbers, claims, relationships, etc)
+ * 2. Compute mathematical measures: entropy, variance, feature ratios
+ * 3. Generate emergent domain label from the dominant semantic characteristics
+ * 4. Return a semantic profile that DESCRIBES the content mathematically
+ * 
+ * This is universal because:
+ * - No predefined domain categories
+ * - No keyword matching
+ * - Adapts to ANY content type
+ * - The "domain" is derived from the mathematical signature
+ */
+
+interface SemanticProfile {
+    /** Emergent label generated from dominant features */
+    domain: string;
+    /** Confidence based on feature concentration */
+    confidence: number;
+    /** Feature type ratios - the semantic signature */
+    signature: Record<string, number>;
+    /** Shannon entropy - measures information density */
+    entropy: number;
+    /** Dominant feature type */
+    dominant: string;
+}
+
+/**
+ * Calculate Shannon entropy of a distribution
+ * H = -Σ p(x) * log2(p(x))
+ * 
+ * Higher entropy = more diverse/uniform feature distribution
+ * Lower entropy = features concentrated in fewer types
+ */
+function calculateEntropy(distribution: Record<string, number>): number {
+    const values = Object.values(distribution).filter(v => v > 0);
+    if (values.length === 0) return 0;
+
+    let entropy = 0;
+    for (const p of values) {
+        if (p > 0) {
+            entropy -= p * Math.log2(p);
+        }
+    }
+    return entropy;
+}
+
+/**
+ * Find the dominant feature types (top N by ratio)
+ */
+function findDominantFeatures(distribution: Record<string, number>, n: number = 2): string[] {
+    return Object.entries(distribution)
+        .filter(([_, v]) => v > 0)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, n)
+        .map(([k, _]) => k);
+}
+
+/**
+ * Generate an emergent domain label based on the mathematical signature
+ * No hardcoded domains - labels are DERIVED from the feature profile
+ */
+function generateEmergentLabel(
+    distribution: Record<string, number>,
+    entropy: number,
+    dominants: string[]
+): string {
+    // If very low entropy (< 1.5), content is highly focused on one type
+    // If high entropy (> 2.5), content is diverse/general
+
+    const primary = dominants[0] || 'mixed';
+    const secondary = dominants[1];
+
+    // Labels are descriptive, not categorical
+    // Based purely on mathematical characteristics
+
+    if (entropy < 1.0) {
+        // Very focused content
+        return primary;
+    } else if (entropy < 2.0) {
+        // Moderately focused with secondary characteristic
+        if (secondary && distribution[secondary] > 0.15) {
+            return `${primary}-${secondary}`;
+        }
+        return primary;
+    } else if (entropy < 2.8) {
+        // Balanced content - describe the mix
+        return secondary ? `${primary}+${secondary}` : `diverse-${primary}`;
+    } else {
+        // High entropy - very diverse content
+        return 'comprehensive';
+    }
+}
+
+async function detectDomainWithSMT(): Promise<SemanticProfile> {
+    const pageText = document.body.innerText.slice(0, 12000);
+
+    const fallbackProfile: SemanticProfile = {
+        domain: 'emerging',
+        confidence: 0.5,
+        signature: {},
+        entropy: 0,
+        dominant: 'content'
+    };
 
     try {
-        // Build semantic tree to analyze content structure
+        // 1. Build semantic tree - extracts ALL semantic features
         const tree = await SMTRuntime.build(pageText);
 
-        // Analyze semantic patterns for domain inference
-        const semanticSignals = {
-            medical: ['patient', 'treatment', 'diagnosis', 'clinical', 'drug', 'therapy', 'symptom', 'dose', 'mg', 'prescription'],
-            legal: ['contract', 'clause', 'liability', 'jurisdiction', 'party', 'agreement', 'terminate', 'indemnify', 'court', 'attorney'],
-            tech: ['api', 'function', 'code', 'server', 'database', 'endpoint', 'request', 'response', 'algorithm', 'deploy'],
-            finance: ['investment', 'portfolio', 'asset', 'market', 'equity', 'trading', 'revenue', 'capital', 'dividend', 'stock'],
-            education: ['curriculum', 'student', 'learning', 'course', 'teacher', 'academic', 'research', 'university', 'study'],
-            science: ['experiment', 'hypothesis', 'data', 'analysis', 'research', 'methodology', 'conclusion', 'peer-reviewed']
-        };
-
-        const textLower = pageText.toLowerCase();
-        const scores: Record<string, number> = {};
-
-        // Weighted semantic scoring
-        for (const [domain, keywords] of Object.entries(semanticSignals)) {
-            let score = 0;
-            for (const keyword of keywords) {
-                const matches = (textLower.match(new RegExp(`\\b${keyword}\\b`, 'gi')) || []).length;
-                score += matches;
-            }
-            scores[domain] = score;
+        if (!tree || !tree.nodes) {
+            console.log('[NeuralBridge] SMT tree empty');
+            return fallbackProfile;
         }
 
-        // Find best domain
-        let bestDomain = 'general';
-        let maxScore = 0;
-        for (const [domain, score] of Object.entries(scores)) {
-            if (score > maxScore) {
-                maxScore = score;
-                bestDomain = domain;
+        // 2. Collect all features from all nodes
+        const allFeatures: Array<{ type: string; confidence: number; position: number }> = [];
+
+        const nodesIterable = tree.nodes instanceof Map
+            ? Array.from(tree.nodes.values())
+            : Object.values(tree.nodes);
+
+        for (const node of nodesIterable as any[]) {
+            if (node?.features && Array.isArray(node.features)) {
+                for (const f of node.features) {
+                    allFeatures.push({
+                        type: f.type || 'unknown',
+                        confidence: f.confidence || 0.5,
+                        position: f.position || 0
+                    });
+                }
             }
         }
 
-        // Confidence based on semantic tree metrics and keyword density
-        const treeComplexity = tree?.document?.claim_count || tree?.document?.word_count || 1;
-        const confidence = Math.min((maxScore / 10) * (1 + treeComplexity / 50), 0.98);
+        console.log(`[NeuralBridge] Extracted ${allFeatures.length} semantic features`);
 
-        console.log(`[NeuralBridge] SMT Domain: ${bestDomain} (${Math.round(confidence * 100)}%, ${maxScore} signals)`);
+        if (allFeatures.length < 2) {
+            return fallbackProfile;
+        }
 
-        return {
-            domain: confidence > 0.15 ? bestDomain : 'general',
-            confidence: Math.max(confidence, 0.1)
+        // 3. Build feature distribution vector (the semantic signature)
+        const typeCount: Record<string, number> = {};
+        let totalConfidence = 0;
+
+        for (const f of allFeatures) {
+            typeCount[f.type] = (typeCount[f.type] || 0) + 1;
+            totalConfidence += f.confidence;
+        }
+
+        const total = allFeatures.length;
+        const distribution: Record<string, number> = {};
+
+        for (const [type, count] of Object.entries(typeCount)) {
+            distribution[type] = count / total;
+        }
+
+        // 4. Calculate mathematical measures
+        const entropy = calculateEntropy(distribution);
+        const avgConfidence = totalConfidence / total;
+        const dominants = findDominantFeatures(distribution, 3);
+
+        // 5. Generate emergent label (no hardcoded domains!)
+        const domain = generateEmergentLabel(distribution, entropy, dominants);
+
+        // 6. Calculate confidence based on feature concentration
+        // Lower entropy = higher confidence (more focused content)
+        // Higher avg feature confidence = higher overall confidence
+        const maxEntropy = Math.log2(Object.keys(distribution).length || 1);
+        const entropyRatio = maxEntropy > 0 ? entropy / maxEntropy : 0;
+        const confidence = Math.min(0.98, (1 - entropyRatio * 0.5) * avgConfidence + 0.3);
+
+        const profile: SemanticProfile = {
+            domain,
+            confidence,
+            signature: distribution,
+            entropy,
+            dominant: dominants[0] || 'mixed'
         };
+
+        console.log(`[NeuralBridge] Semantic Profile:`, {
+            domain: profile.domain,
+            confidence: `${Math.round(profile.confidence * 100)}%`,
+            entropy: profile.entropy.toFixed(2),
+            dominant: profile.dominant,
+            features: total
+        });
+
+        return profile;
 
     } catch (e) {
-        console.warn('[NeuralBridge] SMT detection failed, using fallback:', e);
-        return DomainHeuristics.detect(pageText);
+        console.warn('[NeuralBridge] Semantic analysis failed:', e);
+        return fallbackProfile;
     }
 }
 
 export async function runDetection() {
-    const result = await detectDomainWithSMT();
-    lastDetectedDomain = result.domain;
+    if (!isExtensionContextValid()) return;
 
-    chrome.storage.local.set({
-        nb_active_domain: result.domain,
-        nb_domain_confidence: result.confidence,
-        nb_last_detected_url: window.location.href,
-        nb_detection_ts: new Date().toISOString()
-    });
+    const profile = await detectDomainWithSMT();
+    lastDetectedDomain = profile.domain;
 
-    console.log(`[Neural Bridge] Domain Detected: ${result.domain} (${Math.round(result.confidence * 100)}%)`);
+    try {
+        // Store full semantic profile for popup display
+        chrome.storage.local.set({
+            nb_active_domain: profile.domain,
+            nb_domain_confidence: profile.confidence,
+            nb_semantic_entropy: profile.entropy,
+            nb_dominant_feature: profile.dominant,
+            nb_last_detected_url: window.location.href,
+            nb_detection_ts: new Date().toISOString()
+        });
+    } catch (err: any) {
+        if (err?.message?.includes('Extension context invalidated')) {
+            extensionContextValid = false;
+        }
+    }
+
+    console.log(`[Neural Bridge] Semantic Domain: ${profile.domain} | Entropy: ${profile.entropy.toFixed(2)} | Dominant: ${profile.dominant}`);
 }
 
 export function initSilentMonitor() {
@@ -105,7 +289,7 @@ export function initSilentMonitor() {
             );
 
             // Sync with background for Popup persistence
-            chrome.runtime.sendMessage({
+            safeSendMessage({
                 type: "NB_PUSH_RUN",
                 run: {
                     id: `run_${Date.now()}`,
@@ -114,7 +298,7 @@ export function initSilentMonitor() {
                     reason: verdict.reason,
                     timestamp: new Date().toISOString()
                 }
-            }).catch(err => console.warn("[NeuralBridge] Background sync failed:", err));
+            });
         });
     }
 
@@ -128,42 +312,66 @@ export function initSilentMonitor() {
 
 // ========== MESSAGE HANDLERS ==========
 
-chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-    // Config updates
-    if (msg.type === "NB_UPDATE_CONFIG" && agent) {
-        agent.setConfig(msg.config);
-        console.log("[NeuralBridge] Config updated:", msg.config);
-        return;
+try {
+    chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+        if (!isExtensionContextValid()) return false;
+
+        // Config updates
+        if (msg.type === "NB_UPDATE_CONFIG" && agent) {
+            agent.setConfig(msg.config);
+            console.log("[NeuralBridge] Config updated:", msg.config);
+            return;
+        }
+
+        // CRYSTALLIZE: Compile PCK from current page
+        if (msg.type === "NB_CRYSTALLIZE") {
+            (async () => {
+                try {
+                    const pageText = document.body.innerText.slice(0, 15000);
+                    const domain = lastDetectedDomain || 'general';
+
+                    console.log(`[NeuralBridge] Crystallizing page (${domain})...`);
+                    console.log(`[NeuralBridge] Page text sample: ${pageText.slice(0, 200)}...`);
+
+                    const crystal = await PCKRuntime.compile(pageText, {
+                        domain: domain as any,
+                        extract_numbers: true,
+                        extract_entities: true,
+                        extract_temporals: true
+                    });
+
+                    // Convert Map to Object for JSON serialization
+                    const serializedCrystal = {
+                        ...crystal,
+                        proof_tree: {
+                            ...crystal.proof_tree,
+                            nodes: crystal.proof_tree?.nodes instanceof Map
+                                ? Object.fromEntries(crystal.proof_tree.nodes)
+                                : crystal.proof_tree?.nodes || {}
+                        }
+                    };
+
+                    const nodeCount = crystal.proof_tree?.nodes instanceof Map
+                        ? crystal.proof_tree.nodes.size
+                        : Object.keys(crystal.proof_tree?.nodes || {}).length;
+
+                    console.log(`[NeuralBridge] Crystal created: ${crystal.pck_id} with ${nodeCount} nodes`);
+                    sendResponse({ success: true, crystal: serializedCrystal });
+                } catch (e) {
+                    console.error('[NeuralBridge] Crystallize failed:', e);
+                    sendResponse({ success: false, error: String(e) });
+                }
+            })();
+            return true; // Keep channel open for async
+        }
+
+        return false;
+    });
+} catch (err: any) {
+    if (err?.message?.includes('Extension context invalidated')) {
+        extensionContextValid = false;
     }
-
-    // CRYSTALLIZE: Compile PCK from current page
-    if (msg.type === "NB_CRYSTALLIZE") {
-        (async () => {
-            try {
-                const pageText = document.body.innerText.slice(0, 15000);
-                const domain = lastDetectedDomain || 'general';
-
-                console.log(`[NeuralBridge] Crystallizing page (${domain})...`);
-
-                const crystal = await PCKRuntime.compile(pageText, {
-                    domain: domain as any,
-                    extract_numbers: true,
-                    extract_entities: true,
-                    extract_temporals: true
-                });
-
-                console.log(`[NeuralBridge] Crystal created: ${crystal.pck_id}`);
-                sendResponse({ success: true, crystal });
-            } catch (e) {
-                console.error('[NeuralBridge] Crystallize failed:', e);
-                sendResponse({ success: false, error: String(e) });
-            }
-        })();
-        return true; // Keep channel open for async
-    }
-
-    return false;
-});
+}
 
 // Global initialization
 if (document.readyState === 'complete') {

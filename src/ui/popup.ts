@@ -88,11 +88,17 @@ function showCrystalPreview(crystal: any) {
     const data = document.getElementById('crystal-data')!;
 
     preview.style.display = 'block';
+
+    // PCK uses pck_id, claim.domain, claim.confidence, proof_tree.nodes (Map)
+    const nodeCount = crystal.proof_tree?.nodes instanceof Map
+        ? crystal.proof_tree.nodes.size
+        : (typeof crystal.proof_tree?.nodes === 'object' ? Object.keys(crystal.proof_tree.nodes || {}).length : 0);
+
     data.textContent = JSON.stringify({
-        id: crystal.context_id?.slice(0, 8) + '...',
-        domain: crystal.domain,
-        nodes: crystal.proof_tree?.nodes?.size || 0,
-        confidence: crystal.verification?.confidence || 0.95
+        id: crystal.pck_id?.slice(0, 12) + '...' || 'generated',
+        domain: crystal.claim?.domain || crystal.domain || 'general',
+        nodes: nodeCount,
+        confidence: crystal.claim?.confidence || 0.95
     }, null, 2);
 }
 
