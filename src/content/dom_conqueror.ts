@@ -36,19 +36,17 @@ const PLATFORMS: Record<string, PlatformConfig> = {
 };
 
 export class DomConqueror {
-    private observer: MutationObserver;
+    private observer: MutationObserver | null = null;
     private config: PlatformConfig | null = null;
     private processedNodes = new Set<HTMLElement>();
 
     constructor() {
-        this.observer = new MutationObserver(this.handleMutations.bind(this));
         this.detectPlatform();
     }
 
     private detectPlatform() {
         const host = window.location.hostname;
         if (host.includes('openai') || host.includes('chatgpt')) this.config = PLATFORMS['chatgpt'] || null;
-        else if (host.includes('claude')) this.config = PLATFORMS['claude'] || null;
         else {
             // UNIVERSAL MODE (RAG Portable)
             this.config = {
@@ -59,10 +57,8 @@ export class DomConqueror {
             };
         }
 
-        if (this.config) {
-            console.log(`[NeuralBridge] ⚔️ Conquering ${this.config.name} UI...`);
-            this.start();
-        }
+        console.log(`[NeuralBridge] ⚔️ Conquering ${this.config?.name || 'Unknown'} UI...`);
+        this.start();
     }
 
     private start() {
@@ -78,6 +74,9 @@ export class DomConqueror {
         }
 
         try {
+            if (!this.observer) {
+                this.observer = new MutationObserver(this.handleMutations.bind(this));
+            }
             this.observer.observe(document.body, { childList: true, subtree: true });
             this.scanExisting();
         } catch (e) {
@@ -86,6 +85,9 @@ export class DomConqueror {
             setTimeout(() => {
                 if (document.body) {
                     try {
+                        if (!this.observer) {
+                            this.observer = new MutationObserver(this.handleMutations.bind(this));
+                        }
                         this.observer.observe(document.body, { childList: true, subtree: true });
                     } catch (retryError) {
                         console.error('[NeuralBridge] Observer retry failed:', retryError);

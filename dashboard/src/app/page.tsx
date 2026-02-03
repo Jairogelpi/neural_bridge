@@ -41,7 +41,7 @@ export default function LandingPage() {
           {!user ? (
             <div className="flex items-center space-x-6">
               <Link href="/login" className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60 hover:text-white transition-colors">Login</Link>
-              <Link href="/register" className="px-8 py-3 bg-white text-black text-[10px] font-black uppercase tracking-[0.3em] rounded-full hover:bg-indigo-500 hover:text-white transition-all shadow-2xl shadow-indigo-500/20 active:scale-95">Infiltrate</Link>
+              <Link href="/register" className="px-8 py-3 bg-indigo-500 text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-full hover:bg-indigo-400 transition-all shadow-2xl shadow-indigo-500/20 active:scale-95">Infiltrate</Link>
             </div>
           ) : (
             <Link href="/dashboard" className="px-8 py-3 bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-full hover:bg-white/10 transition-all backdrop-blur-xl">Terminal</Link>
@@ -90,7 +90,7 @@ export default function LandingPage() {
           >
             <button
               onClick={() => router.push('/ingest')}
-              className="w-full md:w-auto flex items-center justify-center space-x-4 px-12 py-6 bg-white text-black rounded-[2rem] font-black uppercase tracking-[0.3em] hover:bg-indigo-500 hover:text-white transition-all shadow-[0_20px_50px_rgba(99,102,241,0.3)] group"
+              className="w-full md:w-auto flex items-center justify-center space-x-4 px-12 py-6 bg-indigo-500 text-white rounded-[2rem] font-black uppercase tracking-[0.3em] hover:bg-indigo-400 transition-all shadow-[0_20px_50px_rgba(99,102,241,0.3)] group"
             >
               <Chrome size={20} className="group-hover:rotate-12 transition-transform" />
               <span>Install Neural Extension</span>

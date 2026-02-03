@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Database, Search, Plus, Filter } from 'lucide-react';
+import { Database, Search, Plus } from 'lucide-react';
 import { CrystalCard } from '@/components/CrystalCard';
 import { supabase } from '@/lib/supabase';
 import { Sidebar } from '@/components/Sidebar';
@@ -23,7 +22,7 @@ export default function LibraryPage() {
 
     useEffect(() => {
         const fetchCrystals = async () => {
-            const { data, error } = await supabase
+            const { data } = await supabase
                 .from('crystals')
                 .select('context_id, domain, intent, author')
                 .order('created_at', { ascending: false });

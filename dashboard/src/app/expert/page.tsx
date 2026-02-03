@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/Sidebar';
 import { Award, Shield, Fingerprint, Activity, TrendingUp, History, Star, Zap } from 'lucide-react';
-import { motion } from 'framer-motion';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 
@@ -26,10 +25,10 @@ interface ExpertProfile {
 }
 
 export default function ExpertHubPage() {
-    const { user } = useAuth();
+    useAuth();
     const [profile, setProfile] = useState<ExpertProfile | null>(null);
     const [ledger, setLedger] = useState<ReputationEvent[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {

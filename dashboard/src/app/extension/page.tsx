@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -9,7 +9,6 @@ import {
     Database,
     Binary,
     Lock,
-    UserPlus,
     User,
     Mail,
     ExternalLink,

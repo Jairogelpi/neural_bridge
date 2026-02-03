@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/Sidebar';
-import { Brain, Sparkles, Zap, ArrowRight, Dna, Layers, Loader2 } from 'lucide-react';
+import { Zap, Dna, Layers, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
-import api from '@/lib/api';
 
 interface Crystal {
     context_id: string;
@@ -75,8 +74,8 @@ export default function LoomPage() {
                                     onClick={() => toggleCrystal(c.context_id)}
                                     whileHover={{ scale: 1.02 }}
                                     className={`p-6 rounded-3xl border cursor-pointer transition-all ${selectedCrystals.includes(c.context_id)
-                                            ? 'border-indigo-500 bg-indigo-500/10 shadow-[0_0_20px_rgba(99,102,241,0.2)]'
-                                            : 'border-white/5 bg-white/2 backdrop-blur-md'
+                                        ? 'border-indigo-500 bg-indigo-500/10 shadow-[0_0_20px_rgba(99,102,241,0.2)]'
+                                        : 'border-white/5 bg-white/2 backdrop-blur-md'
                                         }`}
                                 >
                                     <div className="flex justify-between items-start mb-4">
@@ -123,8 +122,8 @@ export default function LoomPage() {
                                 onClick={handleSynthesize}
                                 disabled={selectedCrystals.length < 2 || isSynthesizing}
                                 className={`w-full py-6 rounded-2xl font-black uppercase tracking-[0.2em] text-xs transition-all flex items-center justify-center gap-3 ${selectedCrystals.length < 2
-                                        ? 'bg-white/5 text-white/20'
-                                        : 'bg-indigo-500 text-white hover:bg-indigo-400 hover:scale-105 active:scale-95 shadow-2xl shadow-indigo-500/20'
+                                    ? 'bg-white/5 text-white/20'
+                                    : 'bg-indigo-500 text-white hover:bg-indigo-400 hover:scale-105 active:scale-95 shadow-2xl shadow-indigo-500/20'
                                     }`}
                             >
                                 {isSynthesizing ? (

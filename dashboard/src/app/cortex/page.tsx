@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 
 const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), { ssr: false });
 import { Sidebar } from '@/components/Sidebar';
-import { ZoomIn, ZoomOut, Share2, RefreshCcw, Loader2 } from 'lucide-react';
+import { ZoomIn, ZoomOut, Share2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { usePagination, useInfiniteScroll } from '@/hooks/usePagination';
 

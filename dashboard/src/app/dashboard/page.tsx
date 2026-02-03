@@ -8,17 +8,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button, Card, CardHeader, CardTitle, CardContent, Badge } from '@/design';
 import { motion } from 'framer-motion';
 import {
     Plus,
-    Zap,
-    TrendingUp,
     Clock,
-    Users,
     Sparkles,
     ArrowRight,
-    Menu,
     ShieldAlert,
     Wallet,
     Target,
@@ -27,7 +22,6 @@ import {
     Layers
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { MobileNav } from '@/components/MobileNav';
 import { Sidebar } from '@/components/Sidebar';
 
 interface DashboardStats {
@@ -55,7 +49,7 @@ export default function PremiumDashboard() {
     });
 
     const [recentCrystals, setRecentCrystals] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [, setLoading] = useState(true);
 
     useEffect(() => {
         const token = localStorage.getItem('token');

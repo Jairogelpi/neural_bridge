@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/Sidebar';
 import { supabase } from '@/lib/supabase';
-import { Network, Globe, Radio, Shield, Fingerprint, Activity, Save, User, Key } from 'lucide-react';
+import { Network, Globe, Radio, Shield, Fingerprint, Activity } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface SentinelStats {
@@ -17,7 +17,6 @@ export default function NexusPage() {
     const [stats, setStats] = useState<SentinelStats | null>(null);
     const [latency, setLatency] = useState<number>(0);
     const [isPinging, setIsPinging] = useState(false);
-    const [logs, setLogs] = useState<any[]>([]);
 
     useEffect(() => {
         const loadStats = async () => {
@@ -63,22 +62,8 @@ export default function NexusPage() {
             setIsPinging(false);
         }, 5000);
 
-        const fetchLogs = async () => {
-            try {
-                const { data } = await supabase.from('sentinel_logs').select('*').order('timestamp', { ascending: false }).limit(20);
-                if (data) setLogs(data);
-            } catch (err) {
-                console.error('Logs fetch error:', err);
-            }
-        };
-
-        fetchLogs();
-        const logsInterval = setInterval(fetchLogs, 4000);
-
         return () => {
-            // supabase.removeChannel(channel);
             clearInterval(pingInterval);
-            clearInterval(logsInterval);
         };
     }, []);
 
