@@ -1,122 +1,119 @@
 <!doctype html>
-<html>
+<html lang="en">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Neural Bridge</title>
   <link rel="stylesheet" href="./crystal_theme.css" />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
 
-  <div class="header">
-    <div id="auth-status" class="status-badge">NOT SIGNED IN</div>
-    <div class="brand">
-      <span>NEURAL BRIDGE</span>
-      <div class="usb-icon"></div>
+  <!-- HEADER -->
+  <header class="nb-header">
+    <div class="nb-logo">
+      <svg class="nb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2" />
+        <line x1="12" y1="22" x2="12" y2="15.5" />
+        <polyline points="22 8.5 12 15.5 2 8.5" />
+      </svg>
+      <span>Neural Bridge</span>
     </div>
-  </div>
+    <div id="status-pill" class="nb-status">Idle</div>
+  </header>
 
   <!-- AUTH VIEW -->
-  <div id="view-auth" class="view" style="display: none;">
-    <div class="auth-card">
+  <div id="view-auth" class="nb-view" style="display: none;">
+    <div class="nb-auth-card">
       <div id="auth-login">
-        <h2 class="auth-title">IDENTIFY</h2>
-        <div class="input-stack">
-          <input type="email" id="login-email" placeholder="Email Address" class="cyber-input" />
-          <input type="password" id="login-password" placeholder="Access Key" class="cyber-input" />
+        <h2 class="nb-auth-title">Sign In</h2>
+        <div class="nb-input-group">
+          <input type="email" id="login-email" placeholder="Email" class="nb-input" />
+          <input type="password" id="login-password" placeholder="Password" class="nb-input" />
         </div>
-        <button class="cyber-btn primary" id="btn-login-submit">SIGN IN</button>
-        <p class="auth-switch">New here? <a href="#" id="link-show-register">Create Identity</a></p>
+        <button class="nb-btn nb-btn-primary" id="btn-login-submit">Continue</button>
+        <p class="nb-auth-switch">Don't have an account? <a href="#" id="link-show-register">Register</a></p>
       </div>
 
       <div id="auth-register" style="display: none;">
-        <h2 class="auth-title">CREATE</h2>
-        <div class="input-stack">
-          <input type="text" id="reg-name" placeholder="Full Name" class="cyber-input" />
-          <input type="text" id="reg-handle" placeholder="Handle" class="cyber-input" />
-          <input type="email" id="reg-email" placeholder="Email" class="cyber-input" />
-          <input type="password" id="reg-password" placeholder="Password" class="cyber-input" />
+        <h2 class="nb-auth-title">Create Account</h2>
+        <div class="nb-input-group">
+          <input type="text" id="reg-name" placeholder="Full Name" class="nb-input" />
+          <input type="text" id="reg-handle" placeholder="Handle" class="nb-input" />
+          <input type="email" id="reg-email" placeholder="Email" class="nb-input" />
+          <input type="password" id="reg-password" placeholder="Password" class="nb-input" />
         </div>
-        <button class="cyber-btn primary" id="btn-register-submit">INITIALIZE</button>
-        <p class="auth-switch">Already linked? <a href="#" id="link-show-login">Login</a></p>
+        <button class="nb-btn nb-btn-primary" id="btn-register-submit">Create</button>
+        <p class="nb-auth-switch">Already have an account? <a href="#" id="link-show-login">Sign In</a></p>
       </div>
 
-      <div id="auth-error" class="error-msg"></div>
+      <div id="auth-error" class="nb-error"></div>
     </div>
   </div>
 
-  <div id="main-content" class="view">
-    <div class="tabs">
-      <div class="tab active" id="tab-live">Reality Matrix</div>
-      <div class="tab" id="tab-storage">Knowledge Storage</div>
-    </div>
+  <!-- MAIN VIEW -->
+  <main id="main-content" class="nb-view">
 
-    <!-- LIVE MODE -->
-    <div id="view-live">
-      <div class="crystal-heart" id="sensor-container">
-        <div class="shard-nexus">
-          <div class="shard" id="reality-shard"></div>
-        </div>
+    <!-- HERO: Crystallize Action -->
+    <section class="nb-hero">
+      <button id="btn-crystallize" class="nb-crystallize-btn">
+        <svg class="nb-crystallize-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2" />
+          <line x1="12" y1="22" x2="12" y2="15.5" />
+          <polyline points="22 8.5 12 15.5 2 8.5" />
+          <line x1="2" y1="8.5" x2="12" y2="2" />
+        </svg>
+        <span>Crystallize Page</span>
+      </button>
+      <p class="nb-hero-hint">Capture verified knowledge from this page</p>
+    </section>
 
-        <div class="integrity-card">
-          <div class="integrity-label">ONTOLOGICAL PURITY</div>
-          <div class="integrity-value" id="uSID-status">ESTABLISHING...</div>
-        </div>
+    <!-- STATUS CARD -->
+    <section class="nb-status-card">
+      <div class="nb-status-row">
+        <span class="nb-status-label">Domain</span>
+        <span id="val-domain" class="nb-status-value">Detecting...</span>
       </div>
-
-      <div class="metrics-container">
-        <div class="metric-block">
-          <div class="metric-header">
-            <span>SEMANTIC FIDELITY</span>
-            <span id="val-fidelity" class="val">--%</span>
-          </div>
-          <div class="progress-track">
-            <div class="progress-fill" id="bar-fidelity"></div>
-          </div>
-        </div>
-
-        <div class="metric-footer">
-          <div class="pill">
-            <span class="pill-label">LATENCY:</span>
-            <span id="val-latency" class="pill-val">0.4ms</span>
-          </div>
-          <div class="pill">
-            <span class="pill-label">NODES:</span>
-            <span id="val-nodes" class="pill-val">12</span>
-          </div>
-        </div>
+      <div class="nb-status-row">
+        <span class="nb-status-label">Semantic Fidelity</span>
+        <span id="val-fidelity" class="nb-status-value">--%</span>
       </div>
-    </div>
-
-    <!-- STORAGE MODE -->
-    <div id="view-storage" style="display: none;">
-      <div class="storage-area">
-        <textarea id="crystal-input" class="crystal-texarea"
-          placeholder="Inject Knowledge Crystal (JSON)..."></textarea>
-
-        <div class="action-row">
-          <button class="action-btn" id="btn-inject">INJECT</button>
-          <button class="action-btn secondary" id="btn-copy">COPY ACTIVE</button>
-        </div>
+      <div class="nb-status-row">
+        <span class="nb-status-label">Integrity</span>
+        <span id="val-integrity" class="nb-status-value nb-value-accent">Scanning...</span>
       </div>
-    </div>
-  </div>
+    </section>
 
-  <div class="footer-nexus">
-    <div id="user-info" class="user-handle"></div>
-    <button id="open-dashboard" class="dashboard-launch-btn">
-      VIEW FULL DASHBOARD
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
-        stroke-linecap="round" stroke-linejoin="round">
-        <path d="M5 12h14M12 5l7 7-7 7" />
+    <!-- CRYSTAL PREVIEW (hidden by default) -->
+    <section id="crystal-preview" class="nb-crystal-preview" style="display: none;">
+      <div class="nb-preview-header">
+        <span>Crystal Ready</span>
+        <button id="btn-copy-crystal" class="nb-btn-icon" title="Copy to Clipboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+        </button>
+      </div>
+      <div id="crystal-data" class="nb-crystal-data"></div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="nb-footer">
+    <div id="user-info" class="nb-user-info"></div>
+    <button id="open-dashboard" class="nb-footer-btn">
+      <span>Open Dashboard</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+        <polyline points="15 3 21 3 21 9"></polyline>
+        <line x1="10" y1="14" x2="21" y2="3"></line>
       </svg>
     </button>
-  </div>
+  </footer>
 
   <script type="module" src="./popup.ts"></script>
 </body>

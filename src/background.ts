@@ -4,6 +4,9 @@ import { getSession, getOrCreateInstallId, setStorage, getStorage } from "./api/
 
 const EXT_VERSION = chrome.runtime.getManifest().version;
 
+// Persistent state for the current session (resets on worker restart, which is fine for live metrics)
+let recentRuns: any[] = [];
+
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     (async () => {
         try {
@@ -18,8 +21,17 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
                     author_id: storage.nb_author_id,
                     session_expires: session.expiresAt,
                     authenticated: !!session.token,
-                    version: EXT_VERSION
+                    version: EXT_VERSION,
+                    runs: recentRuns
                 });
+                return;
+            }
+
+            if (msg?.type === "NB_PUSH_RUN") {
+                recentRuns.unshift(msg.run);
+                // Keep only last 10 runs to avoid memory bloat
+                if (recentRuns.length > 10) recentRuns = recentRuns.slice(0, 10);
+                sendResponse({ ok: true });
                 return;
             }
 
