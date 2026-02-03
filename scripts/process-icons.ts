@@ -4,10 +4,10 @@ import path from 'path';
 
 async function processIcons() {
     const rootDir = process.cwd();
-    const sourceIcon = path.join(rootDir, 'scripts', 'base-icon-minimal.png');
+    const sourceIcon = path.join(rootDir, 'store-assets', 'Gemini_Generated_Image_nbqhmbnbqhmbnbqh.png');
     const distIconsDir = path.join(rootDir, 'dist', 'icons');
 
-    console.log('--- PROCESSING EXTENSION ICONS ---');
+    console.log('--- PROCESSING EXTENSION ICONS FROM PROMO TILE ---');
 
     if (!fs.existsSync(distIconsDir)) {
         fs.mkdirSync(distIconsDir, { recursive: true });
@@ -18,7 +18,7 @@ async function processIcons() {
     for (const size of sizes) {
         const targetPath = path.join(distIconsDir, `icon${size}.png`);
         await sharp(sourceIcon)
-            .resize(size, size)
+            .resize(size, size, { fit: 'cover', position: 'center' })
             .toFile(targetPath);
         console.log(`✓ Generated: icon${size}.png`);
     }

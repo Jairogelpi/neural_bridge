@@ -41,8 +41,8 @@ export class DomConqueror {
     private processedNodes = new Set<HTMLElement>();
 
     constructor() {
-        this.detectPlatform();
         this.observer = new MutationObserver(this.handleMutations.bind(this));
+        this.detectPlatform();
     }
 
     private detectPlatform() {
@@ -80,20 +80,34 @@ export class DomConqueror {
         try {
             this.observer.observe(document.body, { childList: true, subtree: true });
             this.scanExisting();
-            this.injectFAB();
         } catch (e) {
             console.warn('[NeuralBridge] Observer failed to start:', e);
             // Retry once after a short delay in case of weird DOM state
             setTimeout(() => {
                 if (document.body) {
-                    this.observer.observe(document.body, { childList: true, subtree: true });
+                    try {
+                        this.observer.observe(document.body, { childList: true, subtree: true });
+                    } catch (retryError) {
+                        console.error('[NeuralBridge] Observer retry failed:', retryError);
+                    }
                 }
             }, 500);
+        }
+
+        // Always attempt to inject FAB, regardless of observer status
+        try {
+            this.injectFAB();
+        } catch (e) {
+            console.error('[NeuralBridge] FAB Injection failed:', e);
         }
     }
 
     private injectFAB() {
-        if (document.getElementById('nb-fab')) return;
+        if (document.getElementById('nb-fab')) {
+            console.log('[NeuralBridge] FAB already exists.');
+            return;
+        }
+        console.log('[NeuralBridge] Injecting FAB...');
         const fab = document.createElement('div');
         fab.id = 'nb-fab';
 
@@ -101,9 +115,9 @@ export class DomConqueror {
         Object.assign(fab.style, {
             position: 'fixed',
             bottom: '24px',
-            left: '24px',
-            width: '64px',
-            height: '64px',
+            right: '24px',
+            width: '80px',
+            height: '80px',
             borderRadius: '50%',
             background: 'transparent',
             display: 'flex',
@@ -112,7 +126,7 @@ export class DomConqueror {
             cursor: 'pointer',
             zIndex: '2147483647',
             transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-            filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.3))'
+            filter: 'drop-shadow(0 8px 32px rgba(0, 122, 255, 0.3))'
         });
 
         // Icon
@@ -149,16 +163,16 @@ export class DomConqueror {
             // Create
             iframe = document.createElement('iframe');
             iframe.id = id;
-            iframe.src = chrome.runtime.getURL('extension.html');
+            iframe.src = chrome.runtime.getURL('src/ui/popup.html');
             Object.assign(iframe.style, {
                 position: 'fixed',
-                bottom: '84px', // Above FAB
-                left: '24px',
+                bottom: '114px', // Adjusted for larger FAB
+                right: '24px',
                 width: '380px',
                 height: '520px',
                 border: 'none',
                 borderRadius: '24px',
-                boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
                 zIndex: '2147483647',
                 transition: 'opacity 0.3s ease, transform 0.3s ease',
                 background: 'transparent',
