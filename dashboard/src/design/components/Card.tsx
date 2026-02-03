@@ -7,7 +7,6 @@
 'use client';
 
 import { ReactNode, HTMLAttributes } from 'react';
-import { motion } from 'framer-motion';
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
     glass?: boolean;
@@ -23,11 +22,7 @@ export function Card({
     ...props
 }: CardProps) {
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            whileHover={hover ? { y: -4, scale: 1.01 } : {}}
+        <div
             className={`
                 ${glass
                     ? 'bg-white/70 backdrop-blur-xl border border-white/20'
@@ -36,12 +31,12 @@ export function Card({
                 ${className}
                 rounded-2xl shadow-xl
                 transition-all duration-300
-                ${hover ? 'hover:shadow-2xl' : ''}
+                ${hover ? 'hover:shadow-2xl hover:-translate-y-1 hover:scale-[1.01]' : ''}
             `}
             {...props}
         >
             {children}
-        </motion.div>
+        </div>
     );
 }
 
