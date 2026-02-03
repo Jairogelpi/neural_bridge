@@ -3,8 +3,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Brain, Database, ChevronRight } from 'lucide-react';
-import { clsx } from 'clsx';
+import { Shield, Brain, ChevronRight } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
 interface CrystalCardProps {

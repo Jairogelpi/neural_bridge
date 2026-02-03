@@ -3,17 +3,9 @@
 import { motion } from 'framer-motion';
 import {
   Shield,
-  Zap,
-  Lock,
-  RefreshCw,
   ArrowRight,
   Chrome,
-  LogIn,
   UserPlus,
-  Activity,
-  Layers,
-  Binary,
-  Globe,
   Brain
 } from 'lucide-react';
 import Link from 'next/link';
@@ -85,7 +77,7 @@ export default function LandingPage() {
             transition={{ delay: 0.2 }}
             className="text-xl md:text-3xl text-white/40 font-bold max-w-4xl mx-auto mb-16 leading-tight tracking-tight uppercase"
           >
-            Stop being a passenger in someone else's model. Own your knowledge.
+            Stop being a passenger in someone else&apos;s model. Own your knowledge.
             <span className="text-white"> Permanent, algebraic knowledge transfer </span>
             that never hallucinates and costs $0 to run.
           </motion.p>
@@ -175,7 +167,7 @@ export default function LandingPage() {
               </h3>
             </div>
             <p className="text-white/30 font-bold max-w-sm text-sm mt-8 md:mt-0 uppercase tracking-widest leading-relaxed">
-              We didn't just build an app. We invented the protocols that define the next century of intelligence.
+              We didn&apos;t just build an app. We invented the protocols that define the next century of intelligence.
             </p>
           </div>
 
@@ -234,7 +226,7 @@ export default function LandingPage() {
               <h2 className="text-[10px] font-black uppercase tracking-[0.5em] text-emerald-500 mb-8">Deep Tech Architecture</h2>
               <h3 className="font-bebas text-8xl italic mb-12">CRYSTALLINE <span className="text-white/20">GRID.</span></h3>
               <p className="text-xl text-white/40 font-bold mb-12 uppercase leading-relaxed">
-                We don't use "prompts" or "scripts". We build sovereign knowledge objects called <span className="text-white">Crystals</span>.
+                We don&apos;t use &quot;prompts&quot; or &quot;scripts&quot;. We build sovereign knowledge objects called <span className="text-white">Crystals</span>.
                 Verified by the <span className="text-white">Jury Protocol</span> and secured by <span className="text-emerald-500">Zero-Knowledge Proofs</span>.
               </p>
               <div className="space-y-6">
@@ -369,18 +361,6 @@ function TechLine({ label, val, color }: any) {
     <div className="flex items-center justify-between py-4 border-b border-white/5 group">
       <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] group-hover:text-white/60 transition-colors">{label}</span>
       <span className={`text-[10px] font-black uppercase tracking-[0.4em] ${color}`}>{val}</span>
-    </div>
-  );
-}
-
-function FeatureCard({ icon: Icon, title, desc }: any) {
-  return (
-    <div className="group relative bg-white border border-gray-100 rounded-[2.5rem] p-10 hover:border-black transition-all hover:-translate-y-2 duration-500">
-      <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center mb-8 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 group-hover:rotate-6">
-        <Icon className="w-8 h-8" />
-      </div>
-      <h4 className="text-2xl font-black italic tracking-tighter mb-4">{title}</h4>
-      <p className="text-sm text-gray-500 font-medium leading-relaxed uppercase tracking-wider">{desc}</p>
     </div>
   );
 }

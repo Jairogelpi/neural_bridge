@@ -10,10 +10,8 @@ import {
     Binary,
     Lock,
     UserPlus,
-    Key,
     User,
     Mail,
-    ChevronRight,
     ExternalLink,
     Zap
 } from 'lucide-react';

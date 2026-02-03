@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/Sidebar';
 import { supabase } from '@/lib/supabase';
-import { Network, Globe, Radio, Shield, Fingerprint, Activity, Code, Terminal } from 'lucide-react';
+import { Network, Globe, Radio, Shield, Fingerprint, Activity, Save, User, Key } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface SentinelStats {
