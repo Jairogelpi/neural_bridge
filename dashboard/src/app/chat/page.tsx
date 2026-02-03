@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Bot, User, Sparkles, StopCircle, Menu } from 'lucide-react';
-import { api } from '@/lib/api';
+import api from '@/lib/api';
 import ReactMarkdown from 'react-markdown';
 import { Sidebar } from '@/components/Sidebar';
 import { ChatList } from '@/components/Chat/ChatList';
@@ -254,15 +254,15 @@ export default function ChatPage() {
                                 >
                                     <div className={`flex max-w-3xl ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'} items-start gap-4`}>
                                         <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${msg.role === 'user'
-                                                ? 'bg-black text-white'
-                                                : 'bg-white border border-gray-100 text-blue-600 shadow-sm'
+                                            ? 'bg-black text-white'
+                                            : 'bg-white border border-gray-100 text-blue-600 shadow-sm'
                                             }`}>
                                             {msg.role === 'user' ? <User size={14} /> : <Bot size={14} />}
                                         </div>
 
                                         <div className={`p-5 rounded-[1.5rem] text-sm leading-relaxed shadow-sm ${msg.role === 'user'
-                                                ? 'bg-black text-white rounded-tr-none'
-                                                : 'bg-white border border-gray-100 text-gray-700 rounded-tl-none'
+                                            ? 'bg-black text-white rounded-tr-none'
+                                            : 'bg-white border border-gray-100 text-gray-700 rounded-tl-none'
                                             }`}>
                                             <ReactMarkdown className="prose prose-sm max-w-none prose-invert={msg.role === 'user'}">
                                                 {msg.content}
