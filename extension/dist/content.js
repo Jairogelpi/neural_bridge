@@ -16,6 +16,13 @@ async function init() {
   });
   injectFloatingButton();
   injectStyles();
+  startAutoPilot();
+  setInterval(() => {
+    if (!document.getElementById("neural-bridge-fab")) {
+      console.log("[Neural Bridge] FAB lost, re-injecting...");
+      injectFloatingButton();
+    }
+  }, 2e3);
 }
 async function sendToBackground(message) {
   return new Promise((resolve) => {
@@ -312,6 +319,27 @@ function injectStyles() {
   const s = document.createElement("style");
   s.textContent = "@keyframes s{to{transform:rotate(360deg);}}";
   document.head.appendChild(s);
+}
+let lastVerificationId = "";
+async function startAutoPilot() {
+  console.log("[Neural Bridge] Auto-Pilot Active. Monitoring Reality...");
+  const observer = new MutationObserver(async () => {
+    const conversation = extractConversation();
+    const messages = conversation.split("\n\n");
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage && lastMessage.length > 50 && !lastMessage.includes("LADDER_LEVEL")) {
+      const res = await chrome.storage.local.get(["nb_auto_verify", "current_crystal"]);
+      if (res.nb_auto_verify && res.current_crystal && lastVerificationId !== res.current_crystal.context_id) {
+        lastVerificationId = res.current_crystal.context_id;
+        console.log("[Neural Bridge] Auto-Verify Triggered for Crystal:", lastVerificationId);
+        verifyTransferReal(res.current_crystal);
+      }
+    }
+    if (!document.getElementById("neural-bridge-fab")) {
+      injectFloatingButton();
+    }
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
 }
 function detectHost() {
   const url = window.location.href;

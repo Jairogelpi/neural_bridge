@@ -48,6 +48,14 @@ async function init() {
     injectFloatingButton();
     injectStyles();
     startAutoPilot();
+
+    // Watchdog to ensure FAB stays visible
+    setInterval(() => {
+        if (!document.getElementById('neural-bridge-fab')) {
+            console.log('[Neural Bridge] FAB lost, re-injecting...');
+            injectFloatingButton();
+        }
+    }, 2000);
 }
 
 // Helper for safe runtime messages
@@ -403,6 +411,11 @@ function injectFloatingButton() {
         }
     };
     document.body.appendChild(b);
+
+    // Also inject into React root if available, sometimes body is cleared but root persists
+    // const root = document.getElementById('__next') || document.getElementById('root');
+    // if (root) root.appendChild(b);
+
 }
 
 function injectStyles() {
@@ -430,6 +443,11 @@ async function startAutoPilot() {
                 console.log('[Neural Bridge] Auto-Verify Triggered for Crystal:', lastVerificationId);
                 verifyTransferReal(res.current_crystal);
             }
+        }
+
+        // Also check if FAB is missing in observer
+        if (!document.getElementById('neural-bridge-fab')) {
+            injectFloatingButton();
         }
     });
 

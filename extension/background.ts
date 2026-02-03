@@ -3,7 +3,8 @@
 export { };
 
 
-const API_BASE = 'http://localhost:3000';
+const API_BASE = 'https://neural-bridge-backend.onrender.com';
+// const API_BASE = 'http://localhost:3000';
 
 interface StorageData {
     apiToken?: string;

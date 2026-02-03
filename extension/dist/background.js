@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:3000";
+const API_BASE = "https://neural-bridge-backend.onrender.com";
 chrome.runtime.onInstalled.addListener(() => {
   console.log("[Neural Bridge] Extension installed");
   chrome.storage.local.get(["installId"], (result) => {
@@ -30,6 +30,24 @@ async function handleMessage(message, _sender) {
       return setToken(message.data);
     case "BOOTSTRAP_SESSION":
       return bootstrapSession();
+    case "OMEGA_ASK":
+      return apiCall({
+        method: "POST",
+        path: "/v1/omega/ask",
+        body: message.data
+      });
+    case "OMEGA_REMEMBER":
+      return apiCall({
+        method: "POST",
+        path: "/v1/omega/remember",
+        body: message.data
+      });
+    case "OMEGA_INTEL":
+      return apiCall({
+        method: "POST",
+        path: "/v1/omega/intel",
+        body: message.data
+      });
     case "GET_INSTALL_ID":
       return getInstallId();
     case "OPENROUTER_CALL":

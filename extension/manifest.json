@@ -13,7 +13,9 @@
         "https://chatgpt.com/*",
         "https://gemini.google.com/*",
         "https://claude.ai/*",
-        "https://openrouter.ai/*"
+        "https://openrouter.ai/*",
+        "http://localhost:3000/*",
+        "https://neural-bridge-backend.onrender.com/*"
     ],
     "action": {
         "default_popup": "popup.html",
