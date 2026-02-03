@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 
 export default function RegisterPage() {
     const [name, setName] = useState('');
+    const [handle, setHandle] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -21,7 +22,7 @@ export default function RegisterPage() {
         setError('');
         setIsLoading(true);
         try {
-            await register(name, email, password);
+            await register(name, handle, email, password);
             router.push('/dashboard');
         } catch (err: any) {
             setError(err.response?.data?.error || 'Failed to register');
@@ -66,6 +67,21 @@ export default function RegisterPage() {
                                     onChange={(e) => setName(e.target.value)}
                                     className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-14 pr-6 text-sm font-bold text-gray-900 outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all placeholder:text-gray-300"
                                     placeholder="Sentinel One"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 pl-4">Sovereign Handle</label>
+                            <div className="relative group">
+                                <User className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                                <input
+                                    type="text"
+                                    value={handle}
+                                    onChange={(e) => setHandle(e.target.value)}
+                                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-14 pr-6 text-sm font-bold text-gray-900 outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all placeholder:text-gray-300"
+                                    placeholder="@sentinel"
                                     required
                                 />
                             </div>

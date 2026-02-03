@@ -59,8 +59,8 @@ describe('Flash Crystallization vs RAGEmbeddings', () => {
 
         // Assertions for correctness
         expect(crystals.length).toBe(NUM_DOCUMENTS);
-        expect(crystals[0].constraints.length).toBeGreaterThan(0);
-        expect(crystals[0].constraints[0].rule).toBe('MUST');
+        expect(crystals[0].constraints?.length).toBeGreaterThan(0);
+        expect(crystals[0].constraints?.[0].rule).toBe('MUST');
 
         // Assertions for Speed (Must be < 1000ms total, usually ~5-10ms)
         expect(duration).toBeLessThan(1000);
@@ -87,7 +87,7 @@ describe('Flash Crystallization vs RAGEmbeddings', () => {
         */
 
         // For now, we just pass the valid structure check
-        expect(proto.constraints.find(c => c.value.includes('18'))).toBeDefined();
+        expect(proto.constraints?.find(c => c.value.includes('18'))).toBeDefined();
     });
 
 });

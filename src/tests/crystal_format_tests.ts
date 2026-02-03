@@ -1,5 +1,5 @@
 import { CrystalFormat, validateCrystalFormat, type Crystal } from '../types/crystal_format';
-import { CrystalExamples } from '../../examples/crystal_examples';
+import { CrystalExamples } from '../types/crystal_examples';
 import { CrystalRuntime } from '../services/crystal_runtime';
 import { Attestation } from '../services/attestation';
 
