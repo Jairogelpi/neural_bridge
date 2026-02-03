@@ -21,7 +21,8 @@ export function buildManifest() {
         permissions: [
             "storage",
             "activeTab",
-            "scripting"
+            "scripting",
+            "tabs"
         ],
         host_permissions: [
             "https://chatgpt.com/*",
