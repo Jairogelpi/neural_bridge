@@ -6,7 +6,7 @@
 
 'use client';
 
-import { Home, Sparkles, Users, Menu } from 'lucide-react';
+import { Home, Sparkles, Users, Menu, MessageSquare, Database } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 
@@ -16,8 +16,9 @@ export function MobileNav() {
 
     const navItems = [
         { icon: Home, label: 'Home', path: '/dashboard' },
+        { icon: MessageSquare, label: 'Chat', path: '/chat' },
+        { icon: Database, label: 'Library', path: '/library' },
         { icon: Sparkles, label: 'Cortex', path: '/cortex' },
-        { icon: Users, label: 'Collab', path: '/crystals' },
         { icon: Menu, label: 'More', path: '/settings' },
     ];
 

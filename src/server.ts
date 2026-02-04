@@ -246,6 +246,49 @@ app.post('/v1/compile', async (req: Request, res: Response) => {
     }
 });
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// SEARCH & RETRIEVAL (Predicate-Aware) 🪐🔍
+// ═══════════════════════════════════════════════════════════════════════════════
+
+app.post('/v1/search', async (req: Request, res: Response) => {
+    try {
+        const { query, top_k = 5 } = req.body;
+        if (!query) {
+            res.status(400).json({ error: 'Missing search query' });
+            return;
+        }
+
+        const { TalamicIndex } = await import('./services/talamic_index');
+
+        // Ensure index is hydrated
+        await TalamicIndex.initialize();
+
+        const results = await TalamicIndex.search(query, top_k);
+
+        // Enrich results with full crystal data from database
+        const enriched = await Promise.all(results.map(async (res) => {
+            const { data } = await supabase
+                .from('crystals')
+                .select('*, authors(name, reputation)')
+                .eq('context_id', res.node.metadata.source_id)
+                .single();
+
+            return {
+                ...data,
+                score: res.score,
+                is_logic_match: res.node.metadata.has_toon && query.includes('@')
+            };
+        }));
+
+        res.json({
+            success: true,
+            results: enriched.filter(Boolean)
+        });
+    } catch (error) {
+        res.status(500).json({ error: (error as Error).message });
+    }
+});
+
 app.post('/v1/singularity/fuse', async (req: Request, res: Response) => {
     try {
         const { crystals } = req.body;

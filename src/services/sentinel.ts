@@ -1,6 +1,7 @@
 import { supabase } from '../db/supabase';
 import { SMTRuntime } from '../smt';
 import type { Crystal } from '../types/crystal_format';
+import { ToonService } from '../../dashboard/src/lib/toon';
 
 export interface SentinelEvent {
     type: 'VACCINE_SYNTHESIS' | 'ORACLE_DREAM' | 'JURY_ESCALATION' | 'FRACTAL_COMPRESSION' | 'ECONOMIC_ROUTING' | 'CRYSTAL_FUSION' | 'ENTROPY_PURIFICATION' | 'CHAOS_EVOLUTION' | 'SEMANTIC_HANDSHAKE' | 'SOVEREIGN_CONSENSUS' | 'HIVE_DREAM' | 'NEUROGENESIS' | 'COGNITIVE_EVOLUTION';
@@ -62,8 +63,9 @@ export class Sentinel {
 
         let healedCount = 0;
         for (const crystal of crystals) {
-            // REAL SEMANTIC SCAN
-            const comparison = await SMTRuntime.compare(JSON.stringify(crystal), String(vaccine.meta_invariant || ""));
+            // REAL SEMANTIC SCAN (Logic-Native)
+            const crystalToon = ToonService.parse(crystal.raw_toon || '');
+            const comparison = await SMTRuntime.compare(ToonService.stringify(crystalToon), String(vaccine.meta_invariant || ""));
             const isVulnerable = comparison.contradiction_detected || (comparison.semantic_similarity > threshold);
 
             if (isVulnerable) {

@@ -33,8 +33,31 @@ export class EntropyShield {
             }
         }
 
+        // 2. [TOON] Prune redundant predicates in the Truth Graph
+        let purifiedToon = crystal.raw_toon;
+        if (crystal.raw_toon) {
+            const { ToonService } = await import('../../dashboard/src/lib/toon');
+            const toon = ToonService.parse(crystal.raw_toon);
+
+            const seenPredicates = new Set<string>();
+            const uniqueGraph = (toon.graph || []).filter((rel: any) => {
+                const key = `${rel.subject}_${rel.predicate}_${rel.object}`.toLowerCase();
+                if (!seenPredicates.has(key)) {
+                    seenPredicates.add(key);
+                    return true;
+                }
+                return false;
+            });
+
+            purifiedToon = ToonService.stringify({
+                ...toon,
+                graph: uniqueGraph
+            });
+        }
+
         const purified: Crystal = {
             ...crystal,
+            raw_toon: purifiedToon,
             verification: {
                 ...crystal.verification,
                 semantic_invariants: uniqueInvariants

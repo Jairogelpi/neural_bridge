@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/Sidebar';
-import { ShieldCheck, Zap, AlertTriangle, Activity, Database, ShieldAlert } from 'lucide-react';
+import { ShieldCheck, Zap, AlertTriangle, Activity, Database, ShieldAlert, Code } from 'lucide-react';
 import { motion } from 'framer-motion';
 import api from '@/lib/api';
 
@@ -29,24 +29,7 @@ export default function VaccineVaultPage() {
             } catch (error) {
                 console.error('Failed to fetch vaccines:', error);
                 // Mock data for initial view if backend hasn't deployed yet
-                setVaccines([
-                    {
-                        vaccine_id: 'v1',
-                        fallacy_type: 'AD_HOMINEM_REJECTION',
-                        meta_invariant: { pattern: 'HDC_0x123' },
-                        potency: 12,
-                        severity: 5,
-                        created_at: new Date().toISOString()
-                    },
-                    {
-                        vaccine_id: 'v2',
-                        fallacy_type: 'HALUCINATION_SHIELD',
-                        meta_invariant: { pattern: 'HDC_0x456' },
-                        potency: 45,
-                        severity: 8,
-                        created_at: new Date().toISOString()
-                    }
-                ]);
+                setVaccines([]);
             } finally {
                 setIsLoading(false);
             }
@@ -131,7 +114,15 @@ export default function VaccineVaultPage() {
                                     </div>
 
                                     <h4 className="text-sm font-black text-gray-900 mb-1">{vaccine.fallacy_type}</h4>
-                                    <p className="text-[10px] font-medium text-gray-400 mb-6">Generated from Jury Consensus 0.92</p>
+                                    <div className="bg-emerald-50/30 p-3 rounded-xl border border-emerald-100/50 mb-6 font-mono text-[9px] text-emerald-800">
+                                        <div className="flex items-center gap-2 mb-1 opacity-50">
+                                            <Code size={10} />
+                                            <span className="uppercase font-black tracking-widest">Axiom.toon</span>
+                                        </div>
+                                        <pre className="whitespace-pre-wrap italic">
+                                            {vaccine.meta_invariant?.raw_toon || `MUST [Negate ${vaccine.fallacy_type}]`}
+                                        </pre>
+                                    </div>
 
                                     <div className="grid grid-cols-2 gap-3">
                                         <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">

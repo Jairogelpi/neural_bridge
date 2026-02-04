@@ -14,6 +14,18 @@ api.interceptors.request.use((config) => {
         if (token && config.headers) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+
+        // Inject Sovereign Keys if present
+        const sovereignKeys = localStorage.getItem('nb_sovereign_keys');
+        if (sovereignKeys && config.headers) {
+            try {
+                const keys = JSON.parse(sovereignKeys);
+                if (keys.openai) config.headers['x-openai-key'] = keys.openai;
+                if (keys.anthropic) config.headers['x-anthropic-key'] = keys.anthropic;
+            } catch (e) {
+                console.warn('Failed to parse sovereign keys', e);
+            }
+        }
     }
     return config;
 });

@@ -68,8 +68,37 @@ export async function compressCrystalMDL(params: {
 
     // Calculate final metrics
     const original_tokens = estimateTokens(JSON.stringify(crystal));
+
+    // 3. [TOON] Prune the Truth Manifold
+    let compressedToon = crystal.raw_toon;
+    if (crystal.raw_toon) {
+        try {
+            const { ToonService } = await import('../../dashboard/src/lib/toon');
+            const toon = ToonService.parse(crystal.raw_toon);
+
+            // Heuristic: remove predicates where subject/object are not in core entities/constraints
+            const entities = crystal.entities || [];
+            const coreValues = new Set([
+                ...entities.map(e => e.name.toLowerCase()),
+                ...(crystal.constraints || []).map(c => c.value.toLowerCase())
+            ]);
+
+            const prunedGraph = (toon.graph || []).filter((rel: any) =>
+                coreValues.has(rel.subject.toLowerCase()) || coreValues.has(rel.object.toLowerCase())
+            );
+
+            compressedToon = ToonService.stringify({
+                ...toon,
+                graph: prunedGraph
+            });
+        } catch (e) {
+            // Non-critical
+        }
+    }
+
     const compressed_crystal = {
         ...crystal,
+        raw_toon: compressedToon,
         verification: {
             ...crystal.verification,
             semantic_invariants: current_invariants

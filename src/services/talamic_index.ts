@@ -10,6 +10,7 @@ export interface AtlasNode {
         preview: string;
         domain: string;
         is_crystallized: boolean;
+        has_toon?: boolean;
     };
 }
 
@@ -24,8 +25,8 @@ const ATLAS_STORAGE_KEY = "nb_talamic_atlas_v1";
  */
 export class TalamicIndex {
 
-    private static atlas: Map<string, AtlasNode> = new Map();
-    private static spatialIndex: Map<string, Set<string>> = new Map(); // Bucket -> [Node IDs]
+    public static atlas: Map<string, AtlasNode> = new Map();
+    public static spatialIndex: Map<string, Set<string>> = new Map(); // Bucket -> [Node IDs]
     private static isInitialized = false;
 
     /**
@@ -56,10 +57,7 @@ export class TalamicIndex {
                 console.log(`[TalamicIndex] 📥 Hydrating ${crystals.length} crystals...`);
 
                 for (const record of crystals) {
-                    // Re-project into HDC space
-                    // Ideally we should store the vector hash to avoid re-computing, 
-                    // but re-computing ensures algorithm updates propagate.
-                    const text = record.intent?.primary || record.description || "";
+                    const text = record.raw_toon || record.intent?.primary || record.description || "";
                     if (text) {
                         await this.ingest(text, record.context_id, record.domain || 'general');
                     }
@@ -90,9 +88,23 @@ export class TalamicIndex {
                 source_id: sourceId,
                 preview: text.substring(0, 500),
                 domain: domain,
-                is_crystallized: false
+                is_crystallized: true,
+                has_toon: text.includes('@')
             }
         };
+
+        // 🧬 EXTRAPOLATE PREDICATES (Logical Anchors)
+        if (node.metadata.has_toon) {
+            const { ToonService } = await import('../../dashboard/src/lib/toon');
+            const toon = ToonService.parse(text);
+            toon.graph.forEach((rel: any) => {
+                const predicateBucket = `pred_${rel.subject}_${rel.predicate}_${rel.object}`;
+                if (!this.spatialIndex.has(predicateBucket)) {
+                    this.spatialIndex.set(predicateBucket, new Set());
+                }
+                this.spatialIndex.get(predicateBucket)!.add(node.id);
+            });
+        }
 
         this.atlas.set(node.id, node);
 

@@ -17,6 +17,7 @@
  */
 
 import { cryptoUtils } from '../utils/crypto_utils';
+import { ToonService } from '../../dashboard/src/lib/toon';
 
 async function sha256(message: string): Promise<string> {
     return await cryptoUtils.sha256(message);
@@ -141,9 +142,10 @@ export class ZKProver {
         source: string;
         answer: string;
         domain: string;
+        toon?: string; // Standardized TOON manifold
         constraints?: Array<{ type: string; value: unknown }>;
     }): Promise<ZKProof> {
-        const { source, answer, domain, constraints = [] } = params;
+        const { source, answer, domain, constraints = [], toon } = params;
 
         // Step 1: Create commitments (hide actual values)
         const nonce = randomHex(32);
@@ -169,7 +171,7 @@ export class ZKProver {
 
         const constraintsCommitment = await this.createZKCommitment({
             claim: 'All constraints are satisfied',
-            secret: JSON.stringify(constraints) + JSON.stringify(internalVerification),
+            secret: toon || JSON.stringify(constraints) + JSON.stringify(internalVerification),
             nonce: randomHex(16),
             result: internalVerification.constraintsPassed === constraints.length
         });
@@ -492,6 +494,7 @@ export class ZKVRuntime {
         source: string;           // HIDDEN: Never leaves the prover
         answer: string;           // Public: The answer being verified
         domain: string;
+        toon?: string;            // Standard TOON manifold
         constraints?: Array<{ type: string; value: unknown }>;
         secretKey?: string;       // Optional: For consistent prover identity
     }): Promise<ZKProof> {

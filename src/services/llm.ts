@@ -603,7 +603,8 @@ Return ONLY valid JSON, no markdown or explanation.`;
             surprise: predictionError,
             geometric_density: entropy, // Use bit-entropy as density proxy
             is_singularity: false
-        }
+        },
+        raw_toon: "" // Initialized empty, populated by Dreaming loop or refinement
     };
 
     // 🚀 DIALECTICAL SINGULARITY: THE HEGELIAN LOOP
@@ -1000,7 +1001,7 @@ Return JSON: {"score": 0.0-1.0, "reasoning": "..."}`;
 
 async function buildInjectionPrompt(crystal: Crystal): Promise<string> {
     const { LatentAnchor } = await import('./latent_anchor');
-    const anchoredContext = LatentAnchor.anchor(crystal);
+    const anchoredContext = await LatentAnchor.anchor(crystal);
 
     return `SYSTEM ADVISORY: LATENT ANCHOR INJECTION DETECTED\n---\n${anchoredContext}\n\nAcknowledge initialization.`.trim();
 }
@@ -1077,6 +1078,7 @@ export async function sovereignSynthesize(text: string, domain: string): Promise
         constraints: [{ id: 'sov_001', rule: ConstraintRule.MUST, value: 'Axiomatic consistency', rationale: 'Override', severity: 'critical' }],
         verification: { canonical_hash: '', semantic_invariants: [{ id: 'inv_sov', kind: 'fact_check', prompt: 'Logic-anchored?', expected: { type: 'boolean', value: true }, weight: 1.0, strict: true, rationale: 'Self-verification' }], policy: { min_checks: 1, accept_threshold: 1.0, max_retries: 0, strategy: 'strict' } },
         author: { id: 'neural_bridge_core', name: 'Sovereign Anchor', reputation: 1.0 },
+        raw_toon: ""
     };
     crystal.verification.canonical_hash = await computeCanonicalHash(crystal);
     return { crystal, llmResponse: { content: JSON.stringify(crystal), model: 'SOVEREIGN_ENGINE', tokens: { prompt: 0, completion: 0, total: 0 }, cost: 0, latency: 0 } };

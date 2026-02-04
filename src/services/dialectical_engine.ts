@@ -1,5 +1,6 @@
 import { SCPService } from './llm';
 import { FalsificationEngine } from './falsification';
+import { ToonService } from '../../dashboard/src/lib/toon';
 
 export interface DialecticalResult {
     final_thesis: string;
@@ -58,15 +59,17 @@ export class DialecticalEngine {
             Context: "${context.substring(0, 500)}..."
             
             OBJECTIVE: Propose a synthesis that minimizes Variational Free Energy.
-            This means:
-            1. ACCURACY: It must fully resolve the prediction error (the attack).
-            2. COMPLEXITY: It must be as simple as possible (Minimum Description Length).
             
-            Return ONLY the new synthesized Thesis string. No markdown.
+            Return ONLY a TOON manifold:
+            @intent(Propose a synthesis that resolves the conflict)
+            (Subject) -[Relationship]-> (Object)
+            MUST [Core resilient axiom]
+            NEVER [Pattern that caused the attack to succeed]
             `;
 
             const synthesisRes = await SCPService.resilientCallLLM(synthesisPrompt, 'anthropic/claude-3.5-sonnet', 'You are a Variational Free Energy Optimizer.');
-            const nextThesis = synthesisRes.content.trim();
+            const nextTOON = synthesisRes.content.trim();
+            const nextThesis = ToonService.parse(nextTOON).metadata.intent || nextTOON;
 
             // 3. FEP EVALUATION: Calculate Free Energy Delta
             const feBefore = await DialecticalEngine.calculateFreeEnergy(currentThesis, context);

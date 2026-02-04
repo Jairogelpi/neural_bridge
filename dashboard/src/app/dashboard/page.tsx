@@ -75,7 +75,7 @@ export default function PremiumDashboard() {
                         totalCrystals: data.stats.total_crystals || 0,
                         todayCrystals: data.stats.crystals_today || 0,
                         cacheHitRate: data.stats.cacheHitRate || 0,
-                        activeJobs: 0, // Calculated dynamically in backend
+                        activeJobs: data.stats.active_jobs || 0,
                         savingsUsd: data.stats.estimated_savings_usd || 0,
                         fidelity: data.stats.truth_fidelity || 0.984,
                         threatsBlocked: data.stats.threats_neutralized || 0,

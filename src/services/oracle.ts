@@ -32,8 +32,8 @@ export class Oracle {
         You are a simulator for a target AI (e.g. Claude).
         You received this Context Crystal.
         
-        INTENT: "${crystal.intent.primary}"
-        CONSTRAINTS: ${JSON.stringify(crystal.constraints)}
+        TOON MANIFOLD:
+        ${crystal.raw_toon || JSON.stringify(crystal.intent)}
         
         Predict: What is the most likely way you would MISINTERPRET or FAIL this request?
         Be pessimistic. Look for ambiguity.
@@ -95,8 +95,8 @@ export class Oracle {
         
         Current Intent: "${crystal.intent.primary}"
         
-        Task: Rewrite the Intent or add a Constraint to PREVENT this specific failure.
-        Make it foolproof.
+        Task: Rewrite the TOON Manifold or add a MUST/NEVER constraint to PREVENT this failure.
+        Maintain strict TOON v0.1 syntax.
         
         Return ONLY the new Intent string.
         `;

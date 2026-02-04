@@ -11,19 +11,18 @@ export function LandingHeader() {
         <nav className="fixed top-0 w-full z-50 bg-white/60 backdrop-blur-2xl border-b border-indigo-50/50 px-6 sm:px-8 py-4 flex items-center justify-between transition-all duration-300">
             <div className="flex items-center space-x-4 group cursor-pointer">
                 {/* NEW CRYSTAL LOGO */}
-                <div className="relative w-10 h-10 flex items-center justify-center">
+                <div className="relative w-12 h-12 flex items-center justify-center">
                     <div className="absolute inset-0 bg-indigo-500 blur-xl opacity-20 group-hover:opacity-40 transition-opacity duration-500" />
-                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="relative z-10 transition-transform duration-500 group-hover:rotate-180">
-                        <path d="M16 2L2 9.5L16 17L30 9.5L16 2Z" className="fill-indigo-500" stroke="white" strokeWidth="1.5" />
-                        <path d="M2 9.5L16 17V30L2 22.5V9.5Z" className="fill-violet-600" stroke="white" strokeWidth="1.5" />
-                        <path d="M30 9.5L16 17V30L30 22.5V9.5Z" className="fill-indigo-600" stroke="white" strokeWidth="1.5" />
-                        <rect x="15" y="1" width="2" height="15" className="fill-white mix-blend-overlay opacity-50" />
-                    </svg>
+                    <img
+                        src="/logo.png"
+                        alt="Neural Bridge Logo"
+                        className="w-10 h-10 object-contain relative z-10 transition-transform duration-500 group-hover:scale-110"
+                    />
                 </div>
 
                 <div className="flex flex-col">
-                    <span className="text-sm font-black tracking-tighter uppercase text-slate-900 leading-none">Neural</span>
-                    <span className="text-sm font-black tracking-[0.2em] uppercase text-indigo-600 leading-none">Crystals</span>
+                    <span className="text-sm font-black tracking-tight uppercase text-slate-900 leading-none">NEURAL</span>
+                    <span className="text-sm font-black tracking-[0.1em] uppercase text-indigo-600 leading-none">BRIDGE</span>
                 </div>
             </div>
 

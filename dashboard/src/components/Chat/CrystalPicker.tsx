@@ -108,7 +108,15 @@ export function CrystalPicker({ isOpen, onClose, onSelect, alreadySelected }: Cr
                                     {isSelected && (
                                         <div className="absolute top-6 right-6 flex items-center gap-2 text-blue-600 bg-blue-100 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
                                             <Check size={12} className="stroke-[3]" />
-                                            Active Stats
+                                            Active Context
+                                        </div>
+                                    )}
+
+                                    {/* TOON Native Indicator */}
+                                    {(crystal as any).raw_toon && (
+                                        <div className="absolute top-6 right-6 flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[9px] font-black uppercase tracking-tighter border border-emerald-100 mr-28">
+                                            <ShieldCheck size={10} />
+                                            TOON NATIVE
                                         </div>
                                     )}
 
@@ -160,13 +168,13 @@ export function CrystalPicker({ isOpen, onClose, onSelect, alreadySelected }: Cr
                                                     </div>
                                                 </Tooltip>
 
-                                                <Tooltip content="Neural Density" description="Dimensionality of the vector embeddings used for semantic retrieval.">
+                                                <Tooltip content="Truth Density" description="The density of logical predicates within the Truth-Oriented manifold. High density indicates a rigorous axiom.">
                                                     <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 flex items-center gap-3">
-                                                        <Cpu size={16} className="text-gray-400" />
+                                                        <Activity size={16} className="text-gray-400" />
                                                         <div>
-                                                            <div className="text-[10px] font-bold uppercase text-gray-400">Vector Dims</div>
+                                                            <div className="text-[10px] font-bold uppercase text-gray-400">Truth Density</div>
                                                             <div className="text-xs font-black text-gray-900">
-                                                                {crystal.vector_dims || 1536} <span className="text-gray-400 font-normal">float32</span>
+                                                                {(crystal as any).raw_toon ? ((crystal as any).raw_toon.length / 500).toFixed(2) : '0.00'}<span className="text-gray-400 font-normal"> t/kb</span>
                                                             </div>
                                                         </div>
                                                     </div>

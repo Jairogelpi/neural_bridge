@@ -25,6 +25,37 @@ export default function ExtensionPopup() {
     const [error, setError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Registry State
+    const [jsonInput, setJsonInput] = useState('');
+    const [injecting, setInjecting] = useState(false);
+
+    const handleInject = async () => {
+        if (!jsonInput.trim()) return;
+        setInjecting(true);
+        try {
+            await api.post('/v1/turbo/crystallize', {
+                text: jsonInput,
+                tier: 'standard',
+                domain: 'EXTENSION_JSON'
+            });
+            setJsonInput('');
+            alert('Crystal Injected to Cortex 💎');
+        } catch (e) {
+            alert('Injection Failed');
+        } finally {
+            setInjecting(false);
+        }
+    };
+
+    const handleSync = async () => {
+        // Trigger a fidelity refresh
+        const response = await api.get('/v1/analytics/fidelity');
+        if (response.data.success) {
+            setFidelity(response.data.fidelity || 0);
+            alert('Vault Synced: Fidelity Updated 🔄');
+        }
+    };
+
     // Load real fidelity metrics from backend
     useEffect(() => {
         const fetchFidelity = async () => {
@@ -251,15 +282,24 @@ export default function ExtensionPopup() {
                         >
                             <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest ml-1 italic font-bold">Register Crystal (JSON)</div>
                             <textarea
+                                value={jsonInput}
+                                onChange={(e) => setJsonInput(e.target.value)}
                                 className="w-full h-36 bg-gray-50 border border-gray-100 rounded-3xl p-5 text-[11px] font-mono text-black outline-none focus:border-blue-600 transition-all resize-none shadow-inner"
-                                placeholder='{ "crystal_id": "...", "smt_hash": "..." }'
+                                placeholder='{ "crystal_id": "...", "content": "..." }'
                             />
                             <div className="grid grid-cols-2 gap-4">
-                                <button className="bg-[#020202] text-white rounded-2xl py-4 text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all flex flex-col items-center gap-1.5 shadow-xl shadow-black/5">
-                                    <Activity className="w-5 h-5 text-cyan-400" />
-                                    Inject
+                                <button
+                                    onClick={handleInject}
+                                    disabled={injecting}
+                                    className="bg-[#020202] text-white rounded-2xl py-4 text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all flex flex-col items-center gap-1.5 shadow-xl shadow-black/5 disabled:opacity-50"
+                                >
+                                    <Activity className={`w-5 h-5 text-cyan-400 ${injecting ? 'animate-spin' : ''}`} />
+                                    {injecting ? 'Injecting...' : 'Inject'}
                                 </button>
-                                <button className="bg-white border border-gray-200 rounded-2xl py-4 text-[10px] font-black uppercase tracking-widest hover:border-black transition-all flex flex-col items-center gap-1.5 shadow-sm">
+                                <button
+                                    onClick={handleSync}
+                                    className="bg-white border border-gray-200 rounded-2xl py-4 text-[10px] font-black uppercase tracking-widest hover:border-black transition-all flex flex-col items-center gap-1.5 shadow-sm active:scale-95"
+                                >
                                     <Database className="w-5 h-5 text-blue-600" />
                                     Sync Vault
                                 </button>

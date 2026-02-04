@@ -5,6 +5,7 @@ import { Attestation } from './attestation';
 import { UsidEngine } from './usid_engine';
 import { SemanticHasher } from './semantic_hashing';
 import { Hypervector } from '../math/hypervector';
+import { ToonService } from '../../dashboard/src/lib/toon';
 
 export interface CrystallizationOptions {
     domain?: string;
@@ -52,61 +53,39 @@ export class CrystallizationService {
         const model = SCPService.getOptimalModel({ domain, task: 'compile', isCritical: true });
 
         // 5. Run the Compiler Prompt
-        const systemPrompt = `You are the CRYSTALLIZATION ENGINE.
-Your goal is to extract IRREFUTABLE TRUTH from the input text and freeze it into a "Crystal".
-
-You MUST return a valid JSON object matching the Crystal v0.1 schema:
-{
-  "entities": [{"name": "...", "type": "...", "category": "..."}],
-  "intent": {"primary": "...", "status": "active"},
-  "constraints": [
-    {
-      "id": "c_unique_id",
-      "rule": "MUST|NEVER|IF_THEN", 
-      "value": "Exact rule text", 
-      "rationale": "Why this is true"
-    }
-  ],
-  "verification": {
-    "semantic_invariants": [
-      {
-        "id": "inv_001",
-        "prompt": "Question to verify truth",
-        "expected": {"type": "string", "value": "Expected Answer"},
-        "rationale": "..."
-      }
-    ]
-  }
+        const systemPrompt = `{
+  @id(AUTO_ID)
+  @intent(PRIMARY_GOAL)
+  (Subject) -[Relationship]-> (Object)
+  MUST [Rigid Logic Rule]
+  NEVER [Prohibited State]
+  !verify(Question?) -> [Expected Answer]
 }
 
 CRITICAL RULES:
 - Extracted constraints must be LOGICALLY BINDING.
-- The "intent" should represent the core purpose of this knowledge.
-- Invariants must be testable questions that PROVE the AI understands this crystal.
-- AUTO-INFER: Look for numerical facts, dates, named entities, and logical dependencies. Create 3-5 invariants automatically.`;
+- Use TOON syntax strictly. No JSON in the body.
+- Return ONLY the TOON block.`;
 
         const response = await SCPService.resilientCallLLM(
-            `CRYSTALLIZE THIS KNOWLEDGE:\n\n${processedText}\n\nReturn ONLY JSON.`,
+            `CRYSTALLIZE THIS KNOWLEDGE INTO TOON:\n\n${processedText}\n\nReturn ONLY the TOON code block.`,
             model,
             systemPrompt
         );
 
-        // 6. Parse & Validate
-        let parsed;
-        try {
-            let jsonStr = response.content;
-            const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
-            if (jsonMatch && jsonMatch[1]) jsonStr = jsonMatch[1];
-            parsed = JSON.parse(jsonStr.trim());
-        } catch (e) {
-            throw new Error(`[Crystallization] Failed to parse Crystal JSON: ${e}`);
-        }
+        // 6. Parse TOON & Sync Legacy Fields
+        let toonContent = response.content;
+        const toonMatch = toonContent.match(/```toon?\s*([\s\S]*?)```/) || toonContent.match(/\{([\s\S]*?)\}/);
+        if (toonMatch) toonContent = toonMatch[1];
+
+        const toonData = ToonService.parse(toonContent);
 
         // 7. Construct the Crystal Object
         const crystal: Crystal = {
             scp_version: '1.0',
             context_id: `cry_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
             created_at: new Date().toISOString(),
+            raw_toon: toonContent,
             version: '1.0.0',
             tier: options.tier || 'community',
             domain: domain,
@@ -117,7 +96,7 @@ CRITICAL RULES:
                 model: model
             },
             intent: {
-                primary: parsed.intent?.primary || 'Knowledge Transfer',
+                primary: toonData.metadata?.intent || 'Knowledge Transfer',
                 status: CrystalStatus.ACTIVE
             },
             author: options.author || {
@@ -125,26 +104,29 @@ CRITICAL RULES:
                 name: 'Neural Bridge Refinery',
                 reputation: 1.0
             },
-            constraints: (parsed.constraints || []).map((c: any) => ({
-                id: c.id || `c_${Math.random().toString(36).substr(2, 4)}`,
-                rule: c.rule || ConstraintRule.MUST,
+            constraints: (toonData.constraints || []).map((c: any) => ({
+                id: `c_${Math.random().toString(36).substr(2, 4)}`,
+                rule: c.type || ConstraintRule.MUST,
                 value: c.value,
-                rationale: c.rationale || 'Extracted truth'
+                rationale: 'Extracted truth'
             })),
-            entities: parsed.entities || [],
+            entities: (toonData.graph || []).map((rel: any) => ({
+                name: rel.subject,
+                type: 'concept'
+            })),
             verification: {
                 canonical_hash: '', // Set next
-                semantic_invariants: (parsed.verification?.semantic_invariants || []).map((inv: any) => ({
-                    id: inv.id || `inv_${Math.random().toString(36).substr(2, 4)}`,
+                semantic_invariants: (toonData.proofs?.invariants || []).map((inv: any) => ({
+                    id: `inv_${Math.random().toString(36).substr(2, 4)}`,
                     kind: 'fact_check',
                     prompt: inv.prompt,
                     expected: {
-                        type: inv.expected?.type || 'string',
-                        value: inv.expected?.value
+                        type: 'string',
+                        value: inv.value
                     },
                     weight: 1.0,
                     strict: true,
-                    rationale: inv.rationale || 'Verification check'
+                    rationale: 'Verification check'
                 })),
                 policy: {
                     min_checks: 2,
@@ -155,9 +137,13 @@ CRITICAL RULES:
             }
         };
 
-        // 8. Seal the Crystal (Cryptographic Hash)
+        // 8. SYNAPTIC BINDING (The Connectome)
+        const { SynapticBinder } = await import('./synaptic_binder');
+        const boundCrystal = await SynapticBinder.bind(crystal);
+
+        // 9. Seal the Crystal (Cryptographic Hash)
         // We hash everything EXCEPT the hash field itself
-        const toHash = { ...crystal };
+        const toHash = { ...boundCrystal };
         (toHash.verification as any).canonical_hash = undefined;
 
         crystal.verification.canonical_hash = await Attestation.realSHA256(JSON.stringify(toHash));
@@ -236,6 +222,14 @@ CRITICAL RULES:
             scp_version: '1.0',
             context_id: `proto_${Date.now()}`,
             created_at: new Date().toISOString(),
+            raw_toon: ToonService.stringify({
+                metadata: { intent: 'Proto-Context' },
+                graph: constraints.map(c => ({
+                    subject: c.value,
+                    predicate: c.rule === ConstraintRule.MUST ? 'HAS_INVARIANT' : 'VIOLATES_INVARIANT',
+                    object: 'Core_Logic'
+                }))
+            }),
             version: '0.1.0-proto',
             tier: 'community', // Proto tier
             domain: domain,

@@ -139,6 +139,16 @@ export default function DreamLabPage() {
                                                 <div>
                                                     <p className="text-green-300 font-bold text-xs uppercase tracking-wider mb-1">Synthesis Report</p>
                                                     <p className="text-gray-300">{dreamResult.synthesis}</p>
+
+                                                    {/* TOON LOGIC PREVIEW */}
+                                                    <div className="mt-4 p-3 bg-black/40 rounded-lg border border-white/5 font-mono text-[10px]">
+                                                        <p className="text-purple-400 mb-2 uppercase tracking-widest font-black">Generated Predicates</p>
+                                                        <div className="space-y-1">
+                                                            <p className="text-gray-500">(Domain) {"--[MANIFESTS_AS]-->"} ({dreamResult.message.split(' ')[0]})</p>
+                                                            <p className="text-gray-500">(Axiom) {"--[STRENGTHENS]-->"} (Lattice)</p>
+                                                        </div>
+                                                    </div>
+
                                                     <p className="text-gray-400 mt-2 text-xs">{dreamResult.message}</p>
                                                 </div>
                                             </div>

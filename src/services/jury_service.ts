@@ -11,6 +11,7 @@ interface JuryVote {
     };
 }
 import type { Crystal } from '../types/crystal_format';
+import { ToonService } from '../../dashboard/src/lib/toon';
 
 export interface JuryEscalation {
     case_id?: string;
@@ -159,9 +160,10 @@ export class JuryService {
             const { data: caseData } = await supabase.from('jury_cases').select('context_id').eq('case_id', caseId).single();
 
             if (caseData) {
-                const { data: crystal } = await supabase.from('crystals').select('verification').eq('context_id', caseData.context_id).single();
+                const { data: crystalRaw } = await supabase.from('crystals').select('*').eq('context_id', caseData.context_id).single();
 
-                if (crystal) {
+                if (crystalRaw) {
+                    const crystal = crystalRaw as any;
                     const expertSignatures = (votes as unknown as JuryVote[]).map(v => ({
                         algorithm: 'ECDSA-P256' as const,
                         public_key: v.authors.public_key,
@@ -180,7 +182,17 @@ export class JuryService {
                     };
 
                     await supabase.from('crystals')
-                        .update({ verification: updatedVerification, tier: 'certified' })
+                        .update({
+                            verification: updatedVerification,
+                            tier: 'certified',
+                            raw_toon: ToonService.stringify({
+                                ...ToonService.parse(crystal.raw_toon || ''),
+                                metadata: {
+                                    ...ToonService.parse(crystal.raw_toon || '').metadata,
+                                    certified_by_experts: true
+                                }
+                            })
+                        })
                         .eq('context_id', caseData.context_id);
 
                     console.log(`[JuryService] ⚓ Crystal ${caseData.context_id} has been CERTIFIED by Human Jury.`);

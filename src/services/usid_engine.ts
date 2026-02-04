@@ -9,6 +9,7 @@ import type {
 import {
     DEFAULT_CAPABILITIES
 } from '../types/usid';
+import { ToonService } from '../../dashboard/src/lib/toon';
 
 export class UsidEngine {
 
@@ -24,13 +25,23 @@ export class UsidEngine {
         const model = models[0] || 'anthropic/claude-3.5-sonnet';
 
         const systemPrompt = `
-        You are a LOGIC COMPILER. Translate User Intent into UNIVERSAL CONSTRAINTS.
-        Return ONLY the JSON array.
+        You are a LOGIC COMPILER. Translate User Intent into a TOON manifold.
+        Return ONLY the TOON code.
+        @intent(Goal)
+        MUST [Axiom]
+        !logic(Constraint)
         `;
 
         try {
             const response = await SCPService.resilientCallLLM(intent, model, systemPrompt);
-            return JSON.parse(response.content);
+            const toon = ToonService.parse(response.content);
+            return (toon.constraints || []).map((c: any) => ({
+                id: `c_${Math.random().toString(36).substr(2, 4)}`,
+                type: 'LOGIC',
+                key: 'toon',
+                value: c.value,
+                desc: c.value
+            }));
         } catch (e: unknown) {
             return [];
         }
@@ -111,28 +122,28 @@ export class UsidEngine {
 
     static async checkLogicalConsistency(constraints: UniversalConstraint[]): Promise<{ consistent: boolean, conflicts: UnsatCoreItem[], ids: string[] }> {
         const prompt = `
-        Start by analyzing these constraints looking for LOGICAL CONTRADICTIONS.
-        ${JSON.stringify(constraints, null, 2)}
+        Start by analyzing these TOON manifolds looking for LOGICAL CONTRADICTIONS.
+        ${constraints.map(c => c.value).join('\n')}
         
-        Examples of contradictions:
-        - "Must be JSON only" AND "Must include paragraph outside JSON"
-        - "Max length 10 words" AND "Must include full history of Rome"
+        If CONTRADICTORY, return TOON:
+        @consistent(false)
+        MUST [Reason for failure]
+        !ids(conflicting_ids)
         
-        If CONTRADICTORY, return JSON: {"consistent": false, "conflicts": [{"constraint_id": "...", "reason": "..."}], "ids": ["..."]}
-        If CONSISTENT, return: {"consistent": true}
+        If CONSISTENT, return TOON: @consistent(true)
         `;
 
         try {
             const res = await SCPService.resilientCallLLM("Analyze Consistency", 'nvidia/nemotron-3-nano-30b-a3b:free', prompt);
-            const parsed = JSON.parse(res.content);
+            const parsed = ToonService.parse(res.content);
             return {
-                consistent: !!parsed.consistent,
-                conflicts: (parsed.conflicts || []).map((c: { constraint_id: string; reason: string }) => ({
-                    constraint_id: c.constraint_id,
+                consistent: parsed.metadata.consistent === 'true',
+                conflicts: (parsed.constraints || []).map((c: any) => ({
+                    constraint_id: 'unknown',
                     constraint_desc: 'Logical Contradiction',
-                    conflict_reason: c.reason
+                    conflict_reason: c.value
                 })),
-                ids: parsed.ids || []
+                ids: parsed.proofs.ids?.split(',') || []
             };
         } catch (e: unknown) {
             const msg = (e && typeof e === 'object' && 'message' in e && typeof e.message === 'string') ? e.message : '';
@@ -143,14 +154,20 @@ export class UsidEngine {
 
     static async generateRepairs(unsatCore: UnsatCoreItem[]): Promise<ConflictRepair[]> {
         const prompt = `
-        Given these UNSATISFIABLE Constraints, suggest repairs:
+        Given these UNSATISFIABLE TOON Axioms, suggest repairs:
         ${JSON.stringify(unsatCore)}
         
-        Return JSON array: [{"change": "...", "effect": "..."}]
+        Return TOON:
+        MUST [Repair suggested]
+        !effect(Expected outcome)
         `;
         const res = await SCPService.callLLM("Suggest Repairs", 'anthropic/claude-3.5-sonnet', prompt);
         try {
-            return JSON.parse(res.content) as ConflictRepair[];
+            const parsed = ToonService.parse(res.content);
+            return (parsed.constraints || []).map((c: any) => ({
+                change: c.value,
+                effect: parsed.proofs.effect || 'Neutral'
+            }));
         } catch {
             return [];
         }

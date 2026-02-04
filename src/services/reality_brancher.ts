@@ -60,7 +60,8 @@ export class RealityBrancher {
         const modifiedCrystal: Crystal = {
             ...parent,
             context_id: branch.branch_id,
-            ...branch.modifications
+            ...branch.modifications,
+            raw_toon: (branch.modifications as any).raw_toon || parent.raw_toon
         };
 
         const merged = await CrystalFuser.fuse([parent, modifiedCrystal]);

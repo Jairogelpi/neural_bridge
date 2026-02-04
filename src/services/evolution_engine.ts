@@ -1,5 +1,6 @@
 import { SCPService } from './llm';
 import { Crystal, CrystalConstraint, CrystalStatus } from '../types/crystal_format';
+import { ToonService } from '../../dashboard/src/lib/toon';
 
 /**
  * THE EVOLUTION ENGINE 🧬
@@ -37,11 +38,30 @@ export class EvolutionEngine {
             status: CrystalStatus.ACTIVE
         };
 
-        // 3. Create Child
+        // 3. Synthesize TOON Manifold (Cross-over Logic)
+        const manifoldA = ToonService.parse(parentA.raw_toon || '');
+        const manifoldB = ToonService.parse(parentB.raw_toon || '');
+
+        const childGraph = [
+            ...(manifoldA.graph || []),
+            ...(manifoldB.graph || [])
+        ].filter((v, i, a) => a.findIndex(t => (t.subject === v.subject && t.predicate === v.predicate && t.object === v.object)) === i); // Deduplicate SPOs
+
+        const childRawToon = ToonService.stringify({
+            metadata: {
+                ...manifoldA.metadata,
+                generation: (manifoldA.metadata?.generation || 0) + 1,
+                intent: childIntent.primary
+            },
+            graph: childGraph
+        });
+
+        // 4. Create Child
         const child: Crystal = {
             ...parentA, // Inherit base properties from A
             context_id: `child_${Date.now()}_gen`,
             version: `${parseInt(parentA.version) + 1}.0.0`,
+            raw_toon: childRawToon,
             intent: childIntent,
             constraints: childConstraints,
             // Inherit RLM stats (Start with parents' average potential)
@@ -111,17 +131,18 @@ export class EvolutionEngine {
             Reliability Score: ${reliabilityScore} (Too Low)
 
             TASK:
-            Analyze WHY this prompt failed to generate a valid Crystal.
-            Is it ambiguous? Missing constraints? Too complex?
-            
-            Return a single sentence diagnosis.
+            Return a TOON diagnosis:
+            @failure(Type of failure)
+            MUST [Human readable diagnosis]
+            !logic(Logic flaw detected)
             `;
 
-            console.log(`🔬 [EvolutionEngine] Diagnosing failure logic...`);
+            console.log(`🔬 [EvolutionEngine] Diagnosing failure logic via TOON...`);
             // Use a smart model for diagnosis (Meta-Cognition)
             const diagnosisRes = await SCPService.resilientCallLLM(analysisPrompt, 'anthropic/claude-3-haiku', 'Evolution Engineer');
-            const diagnosis = diagnosisRes.content;
-            console.log(`   > Diagnosis: ${diagnosis.substring(0, 100)}...`);
+            const diagnosisToon = ToonService.parse(diagnosisRes.content);
+            const diagnosis = diagnosisToon.constraints[0]?.value || diagnosisRes.content;
+            console.log(`   > Diagnosis [TOON]: ${diagnosis.substring(0, 100)}...`);
 
             // Step 2: Genetic Mutation (Rewrite)
             const mutationPrompt = `
@@ -136,7 +157,7 @@ export class EvolutionEngine {
             - Add explicit constraints if needed.
             - Optimize for machine-readability.
 
-            Return ONLY the new prompt text. Do not explain.
+            Return ONLY the new TOON-optimized prompt text. No markdown.
             `;
 
             console.log(`🧪 [EvolutionEngine] Mutating prompt DNA...`);

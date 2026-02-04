@@ -14,19 +14,27 @@ export class SynapticBinder {
         // 1. Identify explicitly defined parents (Genealogy)
         // (Already present if passed in via refinement, but we verify them)
 
-        // 2. Discover Autonomous Synapses (Semantic Neighbors)
+        // 2. Discover Autonomous Synapses (Semantic & Logical Neighbors)
         const semanticSynapses = await this.discoverSemanticSynapses(crystal);
+        const logicalSynapses = await this.discoverPredicateSynapses(crystal);
 
         // 3. Merge new synapses into the crystal
+        const allNewSynapses = [...semanticSynapses, ...logicalSynapses];
         const existingSynapses = crystal.synapses || [];
-        // Avoid duplicates
-        const newUniqueSynapses = semanticSynapses.filter(
-            newSyn => !existingSynapses.some(existing => existing.target === newSyn.target)
-        );
 
-        crystal.synapses = [...existingSynapses, ...newUniqueSynapses];
+        // Avoid duplicates (Prefer higher strength)
+        const merged = new Map<string, any>();
+        existingSynapses.forEach(s => merged.set(s.target, s));
+        allNewSynapses.forEach(s => {
+            const existing = merged.get(s.target);
+            if (!existing || s.strength > existing.strength) {
+                merged.set(s.target, s);
+            }
+        });
 
-        console.log(`[SynapticBinder] 🧬 Formed ${newUniqueSynapses.length} new synaptic connections.`);
+        crystal.synapses = Array.from(merged.values());
+
+        console.log(`[SynapticBinder] 🧬 Formed ${allNewSynapses.length} new synaptic connections.`);
         return crystal;
     }
 
@@ -34,10 +42,6 @@ export class SynapticBinder {
      * Fractalize: Create a child crystal from a parent, preserving lineage.
      */
     static async fractalize(parent: Crystal, newContent: string, mutationType: 'REFINEMENT' | 'BRANCH'): Promise<Crystal> {
-        // Implement logic to create a new crystal that points to 'parent' as its ancestor
-        // This is a helper for the Refinement Engine
-
-        // Setup basic structure (mocking the ID generation for now)
         const childId = `cx_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
 
         const child: Crystal = {
@@ -75,31 +79,59 @@ export class SynapticBinder {
      * Uses HDC/Vector Search to find related crystals
      */
     private static async discoverSemanticSynapses(crystal: Crystal): Promise<NonNullable<Crystal['synapses']>> {
-        console.log(`[SynapticBinder] 🔎 Scanning Talamic Index for related nodes...`);
+        console.log(`[SynapticBinder] 🔎 Scanning Talamic Index for semantic neighbors...`);
 
-        // 1. Get the semantic vector neighbors via Talamic Index
-        // Using the crystal's primary intent as the search vector anchor
-        // This returns { node: AtlasNode, score: number }[]
-        const neighbors = await TalamicIndex.search(crystal.intent.primary || "", 3);
+        const queryText = crystal.intent.primary || "";
+        if (!queryText) return [];
 
+        const neighbors = await TalamicIndex.search(queryText, 3);
         const synapses: NonNullable<Crystal['synapses']> = [];
 
         for (const neighbor of neighbors) {
-            // Self-check
             if (neighbor.node.metadata.source_id.includes(crystal.context_id)) continue;
 
             const neighborId = neighbor.node.metadata.source_id;
-
-            // Note: TalamicIndex usually stores a single ID in source_id for simple ingest, 
-            // but the metadata type definition might vary. Assuming string here based on usage.
-
             if (neighborId) {
                 synapses.push({
                     target: neighborId,
                     type: 'RELATED_TO',
-                    strength: neighbor.score, // Similarity score (0-1)
+                    strength: neighbor.score,
                     discovered_at: new Date().toISOString(),
                     justification: `Semantic vector proximity detected by Talamic Index (${(neighbor.score * 100).toFixed(1)}%)`
+                });
+            }
+        }
+
+        return synapses;
+    }
+
+    /**
+     * Logical Predicate Matching: SPO Triple overlap discovery.
+     */
+    private static async discoverPredicateSynapses(crystal: Crystal): Promise<NonNullable<Crystal['synapses']>> {
+        if (!crystal.raw_toon) return [];
+
+        const { ToonService } = await import('../../dashboard/src/lib/toon');
+        const toon = ToonService.parse(crystal.raw_toon);
+        const synapses: NonNullable<Crystal['synapses']> = [];
+
+        for (const rel of toon.graph) {
+            const predicateBucket = `pred_${rel.subject}_${rel.predicate}_${rel.object}`;
+            // @ts-ignore
+            const candidateIds = TalamicIndex.spatialIndex.get(predicateBucket);
+
+            if (candidateIds) {
+                candidateIds.forEach((nodeId: string) => {
+                    const node = TalamicIndex.atlas.get(nodeId);
+                    if (node && !node.metadata.source_id.includes(crystal.context_id)) {
+                        synapses.push({
+                            target: node.metadata.source_id,
+                            type: 'LOGICAL_OVERLAP',
+                            strength: 1.0, // Truth is binary
+                            discovered_at: new Date().toISOString(),
+                            justification: `Deterministic TOON Overlap: shared predicate ([${rel.subject}] -[${rel.predicate}]-> [${rel.object}])`
+                        });
+                    }
                 });
             }
         }

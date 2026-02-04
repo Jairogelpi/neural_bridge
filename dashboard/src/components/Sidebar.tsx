@@ -28,13 +28,13 @@ export function Sidebar() {
     return (
         <aside className="w-64 border-r border-gray-200 bg-white fixed h-full z-20 hidden md:flex flex-col overflow-y-auto">
             <div className="p-8 border-b border-gray-100 shrink-0">
-                <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                        <Shield className="w-4 h-4 text-white" />
+                <div className="flex items-center space-x-3 group cursor-pointer">
+                    <div className="w-10 h-10 flex items-center justify-center">
+                        <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
                     </div>
-                    <div>
-                        <span className="text-xs font-black tracking-[0.2em] uppercase text-gray-900 block">Neural Bridge</span>
-                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Sovereign OS</span>
+                    <div className="flex flex-col">
+                        <span className="text-sm font-black tracking-tight uppercase text-slate-900 leading-none">NEURAL</span>
+                        <span className="text-sm font-black tracking-[0.1em] uppercase text-indigo-600 leading-none">BRIDGE</span>
                     </div>
                 </div>
             </div>
@@ -44,7 +44,8 @@ export function Sidebar() {
                     <h5 className="px-4 text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Core</h5>
                     <div className="space-y-1">
                         <NavItem href="/dashboard" icon={LayoutDashboard} label="Command Center" active={pathname === '/dashboard'} />
-                        <NavItem href="/library" icon={Database} label="Memory Vault" active={pathname === '/library'} />
+                        <NavItem href="/chat" icon={MessageSquare} label="Neural Chat" active={pathname === '/chat'} />
+                        <NavItem href="/library" icon={Database} label="Crystal Library" active={pathname === '/library'} />
                         <NavItem href="/cortex" icon={Brain} label="Cortex Map" active={pathname === '/cortex'} />
                     </div>
                 </div>

@@ -1,4 +1,5 @@
 import { type Crystal, CrystalStatus, ConstraintRule } from '../types/crystal_format';
+import { ToonService } from '../../dashboard/src/lib/toon';
 import { CrystallizationService } from './crystallization';
 import { SemanticCache } from './semantic_cache';
 import { SCPService } from './llm';
@@ -99,30 +100,29 @@ export class TurboCrystallizer {
         // Use a fast model from OpenRouter
         const fastModel = 'qwen/qwen-2.5-7b-instruct'; // Fast & free
 
-        const systemPrompt = `You are a FAST crystallization engine. Extract key facts from this text into a simple JSON:
+        const systemPrompt = `You are a FAST crystallization engine. Extract key facts from this text into TOON:
 {
-  "intent": { "primary": "Main idea in one sentence" },
-  "constraints": [
-    { "id": "c1", "rule": "MUST", "value": "Key fact 1", "rationale": "Why" }
-  ]
+  @intent(PRIMARY_GOAL)
+  (Subject) -[Relationship]-> (Object)
+  MUST [Rigid Logic Rule]
 }
-Be FAST. Return ONLY valid JSON.`;
+Be FAST. Return ONLY TOON.`;
 
         const response = await SCPService.resilientCallLLM(
-            `Crystallize: ${text.substring(0, 1000)}`,
+            `Crystallize into TOON: ${text.substring(0, 1000)}`,
             fastModel,
             systemPrompt
         );
 
-        let parsed;
+        let toonData;
+        let toonContent = response.content;
         try {
-            let jsonStr = response.content;
-            const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
-            if (jsonMatch && jsonMatch[1]) jsonStr = jsonMatch[1];
-            parsed = JSON.parse(jsonStr.trim());
+            const toonMatch = toonContent.match(/```toon?\s*([\s\S]*?)```/) || toonContent.match(/\{([\s\S]*?)\}/);
+            if (toonMatch) toonContent = toonMatch[1];
+            toonData = ToonService.parse(toonContent);
         } catch (e) {
             // Fallback to Flash if parsing fails
-            console.warn('[TurboCrystallizer] Smart parse failed, falling back to Flash');
+            console.warn('[TurboCrystallizer] TOON parse failed, falling back to Flash');
             return this.flashCrystallize(text, domain);
         }
 
@@ -130,6 +130,7 @@ Be FAST. Return ONLY valid JSON.`;
             scp_version: '1.0',
             context_id: `cry_smart_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
             created_at: new Date().toISOString(),
+            raw_toon: toonContent,
             version: '1.0.0',
             tier: 'verified',
             domain: domain,
@@ -141,7 +142,7 @@ Be FAST. Return ONLY valid JSON.`;
                 model: fastModel
             },
             intent: {
-                primary: parsed.intent?.primary || 'Knowledge Transfer',
+                primary: toonData.metadata?.intent || 'Knowledge Transfer',
                 status: CrystalStatus.ACTIVE
             },
             author: {
@@ -149,11 +150,11 @@ Be FAST. Return ONLY valid JSON.`;
                 name: 'Turbo Smart Engine',
                 reputation: 0.7
             },
-            constraints: (parsed.constraints || []).map((c: any) => ({
-                id: c.id || `c_${Math.random().toString(36).substr(2, 4)}`,
-                rule: c.rule || ConstraintRule.MUST,
+            constraints: (toonData.constraints || []).map((c: any) => ({
+                id: `c_${Math.random().toString(36).substr(2, 4)}`,
+                rule: c.type || ConstraintRule.MUST,
                 value: c.value,
-                rationale: c.rationale || 'Extracted truth'
+                rationale: 'Extracted truth'
             })),
             verification: {
                 canonical_hash: 'pending',
@@ -202,7 +203,7 @@ Be FAST. Return ONLY valid JSON.`;
      */
     private static queueForUpgrade(text: string, domain: string, protoId: string): void {
         this.backgroundQueue.push({ text, domain, protoId });
-        console.log(`[TurboCrystallizer] 📋 Queued ${protoId} for background upgrade (queue size: ${this.backgroundQueue.length})`);
+        console.log(`[TurboCrystallizer] 📋 Queued ${protoId} for background upgrade(queue size: ${this.backgroundQueue.length})`);
 
         // Start processing if not already running
         if (!this.isProcessingQueue) {
@@ -217,7 +218,7 @@ Be FAST. Return ONLY valid JSON.`;
         if (this.isProcessingQueue || this.backgroundQueue.length === 0) return;
 
         this.isProcessingQueue = true;
-        console.log(`[TurboCrystallizer] 🔄 Starting background upgrade queue (${this.backgroundQueue.length} items)`);
+        console.log(`[TurboCrystallizer] 🔄 Starting background upgrade queue(${this.backgroundQueue.length} items)`);
 
         while (this.backgroundQueue.length > 0) {
             const job = this.backgroundQueue.shift();
@@ -233,9 +234,9 @@ Be FAST. Return ONLY valid JSON.`;
                 // Update cache with deep version
                 SemanticCache.store(job.text, deepCrystal);
 
-                console.log(`[TurboCrystallizer] ✅ Upgraded ${job.protoId} → ${deepCrystal.context_id}`);
+                console.log(`[TurboCrystallizer] ✅ Upgraded ${job.protoId} → ${deepCrystal.context_id} `);
             } catch (error) {
-                console.error(`[TurboCrystallizer] ❌ Failed to upgrade ${job.protoId}:`, error);
+                console.error(`[TurboCrystallizer] ❌ Failed to upgrade ${job.protoId}: `, error);
             }
 
             // Small delay to avoid hammering the API

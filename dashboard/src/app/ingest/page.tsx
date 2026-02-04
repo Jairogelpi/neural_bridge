@@ -10,6 +10,7 @@ export default function IngestPage() {
     const [text, setText] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+    const [apiResponse, setApiResponse] = useState<any>(null);
 
     const handleIngest = async () => {
         if (!text.trim()) return;
@@ -29,6 +30,7 @@ export default function IngestPage() {
             console.log(`[Ingest] ⚡ Crystallized in ${response.data.metrics.elapsed_ms}ms (${response.data.metrics.tier} tier)`);
             console.log(`[Ingest] 📋 Background queue: ${response.data.metrics.queue_stats.queued} pending upgrades`);
 
+            setApiResponse(response.data.crystal);
             setStatus('success');
             setText('');
         } catch (error) {
@@ -129,9 +131,25 @@ export default function IngestPage() {
                                             <p className="text-xs text-green-700 font-medium">Crystal Added to Library</p>
                                         </div>
                                     </div>
-                                    <p className="text-xs text-green-800/60 leading-relaxed">
+                                    <p className="text-xs text-green-800/60 leading-relaxed mb-4">
                                         Your knowledge has been successfully bridged. It is now available for Neural Chat and Cortex visualization.
                                     </p>
+                                    <div className="bg-black/90 p-4 rounded-xl font-mono text-[9px] text-white border border-white/10 overflow-auto max-h-48 group relative">
+                                        <div className="absolute top-2 right-2 flex gap-2">
+                                            <span className="text-[7px] bg-cyan-500/20 text-cyan-400 px-1 border border-cyan-500/30 rounded uppercase font-black">TOON v0.1</span>
+                                            <span className="text-[7px] bg-green-500/20 text-green-400 px-1 border border-green-500/30 rounded uppercase font-black">Manifold Entry</span>
+                                        </div>
+                                        <div className="text-cyan-300 leading-tight">
+                                            {(apiResponse?.raw_toon || 'MUST [Source_Material_Ingested]').split('\n').map((line: string, i: number) => (
+                                                <div key={i} className="flex gap-4 hover:bg-white/5 transition-colors">
+                                                    <span className="text-white/20 select-none w-4 text-right">{(i + 1)}</span>
+                                                    <span className={line.startsWith('@') ? 'text-indigo-400 font-bold' : line.startsWith('!') ? 'text-green-400' : 'text-cyan-300'}>
+                                                        {line}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </motion.div>
                             )}
                             {status === 'error' && (

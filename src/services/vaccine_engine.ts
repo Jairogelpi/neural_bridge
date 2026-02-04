@@ -2,6 +2,7 @@ import { SCPService } from './llm';
 import type { Crystal } from '../types/crystal_format';
 import { Attestation } from './attestation';
 import { supabase } from '../db/supabase';
+import { ToonService } from '../../dashboard/src/lib/toon';
 
 
 export interface SemanticVaccine {
@@ -74,38 +75,36 @@ export class VaccineEngine {
         CLAIM A: "${contradiction.claim_a}"
         CLAIM B: "${contradiction.claim_b}"
         
-        Task: Identify the underlying LOGICAL FALLACY (e.g., Causal Reversal, Temporal Inconsistency, Scope Creep).
+        Task: Identify the underlying LOGICAL FALLACY (e.g., Causal Reversal, Temporal Inconsistency).
         Then, write a UNIVERSAL RULE (Meta-Invariant) that prevents this specific logical error.
         
-        Return JSON:
-        {
-            "fallacy": "string",
-            "rule": "High-level human readable rule",
-            "logical_constraint": "Precise mathematical/logical constraint",
-            "pattern_to_block": "Semantic pattern that triggers this error"
-        }
+        Return TOON:
+        @fallacy(Name of fallacy)
+        MUST [Human readable rule]
+        !logic(Precise mathematical/logical constraint)
+        !pattern(Semantic pattern that triggers this error)
         `;
 
         const res = await SCPService.resilientCallLLM(extractionPrompt, 'google/gemini-pro', 'You are a Formal Logician.');
-        let dna;
-        try {
-            dna = JSON.parse(res.content);
-        } catch {
-            return null;
-        }
+        const dna = ToonService.parse(res.content);
+        if (!dna.metadata?.fallacy) return null;
 
         const vaccine: SemanticVaccine = {
             error_signature_hash: signatureHash,
-            fallacy_type: dna.fallacy,
+            fallacy_type: dna.metadata.fallacy,
             meta_invariant: {
-                rule: dna.rule,
-                logical_constraint: dna.logical_constraint,
-                prohibited_pattern: dna.pattern_to_block
+                rule: dna.constraints[0]?.value || 'Universal Logic Rule',
+                logical_constraint: dna.proofs.logic || 'Logic == True',
+                prohibited_pattern: dna.proofs.pattern || 'ANY'
             },
             context_domain: crystal.domain || 'general'
         };
 
-        // 3. Persist to Global Vaccine Store
+        // 3. Persist to Global Vaccine Store (Inject TOON manifold into metadata for saturation)
+        const vaccineToon = ToonService.stringify({
+            metadata: { fallacy: dna.metadata.fallacy, domain: crystal.domain },
+            graph: [{ subject: dna.metadata.fallacy, predicate: 'IS_BLOCKED_BY', object: dna.constraints[0]?.value }]
+        });
         const { error } = await supabase.from('vaccines').insert({
             ...vaccine,
             meta_invariant: vaccine.meta_invariant
@@ -156,30 +155,24 @@ export class VaccineEngine {
         Task: Identify the underlying LOGICAL FALLACY that would cause this.
         Write a UNIVERSAL RULE (Meta-Invariant) to BLOCK this failure before it ever happens.
         
-        Return JSON:
-        {
-            "fallacy": "string",
-            "rule": "High-level human readable rule",
-            "logical_constraint": "Precise mathematical/logical constraint",
-            "pattern_to_block": "Semantic pattern that triggers this error"
-        }
+        Return TOON:
+        @fallacy(Name of fallacy)
+        MUST [High-level human readable rule]
+        !logic(Precise mathematical/logical constraint)
+        !pattern(Semantic pattern that triggers this error)
         `;
 
         const res = await SCPService.resilientCallLLM(extractionPrompt, 'google/gemini-pro', 'You are a Precognitive Logician.');
-        let dna;
-        try {
-            dna = JSON.parse(res.content);
-        } catch {
-            return null;
-        }
+        const dna = ToonService.parse(res.content);
+        if (!dna.metadata.fallacy) return null;
 
         const vaccine: SemanticVaccine = {
             error_signature_hash: signatureHash,
-            fallacy_type: dna.fallacy,
+            fallacy_type: dna.metadata.fallacy,
             meta_invariant: {
-                rule: dna.rule,
-                logical_constraint: dna.logical_constraint,
-                prohibited_pattern: dna.pattern_to_block
+                rule: dna.constraints[0]?.value || 'Precognitive Rule',
+                logical_constraint: dna.proofs.logic || 'Logic == True',
+                prohibited_pattern: dna.proofs.pattern || 'ANY'
             },
             context_domain: crystal.domain || 'general'
         };

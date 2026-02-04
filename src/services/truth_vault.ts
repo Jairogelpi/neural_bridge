@@ -2,6 +2,7 @@ import { supabase } from '../db/supabase';
 import { SCPService } from './llm';
 import { Attestation } from './attestation';
 import { CrystallizationService } from './crystallization';
+import { ToonService } from '../../dashboard/src/lib/toon';
 import { SemanticHasher } from './semantic_hashing';
 import { RLMEngine } from './rlm_engine';
 import { Hypervector } from '../math/hypervector';
@@ -43,35 +44,34 @@ export class TruthVault {
             if (existing.domain !== newCrystal.domain) continue;
 
             const systemPrompt = `You are the Neural Bridge Truth Arbiter.
-Analyze two knowledge crystals and detect if they contain CONTRADICTING information.
-Contradictions are direct logical conflicts (e.g., A says "X is true", B says "X is false").
+Analyze two TOON manifolds and detect if they contain CONTRADICTING information.
+Contradictions are direct logical conflicts between Axioms (e.g., MUST [X] vs NEVER [X]).
 
-Return JSON:
-{
-  "has_contradiction": boolean,
-  "explanation": "why they conflict",
-  "claim_a": "conflicting claim from A",
-  "claim_b": "conflicting claim from B",
-  "severity": "critical|warning"
-}`;
+Return TOON:
+@has_contradiction(true/false)
+MUST [Explanation of conflict]
+!claim_a(conflicting claim from A)
+!claim_b(conflicting claim from B)
+@severity(critical|warning)
+`;
 
-            const prompt = `Crystal A (New): ${JSON.stringify(newCrystal.constraints)}
-Crystal B (Existing): ${JSON.stringify(existing.constraints)}
+            const prompt = `Manifold A (New): ${newCrystal.raw_toon}
+Manifold B (Existing): ${existing.raw_toon}
 
 Do these conflict?`;
 
             try {
                 const response = await SCPService.callLLM(prompt, 'nvidia/nemotron-3-nano-30b-a3b:free', systemPrompt);
-                const result = JSON.parse(response.content.replace(/```json|```/g, '').trim());
+                const result = ToonService.parse(response.content);
 
-                if (result.has_contradiction) {
+                if (result.metadata.has_contradiction === 'true') {
                     contradictions.push({
                         crystal_id_a: newCrystal.context_id,
                         crystal_id_b: existing.context_id,
-                        claim_a: result.claim_a,
-                        claim_b: result.claim_b,
-                        explanation: result.explanation,
-                        severity: result.severity
+                        claim_a: result.proofs.claim_a,
+                        claim_b: result.proofs.claim_b,
+                        explanation: result.constraints[0]?.value || 'Conflict detected',
+                        severity: (result.metadata.severity as any) || 'warning'
                     });
                 }
             } catch (e) {
@@ -271,21 +271,19 @@ Do these conflict?`;
             
             TASK: Identify if the new text has a logic-level contradiction with the truth.
             
-            Return JSON:
-            {
-                "is_conflict": boolean,
-                "reason": "precise explanation of the logic failure"
-            }
+            Return TOON:
+            @is_conflict(true/false)
+            MUST [precise explanation of the logic failure]
             `;
 
             try {
                 const res = await SCPService.resilientCallLLM(arbiterPrompt, 'nvidia/nemotron-3-nano-30b-a3b:free', 'Arbiter of Reality');
-                const result = JSON.parse(res.content.match(/\{[\s\S]*\}/)?.[0] || '{}');
+                const result = ToonService.parse(res.content);
 
-                if (result.is_conflict) {
+                if (result.metadata.is_conflict === 'true') {
                     return {
                         is_conflict: true,
-                        contradiction_reason: result.reason,
+                        contradiction_reason: result.constraints[0]?.value || 'Undefined logic conflict',
                         conflicting_entry: crystal
                     };
                 }
@@ -309,7 +307,7 @@ Do these conflict?`;
         The following text contains a contradiction with the Truth Vault.
         
         ERROR: "${conflict.reason}"
-        TRUTH: "${JSON.stringify(conflict.entry.constraints)}"
+        TRUTH: "${conflict.entry.raw_toon || JSON.stringify(conflict.entry.constraints)}"
         ORIGINAL TEXT: "${text}"
         
         TASK: Rewrite the ORIGINAL TEXT so that it is factually consistent with the TRUTH.
@@ -341,6 +339,7 @@ Do these conflict?`;
                 constraints: crystal.constraints,
                 entities: crystal.entities,
                 verification: crystal.verification,
+                raw_toon: crystal.raw_toon, // TOON SATURATION
                 tags: tags,
                 usage_count: (crystal as any).usage_count || 1,
                 author: crystal.author,

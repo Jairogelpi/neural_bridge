@@ -16,7 +16,7 @@ export class LatentAnchor {
     /**
      * Anchors a Crystal into a high-priority, axiomatic prompt structure.
      */
-    static anchor(crystal: Crystal): string {
+    static async anchor(crystal: Crystal): Promise<string> {
         const hash = crystal.verification?.canonical_hash || 'UNKNOWN_IDENTITY';
 
         // 1. AXIOMATIC CONSTRAINTS (The Rules of Reality)
@@ -34,6 +34,21 @@ export class LatentAnchor {
         const entities = (crystal.entities || []).map(e => {
             return `[ENTITY] "${e.name}" [TYPE: ${e.type}] [CAT: ${e.category}]`;
         }).join('\n');
+
+        // 🧬 4. TOON PREDICATE MANIFOLD (The Logic of Reality)
+        let toonManifold = "";
+        if (crystal.raw_toon) {
+            try {
+                // We use a simplified SPO dump for the prompt
+                const { ToonService } = await import('../../dashboard/src/lib/toon');
+                const toon = ToonService.parse(crystal.raw_toon);
+                toonManifold = (toon.graph || []).map((rel: any) => {
+                    return `[PREDICATE] (${rel.subject}) --[${rel.predicate}]--> (${rel.object})`;
+                }).join('\n');
+            } catch (e) {
+                // Fallback to empty
+            }
+        }
 
         return `
 --- ⚓ LATENT ANCHOR PROTOCOL v1.0 [CRYSTAL_ID: ${crystal.context_id}] ---
@@ -55,6 +70,10 @@ PRIMAL_INTENT: "${crystal.intent.primary}"
 ${entities}
 
 ${anchors}
+
+--- BEGIN PREDICATE MANIFOLD ---
+${toonManifold || "NO DETERMINISTIC GRAPH PREDICATES DEFINED"}
+--- END PREDICATE MANIFOLD ---
 --- END SEMANTIC ANCHORS ---
 
 --- INSTRUCTIONS FOR LATENT ALIGNMENT ---
@@ -72,7 +91,7 @@ ${anchors}
      * It filters out noise using EntropyAudit and bundles the remaining
      * signal into a single Holographic Master Crystal.
      */
-    static synthesizeMasterAnchor(query: string, candidates: Crystal[]): string {
+    static async synthesizeMasterAnchor(query: string, candidates: Crystal[]): Promise<string> {
         // 1. Audit for SNR (The Window Killer)
         const mss = EntropyAudit.audit(query, candidates);
 
@@ -89,7 +108,7 @@ ${anchors}
         const confidence = (1.0 - driftRisk) * 100;
 
         // 4. Generate the Axiomatic Gravity Well
-        const anchorPrompt = this.anchor(master);
+        const anchorPrompt = await this.anchor(master);
 
         return `
 ${anchorPrompt}

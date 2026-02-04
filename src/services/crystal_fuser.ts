@@ -108,7 +108,28 @@ export class CrystalFuser {
             throw new Error("Fusion failed: Could not parse synthetic reality.");
         }
 
-        // 2. Build the Master Crystal
+        // 3. TOON MANIFOLD SYNTHESIS
+        let masterToon = "";
+        try {
+            const { ToonService } = await import('../../dashboard/src/lib/toon');
+            const parentToons = crystals.map(c => c.raw_toon).filter(Boolean).map(t => ToonService.parse(t!));
+
+            const mergedGraph = Array.from(new Map(
+                parentToons.flatMap(t => t.graph || []).map((rel: any) => [`${rel.subject}_${rel.predicate}_${rel.object}`, rel])
+            ).values());
+
+            masterToon = ToonService.stringify({
+                metadata: { intent: fusedData.intent.primary || fusedData.intent },
+                constraints: (fusedData.constraints || []).map((c: any) => ({
+                    type: c.rule || 'MUST',
+                    value: c.value || (typeof c === 'string' ? c : 'undefined')
+                })),
+                graph: mergedGraph
+            });
+        } catch (e) {
+            console.warn("[CrystalFuser] 📄 TOON synthesis failed during fusion:", e);
+        }
+
         const master: Crystal = {
             ...crystals[0]!, // Copy metadata from first
             context_id: `master_${Date.now()}`,
@@ -116,6 +137,7 @@ export class CrystalFuser {
             intent: fusedData.intent,
             constraints: fusedData.constraints,
             entities: fusedData.entities,
+            raw_toon: masterToon,
             created_at: new Date().toISOString(),
             verification: {
                 ...crystals[0]!.verification,

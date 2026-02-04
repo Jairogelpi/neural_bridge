@@ -149,9 +149,12 @@ export default function ChatPage() {
             // Construct Context from Crystals
             let systemContext = "";
             if (activeCrystals.length > 0) {
-                systemContext = "You have access to the following Sovereign Knowledge (Crystals):\n" +
-                    activeCrystals.map(c => `- [${c.domain}]: ${JSON.stringify(c.intent)}`).join('\n') +
-                    "\n\nUse this knowledge to answer the user's query with high fidelity.";
+                systemContext = "You have access to the following Sovereign Knowledge Manifold (TOON):\n" +
+                    activeCrystals.map(c => {
+                        const content = c.raw_toon || JSON.stringify(c.intent);
+                        return `--- CRYSTAL: ${c.domain} ---\n${content}\n`;
+                    }).join('\n') +
+                    "\nUse this TOON knowledge to answer the user's query with extreme fidelity. Priority: MUST/NEVER axioms.";
             }
 
             const apiMessages = [

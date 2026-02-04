@@ -292,10 +292,10 @@ export default function LandingPage() {
               <h2 className="text-xs font-black uppercase tracking-[0.3em] text-indigo-500 mb-6">Unit of Logic</h2>
               <h3 className="text-4xl md:text-6xl font-black tracking-tighter text-slate-900 mb-6">The Crystal Structure.</h3>
               <p className="text-xl text-slate-500 leading-relaxed mb-8">
-                We don't store "text". We store <strong className="text-indigo-600">Verified Objects</strong>.
+                We don't store "text". We store <strong className="text-indigo-600">Sovereign Axioms</strong>.
                 <br /><br />
-                A Crystal is a JSON-native container that locks the <strong>Vector</strong> (meaning), the <strong>Source Metadata</strong> (origin), and the <strong>Cryptographic Signature</strong> (proof) into a single atomic unit.
-                You cannot fake a Crystal. It carries its own truth.
+                A Crystal is a **TOON-native** container that locks the <strong>Vector</strong> (meaning), the <strong>Logic Rules</strong> (MUST/NEVER), and the <strong>Cryptographic Proof</strong> into a single atomic unit.
+                The Truth-Oriented Object Notation (TOON) ensures that truth is dense, immutable, and verifiable.
               </p>
               <ul className="space-y-4">
                 <ListItem text="Merkle-Proof Verified (Zero-Trust Architecture)" />
@@ -310,18 +310,17 @@ export default function LandingPage() {
                 <div className="w-3 h-3 rounded-full bg-red-500" />
                 <div className="w-3 h-3 rounded-full bg-yellow-500" />
                 <div className="w-3 h-3 rounded-full bg-green-500" />
-                <span className="ml-4 text-xs font-mono text-slate-400">crystal_schema_v1.json</span>
+                <span className="ml-4 text-xs font-mono text-slate-400">knowledge_manifold_v1.toon</span>
               </div>
               <div className="p-8 font-mono text-sm leading-relaxed text-indigo-300 w-full">
-                <span className="text-slate-500">{"{"}</span><br />
-                &nbsp;&nbsp;<span className="text-purple-400">"id"</span>: <span className="text-green-400">"crys_8f92a..."</span>,<br />
-                &nbsp;&nbsp;<span className="text-purple-400">"vector"</span>: [<span className="text-blue-400">0.12, -0.45, ...</span>],<br />
-                &nbsp;&nbsp;<span className="text-purple-400">"payload"</span>: <span className="text-slate-300">"Sovereign AI is..."</span>,<br />
-                &nbsp;&nbsp;<span className="text-purple-400">"proof"</span>: <span className="text-slate-500">{"{"}</span><br />
-                &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-purple-400">"hash"</span>: <span className="text-yellow-400">"0x7b..."</span>,<br />
-                &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-purple-400">"signature"</span>: <span className="text-yellow-400">"RSA-4096..."</span>,<br />
-                &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-purple-400">"timestamp"</span>: <span className="text-blue-400">1738720</span><br />
-                &nbsp;&nbsp;<span className="text-slate-500">{"}"}</span><br />
+                <span className="text-slate-500">@crystal(0x8f92a) {"{"}</span><br />
+                &nbsp;&nbsp;<span className="text-purple-400">@intent</span>("Sovereign AI is Immutable")<br />
+                &nbsp;&nbsp;<span className="text-blue-400">(Node)</span> -[VerifiedBy]-&gt; <span className="text-blue-400">(Consensus)</span><br />
+                &nbsp;&nbsp;<br />
+                &nbsp;&nbsp;<span className="text-emerald-400">MUST</span> [Logic == Deterministic]<br />
+                &nbsp;&nbsp;<span className="text-red-400">NEVER</span> [Output == Hallucination]<br />
+                &nbsp;&nbsp;<br />
+                &nbsp;&nbsp;<span className="text-slate-500">!proof(sha256:7b...)</span><br />
                 <span className="text-slate-500">{"}"}</span>
 
                 <div className="mt-8 flex items-center gap-4">
@@ -478,31 +477,31 @@ export default function LandingPage() {
 
               <div className="space-y-6">
                 <div className="flex justify-between items-center border-b border-white/5 pb-4">
-                  <span className="text-lg font-bold text-gray-400">Knowledge Type</span>
+                  <span className="text-lg font-bold text-gray-400">Data Format</span>
                   <div className="flex gap-8">
-                    <span className="text-red-500 font-bold line-through decoration-red-500/50">Loose Text</span>
-                    <span className="text-green-400 font-black">Immutable Crystal</span>
+                    <span className="text-red-500 font-bold line-through decoration-red-500/50">Bloated JSON</span>
+                    <span className="text-green-400 font-black">TOON v0.1</span>
                   </div>
                 </div>
                 <div className="flex justify-between items-center border-b border-white/5 pb-4">
-                  <span className="text-lg font-bold text-gray-400">Verification</span>
+                  <span className="text-lg font-bold text-gray-400">Truth Density</span>
                   <div className="flex gap-8">
-                    <span className="text-red-500 font-bold">Vibe Check</span>
-                    <span className="text-green-400 font-black">Mathematical Proof</span>
+                    <span className="text-red-500 font-bold">50% Noise</span>
+                    <span className="text-green-400 font-black">100% Axiomatic</span>
                   </div>
                 </div>
                 <div className="flex justify-between items-center border-b border-white/5 pb-4">
-                  <span className="text-lg font-bold text-gray-400">Cost Model</span>
+                  <span className="text-lg font-bold text-gray-400">Token Efficiency</span>
                   <div className="flex gap-8">
-                    <span className="text-red-500 font-bold">Rent (Per Token)</span>
-                    <span className="text-green-400 font-black">Ownership (Free)</span>
+                    <span className="text-red-500 font-bold">Standard</span>
+                    <span className="text-green-400 font-black">-30% Cost</span>
                   </div>
                 </div>
                 <div className="flex justify-between items-center pt-2">
-                  <span className="text-lg font-bold text-gray-400">Evolution</span>
+                  <span className="text-lg font-bold text-gray-400">Sovereignty</span>
                   <div className="flex gap-8">
-                    <span className="text-red-500 font-bold">Static</span>
-                    <span className="text-green-400 font-black">Darwinian (RLM)</span>
+                    <span className="text-red-500 font-bold">Shared/Cloud</span>
+                    <span className="text-green-400 font-black">Private/Sovereign</span>
                   </div>
                 </div>
               </div>

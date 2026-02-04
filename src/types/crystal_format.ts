@@ -119,7 +119,10 @@ export interface CrystalEntity {
     /** Optional: Entity attributes */
     attributes?: Record<string, any>;
 
-    /** Optional: Relationships to other entities */
+    /** 
+     * @deprecated Use raw_toon predicate manifold for all semantic relationships.
+     * Optional: Relationships to other entities 
+     */
     relationships?: Array<{
         type: string;
         target: string;
@@ -276,6 +279,8 @@ export interface RealityProof {
  */
 export interface Crystal {
     // ========== REQUIRED FIELDS ==========
+    /** Raw TOON Knowledge Representation */
+    raw_toon: string;
 
     /** SCP version identifier */
     scp_version: string;
@@ -437,7 +442,7 @@ export interface Crystal {
      */
     synapses?: Array<{
         target: string; // Target Crystal ID
-        type: 'SUPPORTS' | 'CONTRADICTS' | 'REFINES' | 'ORIGINATES_FROM' | 'RELATED_TO' | 'MERGED_INTO';
+        type: 'SUPPORTS' | 'CONTRADICTS' | 'REFINES' | 'ORIGINATES_FROM' | 'RELATED_TO' | 'MERGED_INTO' | 'LOGICAL_OVERLAP';
         strength: number; // 0.0 - 1.0 (Semantic affinity)
         discovered_at: string; // ISO timestamp
         justification?: string; // Why this link exists
@@ -458,9 +463,14 @@ export const CrystalSchemaV01 = {
         "created_at",
         "source",
         "intent",
-        "verification"
+        "verification",
+        "raw_toon"
     ],
     "properties": {
+        "raw_toon": {
+            "type": "string",
+            "description": "Truth-Oriented Object Notation (TOON) content"
+        },
         "scp_version": {
             "type": "string",
             "pattern": "^\\d+\\.\\d+$",
@@ -658,6 +668,7 @@ export function validateCrystalFormat(crystal: any): { valid: boolean; errors: s
     if (!crystal.source) errors.push('Missing source');
     if (!crystal.intent) errors.push('Missing intent');
     if (!crystal.verification) errors.push('Missing verification');
+    if (!crystal.raw_toon) errors.push('Missing raw_toon');
     if (!crystal.version) errors.push('Missing version');
     if (!crystal.tier) errors.push('Missing tier');
     if (!crystal.author) errors.push('Missing author');

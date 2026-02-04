@@ -7,6 +7,7 @@ const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), { ssr: false 
 import { Sidebar } from '@/components/Sidebar';
 import { ZoomIn, ZoomOut, Share2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { ToonService } from '@/lib/toon';
 import { usePagination, useInfiniteScroll } from '@/hooks/usePagination';
 
 const PAGE_SIZE = 100; // Load 100 crystals at a time
@@ -25,7 +26,7 @@ export default function CortexPage() {
         fetchPage: async (page, pageSize) => {
             const { data } = await supabase
                 .from('crystals')
-                .select('context_id, domain, author:authors(name, handle), intent, crystal_jsonb')
+                .select('context_id, domain, author:authors(name, handle), intent, raw_toon')
                 .range(page * pageSize, (page + 1) * pageSize - 1)
                 .order('created_at', { ascending: false });
 
@@ -43,14 +44,15 @@ export default function CortexPage() {
 
         // Transform Crystals into Nodes
         const nodes = crystals.map((c: any) => {
-            const metadata = c.crystal_jsonb?.metadata || {};
-            const generation = metadata?.genealogy?.generation || 0;
+            const toon = ToonService.parse(c.raw_toon || '');
+            const generation = toon.metadata?.generation || 0;
+            const predicateCount = toon.graph?.length || 0;
             return {
                 id: c.context_id,
                 group: generation,
-                label: `[Layer ${generation}] ${c.domain}`,
-                val: (generation + 1) * 2, // Bigger nodes for higher generations
-                details: c.intent?.primary
+                label: `[Layer ${generation}] ${c.domain}\nTruth Density: ${predicateCount} Predicates\nLogic: ${toon.graph?.[0]?.predicate || 'Pending'}`,
+                val: (generation + 1) * 2 + (predicateCount / 2), // Density affects gravity
+                details: `[TOON-Verified] ${c.intent?.primary}`
             };
         });
 
@@ -58,8 +60,11 @@ export default function CortexPage() {
 
         // 1. GENEALOGY LINKS (The Fractal Backbone)
         crystals.forEach((c: any) => {
-            if (c.metadata?.genealogy?.parents) {
-                c.metadata.genealogy.parents.forEach((parentId: string) => {
+            const toon = ToonService.parse(c.raw_toon || '');
+
+            // Fractal Parents
+            if (toon.metadata?.parents) {
+                toon.metadata.parents.split(',').forEach((parentId: string) => {
                     links.push({
                         source: parentId,
                         target: c.context_id,
@@ -67,6 +72,19 @@ export default function CortexPage() {
                     });
                 });
             }
+
+            // Logic Synapses (Predicate-Aware)
+            const synArray = (c as any).synapses || [];
+            synArray.forEach((syn: any) => {
+                if (syn.type === 'LOGICAL_OVERLAP') {
+                    links.push({
+                        source: c.context_id,
+                        target: syn.target,
+                        type: 'logic',
+                        strength: syn.strength
+                    });
+                }
+            });
         });
 
         // 2. TEMPORAL/DOMAIN LINKS (Implicit)
@@ -118,11 +136,18 @@ export default function CortexPage() {
                             const colors = ['#06b6d4', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
                             return colors[(node as any).group % colors.length];
                         }}
-                        linkColor={link => (link as any).type === 'genealogy' ? '#4f46e5' : '#cbd5e1'}
+                        linkColor={link => {
+                            const type = (link as any).type;
+                            if (type === 'genealogy') return '#8b5cf6'; // Purple backbone
+                            if (type === 'logic') return '#10b981'; // Green logic synapse
+                            return '#cbd5e1'; // Grey temporal
+                        }}
+                        linkWidth={link => (link as any).type === 'logic' ? 3 : 1.5}
+                        linkDirectionalParticles={link => (link as any).type === 'logic' ? 4 : 0}
+                        linkDirectionalParticleSpeed={0.01}
                         backgroundColor="#f8fafc"
                         nodeLabel="label"
                         nodeRelSize={6}
-                        linkWidth={1.5}
                         enableNodeDrag={false}
                         d3VelocityDecay={0.6}
                         cooldownTicks={100}

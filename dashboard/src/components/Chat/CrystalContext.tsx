@@ -60,6 +60,7 @@ export function CrystalContext({ crystals, onRemove, onAdd }: CrystalContextProp
                             <span className="text-[10px] font-bold text-gray-700 truncate max-w-[150px] mr-2">
                                 {crystal.domain}
                             </span>
+                            <span className="px-1 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[8px] font-black uppercase tracking-tighter mr-2">TOON</span>
                             <button
                                 onClick={() => onRemove(crystal.context_id)}
                                 className="p-1 hover:bg-red-50 rounded-md text-gray-300 hover:text-red-500 transition-colors"

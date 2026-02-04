@@ -112,10 +112,10 @@ export function resolveDependencies(params: {
  * Merge multiple Crystals into a composite context
  * Useful for combining domain + client + project knowledge
  */
-export function mergecrystals(params: {
+export async function mergecrystals(params: {
     crystals: VersionedCrystal[];
     merge_strategy?: 'union' | 'priority' | 'strict';
-}): Crystal {
+}): Promise<Crystal> {
     const { crystals, merge_strategy = 'union' } = params;
 
     if (crystals.length === 0) {
@@ -130,6 +130,9 @@ export function mergecrystals(params: {
 
     const merged = JSON.parse(JSON.stringify(baseCrystal.content));
 
+    // 🧬 TOON SEED
+    let mergedToon = baseCrystal.content.raw_toon;
+
     // Merge constraints, entities, evidence
     for (let i = 1; i < crystals.length; i++) {
         const currentCrystal = crystals[i];
@@ -142,17 +145,38 @@ export function mergecrystals(params: {
 
         // Conflict Detection
         if (merge_strategy === 'strict') {
-            const currentConflicts = detectConflicts(merged, current);
+            const currentConflicts = await detectConflicts(merged, current);
             if (currentConflicts.length > 0) {
                 throw new Error(`Knowledge Conflict detected during strict merge: ${currentConflicts.join('; ')}`);
             }
+        }
+
+        // 🧬 TOON MANIFOLD MERGE
+        if (current.raw_toon && mergedToon) {
+            try {
+                const { ToonService } = await import('../../dashboard/src/lib/toon');
+                const t1 = ToonService.parse(mergedToon);
+                const t2 = ToonService.parse(current.raw_toon);
+
+                const combinedGraph = Array.from(new Map(
+                    [...(t1.graph || []), ...(t2.graph || [])].map((rel: any) => [`${rel.subject}_${rel.predicate}_${rel.object}`, rel])
+                ).values());
+
+                mergedToon = ToonService.stringify({
+                    ...t1,
+                    graph: combinedGraph
+                });
+            } catch (e) {
+                console.warn("[KnowledgeGraph] 📄 TOON merge failed:", e);
+            }
+        } else if (current.raw_toon) {
+            mergedToon = current.raw_toon;
         }
 
         // Merge constraints
         if (current.constraints) {
             merged.constraints = merged.constraints || [];
             for (const constraint of current.constraints) {
-                // Avoid duplicates
                 if (!merged.constraints.find((c: { id: string }) => c.id === constraint.id)) {
                     merged.constraints.push(constraint);
                 }
@@ -176,6 +200,7 @@ export function mergecrystals(params: {
         }
     }
 
+    merged.raw_toon = mergedToon;
     return merged;
 }
 
@@ -200,7 +225,7 @@ export function compareVersions(v1: string, v2: string): number {
 /**
  * Detect semantic or structural conflicts between two Crystals
  */
-export function detectConflicts(base: Crystal, incoming: Crystal): string[] {
+export async function detectConflicts(base: Crystal, incoming: Crystal): Promise<string[]> {
     const conflicts: string[] = [];
 
     // 1. Constraint Conflicts
@@ -208,12 +233,10 @@ export function detectConflicts(base: Crystal, incoming: Crystal): string[] {
         for (const inc of incoming.constraints) {
             const existing = base.constraints.find((c: { id: string }) => c.id === inc.id);
             if (existing) {
-                // Same ID must have same content
                 if (existing.value !== inc.value || existing.rule !== inc.rule) {
                     conflicts.push(`Constraint ID ${inc.id} has contradictory definitions`);
                 }
             } else {
-                // Search for semantic overlap (same value, different rule)
                 const overlap = base.constraints.find((c: { value: string; rule: string }) =>
                     c.value.toLowerCase().trim() === inc.value.toLowerCase().trim() &&
                     c.rule !== inc.rule
@@ -225,7 +248,29 @@ export function detectConflicts(base: Crystal, incoming: Crystal): string[] {
         }
     }
 
-    // 2. Intent Status Conflict
+    // 2. [TOON] Graph Predicate Conflicts
+    if (base.raw_toon && incoming.raw_toon) {
+        try {
+            const { ToonService } = await import('../../dashboard/src/lib/toon');
+            const bToon = ToonService.parse(base.raw_toon);
+            const iToon = ToonService.parse(incoming.raw_toon);
+
+            for (const iRel of iToon.graph || []) {
+                const contradiction = (bToon.graph || []).find((bRel: any) =>
+                    bRel.subject === iRel.subject &&
+                    bRel.object === iRel.object &&
+                    bRel.predicate !== iRel.predicate
+                );
+                if (contradiction) {
+                    conflicts.push(`TOON Conflict: (${iRel.subject}) shares conflicting predicates ['${contradiction.predicate}', '${iRel.predicate}'] with (${iRel.object})`);
+                }
+            }
+        } catch (e) {
+            // Non-blocking parser error
+        }
+    }
+
+    // 3. Intent Status Conflict
     if (base.intent && incoming.intent) {
         if (base.intent.status === 'active' && incoming.intent.status === 'deprecated' && base.context_id === incoming.context_id) {
             conflicts.push(`Status conflict: incoming crystal deprecates active base crystal`);

@@ -108,16 +108,26 @@ export default function JuryPage() {
                                     <div className="flex-1">
                                         <div className="flex items-center gap-3 mb-4">
                                             <span className="px-3 py-1 bg-red-50 text-red-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-red-100">
-                                                Contradiction Detected
+                                                TOON Conflict
                                             </span>
                                             <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">
-                                                ID: {juryCase.context_id.substring(0, 8)}
+                                                CASE_ID: {juryCase.case_id.substring(0, 8)}
                                             </span>
                                         </div>
 
                                         <h3 className="text-xl font-bold text-gray-900 mb-4 leading-tight">
                                             {juryCase.issue_description}
                                         </h3>
+
+                                        <div className="bg-red-50/30 rounded-2xl p-4 border border-red-100/50 mb-6 font-mono text-[9px] text-red-900 shadow-inner">
+                                            <div className="flex items-center gap-2 mb-2 opacity-50">
+                                                <Gavel size={10} />
+                                                <span className="uppercase font-black tracking-widest">Conflict.toon</span>
+                                            </div>
+                                            <pre className="whitespace-pre-wrap italic">
+                                                {`NEVER [Axiom A == Axiom B]\n!verify(Is_True?) -> [contradiction]`}
+                                            </pre>
+                                        </div>
 
                                         <div className="flex items-center gap-6">
                                             <div className="flex items-center gap-3">

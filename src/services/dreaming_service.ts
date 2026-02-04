@@ -2,6 +2,7 @@
 import { Crystal, CrystalStatus, ConstraintRule } from '../types/crystal_format';
 import { CrystalFuser } from './crystal_fuser';
 import { supabase } from '../db/supabase';
+import { ToonService } from '../../dashboard/src/lib/toon';
 
 /**
  * RECURSIVE DREAMING ENGINE 🌌😴
@@ -85,6 +86,29 @@ export class DreamingService {
             fused.tier = 'sovereign';
             fused.created_at = new Date().toISOString();
             fused.context_id = `axiom_${Date.now()}`;
+
+            // 🚀 TOON GENERATION: Serialize the new Axiom
+            try {
+                // Extract lightweight graph predicates for the new axiom
+                const constraints = fused.constraints || [];
+                const entities = constraints.slice(0, 3).map(c => c.value);
+                const graph = entities.length >= 2 ? [{
+                    subject: entities[0],
+                    predicate: 'implies',
+                    object: entities[1]
+                }] : [];
+
+                fused.raw_toon = ToonService.stringify({
+                    metadata: { intent: fused.intent.primary },
+                    constraints: constraints.map(c => ({
+                        type: c.rule,
+                        value: c.value
+                    })),
+                    graph: graph
+                });
+            } catch (e) {
+                console.warn("[Dreaming] 📄 TOON serialization failed for axiom:", e);
+            }
 
             // 5. Persist the new Axiom
             await supabase.from('crystals').insert(fused);

@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Shield, Fingerprint, Database, Zap, Code, Share2 } from 'lucide-react';
+import { ToonService } from '@/lib/toon';
 
 interface CrystalAuditorProps {
     isOpen: boolean;
@@ -83,14 +84,42 @@ export const CrystalAuditor: React.FC<CrystalAuditorProps> = ({ isOpen, onClose,
                                         <Zap size={12} /> Truth Invariants
                                     </h4>
                                     <div className="flex flex-wrap gap-2">
-                                        {(crystal.constraints || ['Structural', 'Logical', 'Semantic']).map((c: any, i: number) => (
-                                            <span key={i} className="px-3 py-1 bg-green-50 text-green-700 text-[10px] font-bold rounded-full border border-green-100">
-                                                {typeof c === 'string' ? c : c.rule}
-                                            </span>
-                                        ))}
+                                        {(crystal.constraints || []).map((c: any, i: number) => {
+                                            const rule = typeof c === 'string' ? c : c.rule;
+                                            const val = typeof c === 'string' ? '' : c.value;
+                                            return (
+                                                <div key={i} className="px-3 py-1.5 bg-green-50 text-green-700 text-[10px] font-bold rounded-xl border border-green-100 flex items-center gap-1.5">
+                                                    <span className="opacity-40">{rule}</span>
+                                                    <span>[{val || c}]</span>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             </div>
+
+                            {/* LOGIC CONNECTOME (Hard Synapses) */}
+                            {crystal.synapses && crystal.synapses.length > 0 && (
+                                <div className="bg-emerald-50/30 rounded-[2.5rem] p-8 border border-emerald-100">
+                                    <h3 className="text-xs font-black uppercase tracking-widest text-emerald-600 mb-6 flex items-center gap-2">
+                                        <Share2 size={14} /> Logic Connectome
+                                    </h3>
+                                    <div className="space-y-4">
+                                        {crystal.synapses.filter((s: any) => s.type === 'LOGICAL_OVERLAP').map((syn: any, i: number) => (
+                                            <div key={i} className="flex items-center justify-between p-4 bg-white rounded-2xl border border-emerald-100 shadow-sm">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-[8px]">S</div>
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-gray-900">Hard Synapse (Strength: {syn.strength})</p>
+                                                        <p className="text-[9px] text-gray-400 font-mono italic">{syn.justification}</p>
+                                                    </div>
+                                                </div>
+                                                <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">{syn.target.substring(0, 8)}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -98,16 +127,26 @@ export const CrystalAuditor: React.FC<CrystalAuditorProps> = ({ isOpen, onClose,
                     <div className="w-full md:w-[400px] bg-gray-900 p-8 md:p-12 flex flex-col h-full overflow-hidden">
                         <div className="flex items-center justify-between mb-8">
                             <h3 className="text-white text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                                <Code size={14} className="text-cyan-400" /> RAW_CRYSTAL.JSON
+                                <Code size={14} className="text-emerald-400" /> {crystal.raw_toon ? 'TRUTH_GRAPH.TOON' : 'RAW_CRYSTAL.JSON'}
                             </h3>
                             <button className="text-gray-500 hover:text-white transition-colors">
                                 <Share2 size={16} />
                             </button>
                         </div>
 
-                        <div className="flex-1 bg-black/30 rounded-3xl p-6 font-mono text-[10px] text-cyan-400/80 overflow-y-auto custom-scrollbar border border-white/5">
+                        <div className="flex-1 bg-black/30 rounded-3xl p-6 font-mono text-[10px] text-emerald-400/80 overflow-y-auto custom-scrollbar border border-white/5 relative">
+                            <div className="absolute top-4 right-4 px-2 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded text-[8px] font-black uppercase tracking-widest text-emerald-400 animate-pulse">
+                                Sovereign Truth Manifold
+                            </div>
                             <pre className="whitespace-pre-wrap leading-relaxed italic">
-                                {JSON.stringify(crystal, null, 2)}
+                                {crystal.raw_toon || ToonService.stringify({
+                                    metadata: { intent: crystal.intent?.primary },
+                                    constraints: (crystal.constraints || []).map((c: any) => ({
+                                        type: typeof c === 'string' ? 'MUST' : c.rule,
+                                        value: typeof c === 'string' ? c : c.value
+                                    })),
+                                    graph: []
+                                })}
                             </pre>
                         </div>
 

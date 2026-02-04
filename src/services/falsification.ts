@@ -1,4 +1,5 @@
 import { SCPService } from './llm';
+import { ToonService } from '../../dashboard/src/lib/toon';
 
 export interface FalsificationResult {
     survived: boolean; // Did the claim survive the attack?
@@ -34,54 +35,50 @@ export class FalsificationEngine {
         Task: Find a logical flaw, a counter-example, or a context where this claim is FALSE.
         If the claim is strictly true and unbreakable, admit defeat.
         
-        Return JSON:
-        {
-            "successful_attack": boolean,
-            "counter_argument": "string (The attack)",
-            "severity": "high" | "low" | "none"
-        }
+        Return TOON:
+        @successful_attack(true/false)
+        MUST [Counter argument / logical flaw]
+        @severity(high|low|none)
         `;
 
         // Use a "smart" model for the attack
         const attackRes = await SCPService.resilientCallLLM(attackPrompt, 'anthropic/claude-3.5-sonnet', 'You are a Ruthless Logician.');
-        let attack;
-        try {
-            attack = JSON.parse(attackRes.content);
-        } catch {
+        const attack = ToonService.parse(attackRes.content);
+
+        if (!attack.metadata.successful_attack) {
             return { survived: true, attack_vector: "Red Team failed to form coherent attack", defense: "Claim is trivial", resilience_score: 0.5 };
         }
 
         // STEP 2: THE DEFENSE (Judge)
         // If the Red Team thinks it found a flaw, we evaluate if it's a valid kill.
-        if (attack.successful_attack) {
-            console.log(`[Falsifier] ⚠️ Attack detected: "${attack.counter_argument}"`);
+        if (attack.metadata.successful_attack === 'true') {
+            const counterArg = attack.constraints[0]?.value || "Ambiguous logical pressure";
+            console.log(`[Falsifier] ⚠️ Attack detected: "${counterArg}"`);
 
             const judgePrompt = `
             You are the SUPREME COURT.
             
             Original Claim: "${claim}"
-            Red Team Attack: "${attack.counter_argument}"
+            Red Team Attack: "${counterArg}"
             
             Is this attack Valid? Does it actually disprove the claim?
             Or is it nitpicking / irrelevant context?
             
-            Return JSON:
-            {
-                "attack_valid": boolean,
-                "reason": "explanation",
-                "final_verdict_on_claim": "TRUE" | "FALSE" | "NUANCED"
-            }
+            Return TOON:
+            @attack_valid(true/false)
+            MUST [Reasoning for verdict]
+            @final_verdict(TRUE|FALSE|NUANCED)
             `;
 
             const judgeRes = await SCPService.resilientCallLLM(judgePrompt, 'google/gemini-pro-1.5', 'You are an Impartial Judge.');
             try {
-                const verdict = JSON.parse(judgeRes.content);
+                const verdict = ToonService.parse(judgeRes.content);
 
-                if (verdict.attack_valid && verdict.final_verdict_on_claim !== 'TRUE') {
+                if (verdict.metadata.attack_valid === 'true' && verdict.metadata.final_verdict !== 'TRUE') {
                     // THE CLAIM WAS DESTROYED
                     return {
                         survived: false,
-                        attack_vector: attack.counter_argument,
+                        attack_vector: counterArg,
                         defense: "None possible. Argument collapsed.",
                         resilience_score: 0.0
                     };
@@ -89,8 +86,8 @@ export class FalsificationEngine {
                     // THE CLAIM SURVIVED THE ATTACK
                     return {
                         survived: true,
-                        attack_vector: attack.counter_argument,
-                        defense: `Withstood attack. Judge ruled: ${verdict.reason}`,
+                        attack_vector: counterArg,
+                        defense: `Withstood attack. Judge ruled: ${verdict.constraints[0]?.value}`,
                         resilience_score: 0.95 // High score for surviving a valid attempt
                     };
                 }
