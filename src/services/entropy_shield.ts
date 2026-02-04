@@ -36,7 +36,7 @@ export class EntropyShield {
         // 2. [TOON] Prune redundant predicates in the Truth Graph
         let purifiedToon = crystal.raw_toon;
         if (crystal.raw_toon) {
-            const { ToonService } = await import('../../dashboard/src/lib/toon');
+            const { ToonService } = await import('../lib/toon');
             const toon = ToonService.parse(crystal.raw_toon);
 
             const seenPredicates = new Set<string>();

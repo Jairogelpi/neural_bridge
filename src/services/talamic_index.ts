@@ -95,7 +95,7 @@ export class TalamicIndex {
 
         // 🧬 EXTRAPOLATE PREDICATES (Logical Anchors)
         if (node.metadata.has_toon) {
-            const { ToonService } = await import('../../dashboard/src/lib/toon');
+            const { ToonService } = await import('../lib/toon');
             const toon = ToonService.parse(text);
             toon.graph.forEach((rel: any) => {
                 const predicateBucket = `pred_${rel.subject}_${rel.predicate}_${rel.object}`;

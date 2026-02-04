@@ -40,7 +40,7 @@ export class LatentAnchor {
         if (crystal.raw_toon) {
             try {
                 // We use a simplified SPO dump for the prompt
-                const { ToonService } = await import('../../dashboard/src/lib/toon');
+                const { ToonService } = await import('../lib/toon');
                 const toon = ToonService.parse(crystal.raw_toon);
                 toonManifold = (toon.graph || []).map((rel: any) => {
                     return `[PREDICATE] (${rel.subject}) --[${rel.predicate}]--> (${rel.object})`;

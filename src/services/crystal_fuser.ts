@@ -111,7 +111,7 @@ export class CrystalFuser {
         // 3. TOON MANIFOLD SYNTHESIS
         let masterToon = "";
         try {
-            const { ToonService } = await import('../../dashboard/src/lib/toon');
+            const { ToonService } = await import('../lib/toon');
             const parentToons = crystals.map(c => c.raw_toon).filter(Boolean).map(t => ToonService.parse(t!));
 
             const mergedGraph = Array.from(new Map(

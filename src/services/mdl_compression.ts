@@ -73,7 +73,7 @@ export async function compressCrystalMDL(params: {
     let compressedToon = crystal.raw_toon;
     if (crystal.raw_toon) {
         try {
-            const { ToonService } = await import('../../dashboard/src/lib/toon');
+            const { ToonService } = await import('../lib/toon');
             const toon = ToonService.parse(crystal.raw_toon);
 
             // Heuristic: remove predicates where subject/object are not in core entities/constraints

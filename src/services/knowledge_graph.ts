@@ -154,7 +154,7 @@ export async function mergecrystals(params: {
         // 🧬 TOON MANIFOLD MERGE
         if (current.raw_toon && mergedToon) {
             try {
-                const { ToonService } = await import('../../dashboard/src/lib/toon');
+                const { ToonService } = await import('../lib/toon');
                 const t1 = ToonService.parse(mergedToon);
                 const t2 = ToonService.parse(current.raw_toon);
 
@@ -251,7 +251,7 @@ export async function detectConflicts(base: Crystal, incoming: Crystal): Promise
     // 2. [TOON] Graph Predicate Conflicts
     if (base.raw_toon && incoming.raw_toon) {
         try {
-            const { ToonService } = await import('../../dashboard/src/lib/toon');
+            const { ToonService } = await import('../lib/toon');
             const bToon = ToonService.parse(base.raw_toon);
             const iToon = ToonService.parse(incoming.raw_toon);
 

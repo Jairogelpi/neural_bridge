@@ -111,7 +111,7 @@ export class SynapticBinder {
     private static async discoverPredicateSynapses(crystal: Crystal): Promise<NonNullable<Crystal['synapses']>> {
         if (!crystal.raw_toon) return [];
 
-        const { ToonService } = await import('../../dashboard/src/lib/toon');
+        const { ToonService } = await import('../lib/toon');
         const toon = ToonService.parse(crystal.raw_toon);
         const synapses: NonNullable<Crystal['synapses']> = [];
 
