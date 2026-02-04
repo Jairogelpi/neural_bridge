@@ -8,14 +8,18 @@
 }
 
 :root {
-  --background: #fdfdfd;
-  --foreground: #0a0a0a;
+  --background: #ffffff;
+  --foreground: #0f172a;
+  /* Slate 900 */
 
-  /* Titan Palette */
+  /* Titan Light Palette */
   --titan-white: #ffffff;
-  --titan-mist: #f4f6f8;
+  --titan-mist: #f8fafc;
+  /* Slate 50 */
   --titan-border: #e2e8f0;
+  /* Slate 200 */
 
+  /* Primary Accents (Violet/Indigo) */
   --titan-accent: #6366f1;
   /* Indigo 500 */
   --titan-accent-hover: #4f46e5;
@@ -23,21 +27,30 @@
   --titan-accent-light: #e0e7ff;
   /* Indigo 100 */
 
+  /* Secondary Accents (Sky/Blue) */
+  --titan-secondary: #0ea5e9;
+  /* Sky 500 */
+  --titan-secondary-light: #e0f2fe;
+  /* Sky 100 */
+
   /* Semantic Colors */
   --success: #10b981;
   --warning: #f59e0b;
   --error: #ef4444;
 
-  /* Glass */
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.5);
-  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  /* Glass Light */
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
 }
 
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   color: var(--foreground);
-  background: var(--background);
+  background: #ffffff;
+  /* Fallback if var fails, but mainly enforcement */
+  background-image: linear-gradient(to bottom right, #ffffff, #f0f9ff, #f5f3ff);
+  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

@@ -8,34 +8,45 @@ export function LandingHeader() {
     const { user } = useAuth();
 
     return (
-        <nav className="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-xl border-b border-white/10 px-6 sm:px-8 py-4 flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 p-[1.5px] animate-pulse">
-                    <div className="w-full h-full bg-black rounded-[6px] flex items-center justify-center">
-                        <div className="w-4 h-4 rounded-sm bg-gradient-to-tr from-indigo-500 to-purple-500 rotate-45" />
-                    </div>
+        <nav className="fixed top-0 w-full z-50 bg-white/60 backdrop-blur-2xl border-b border-indigo-50/50 px-6 sm:px-8 py-4 flex items-center justify-between transition-all duration-300">
+            <div className="flex items-center space-x-4 group cursor-pointer">
+                {/* NEW CRYSTAL LOGO */}
+                <div className="relative w-10 h-10 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-indigo-500 blur-xl opacity-20 group-hover:opacity-40 transition-opacity duration-500" />
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="relative z-10 transition-transform duration-500 group-hover:rotate-180">
+                        <path d="M16 2L2 9.5L16 17L30 9.5L16 2Z" className="fill-indigo-500" stroke="white" strokeWidth="1.5" />
+                        <path d="M2 9.5L16 17V30L2 22.5V9.5Z" className="fill-violet-600" stroke="white" strokeWidth="1.5" />
+                        <path d="M30 9.5L16 17V30L30 22.5V9.5Z" className="fill-indigo-600" stroke="white" strokeWidth="1.5" />
+                        <rect x="15" y="1" width="2" height="15" className="fill-white mix-blend-overlay opacity-50" />
+                    </svg>
                 </div>
-                <span className="text-xs font-black tracking-[0.3em] uppercase text-white">Neural Bridge <span className="text-purple-500">OMEGA</span></span>
+
+                <div className="flex flex-col">
+                    <span className="text-sm font-black tracking-tighter uppercase text-slate-900 leading-none">Neural</span>
+                    <span className="text-sm font-black tracking-[0.2em] uppercase text-indigo-600 leading-none">Crystals</span>
+                </div>
             </div>
 
-            <div className="hidden md:flex items-center space-x-8">
-                <NavLink href="#revolution">Revolution</NavLink>
-                <NavLink href="#tech">Crystals & Fractals</NavLink>
+            <div className="hidden md:flex items-center space-x-10">
+                <NavLink href="#revolution">Manifesto</NavLink>
+                <NavLink href="#tech">The Crystal</NavLink>
                 <NavLink href="#protocols">Protocols</NavLink>
-                <NavLink href="#comparison">RAG vs Omega</NavLink>
+                <NavLink href="#comparison">Superiority</NavLink>
             </div>
 
             <div className="flex items-center space-x-4 sm:space-x-8">
                 {!user ? (
                     <>
-                        <Link href="/login" className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white transition-colors hidden sm:inline-block">Login</Link>
-                        <Link href="/register" className="group relative px-6 py-2.5 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)] overflow-hidden">
-                            <span className="relative z-10">Initialize</span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity" />
+                        <Link href="/login" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors hidden sm:inline-block">Login</Link>
+                        <Link href="/register" className="group relative px-6 py-2.5 bg-slate-900 overflow-hidden text-white text-[10px] font-black uppercase tracking-widest rounded-full hover:shadow-xl hover:shadow-indigo-500/20 transition-all active:scale-95">
+                            <span className="relative z-10 flex items-center gap-2">
+                                Initialize <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            </span>
+                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-violet-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                         </Link>
                     </>
                 ) : (
-                    <Link href="/dashboard" className="px-6 py-2.5 bg-indigo-500/20 border border-indigo-500/50 text-indigo-300 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-indigo-500/30 transition-all shadow-[0_0_15px_rgba(99,102,241,0.3)]">
+                    <Link href="/dashboard" className="px-6 py-2.5 bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-indigo-100 transition-all">
                         Enter Console
                     </Link>
                 )}
@@ -46,7 +57,7 @@ export function LandingHeader() {
 
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
     return (
-        <Link href={href} className="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-white hover:text-glow transition-all">
+        <Link href={href} className="text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-indigo-600 transition-all">
             {children}
         </Link>
     );
