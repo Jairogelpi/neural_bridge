@@ -683,7 +683,7 @@ Return ONLY valid JSON, no markdown or explanation.`;
     if (crystalToHash.verification) {
         (crystalToHash.verification as any).canonical_hash = undefined;
     }
-    crystal.verification.canonical_hash = await Attestation.realSHA256(JSON.stringify(crystalToHash));
+    crystal.verification.canonical_hash = await Attestation.realSHA256(crystal.raw_toon || JSON.stringify(crystalToHash));
 
     // 6. CRYSTALLIZATION: Save to global Truth Vault
     try {
@@ -1081,7 +1081,7 @@ export async function sovereignSynthesize(text: string, domain: string): Promise
         raw_toon: ""
     };
     crystal.verification.canonical_hash = await computeCanonicalHash(crystal);
-    return { crystal, llmResponse: { content: JSON.stringify(crystal), model: 'SOVEREIGN_ENGINE', tokens: { prompt: 0, completion: 0, total: 0 }, cost: 0, latency: 0 } };
+    return { crystal, llmResponse: { content: crystal.raw_toon || JSON.stringify(crystal), model: 'SOVEREIGN_ENGINE', tokens: { prompt: 0, completion: 0, total: 0 }, cost: 0, latency: 0 } };
 }
 
 export const SCPService = {

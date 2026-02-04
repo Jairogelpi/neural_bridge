@@ -30,7 +30,8 @@ export class ExportService {
             throw new Error('Crystal not found');
         }
 
-        return JSON.stringify(crystal, null, 2);
+        // TOON-native export: prioritize raw_toon manifold
+        return crystal.raw_toon || JSON.stringify(crystal, null, 2);
     }
 
     /**

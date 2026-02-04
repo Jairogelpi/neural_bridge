@@ -67,7 +67,7 @@ export async function compressCrystalMDL(params: {
     }
 
     // Calculate final metrics
-    const original_tokens = estimateTokens(JSON.stringify(crystal));
+    const original_tokens = estimateTokens(crystal.raw_toon || JSON.stringify(crystal));
 
     // 3. [TOON] Prune the Truth Manifold
     let compressedToon = crystal.raw_toon;

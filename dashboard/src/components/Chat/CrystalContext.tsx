@@ -8,6 +8,7 @@ interface Crystal {
     context_id: string;
     domain: string;
     intent: any;
+    raw_toon?: string; // TOON manifold for logic-native display
 }
 
 interface CrystalContextProps {

@@ -1,6 +1,6 @@
 import { SCPService } from './llm';
 import { Crystal, CrystalConstraint, CrystalStatus } from '../types/crystal_format';
-import { ToonService } from '../../dashboard/src/lib/toon';
+import { ToonService } from '../lib/toon';
 
 /**
  * THE EVOLUTION ENGINE 🧬

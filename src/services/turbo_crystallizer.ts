@@ -1,5 +1,5 @@
 import { type Crystal, CrystalStatus, ConstraintRule } from '../types/crystal_format';
-import { ToonService } from '../../dashboard/src/lib/toon';
+import { ToonService } from '../lib/toon';
 import { CrystallizationService } from './crystallization';
 import { SemanticCache } from './semantic_cache';
 import { SCPService } from './llm';

@@ -161,7 +161,7 @@ export function validateModelForCrystal(params: {
 
 // Helper functions
 function detectDomain(crystal: Crystal): string {
-    const text = JSON.stringify(crystal).toLowerCase();
+    const text = (crystal.raw_toon || JSON.stringify(crystal)).toLowerCase();
 
     if (text.includes('patient') || text.includes('drug') || text.includes('treatment')) {
         return 'medicine';

@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { SCPService } from './services/llm';
+import { ToonService } from './lib/toon';
 
 // STANDARD SCIENTIFIC METHODOLOGY
 // Control Group: "Copy-Paste" (Raw Text Transfer)
@@ -21,12 +22,12 @@ export async function runComparativeStudy() {
     let neural_bridge_wins = 0;
 
     for (const prompt of scenarios) {
-        // Neural Bridge Run
+        // Neural Bridge Run (Logic-Native)
         const { crystal } = await SCPService.generateCrystal(prompt, 'scientist_user');
         const check = await SCPService.verifyArbitrary({
             crystal,
             question: "Does the output meet strict constraints?",
-            answer: JSON.stringify(crystal),
+            answer: ToonService.stringify(ToonService.parse(crystal.raw_toon || '')),
             targetModel: 'anthropic/claude-3.5-sonnet' // Mock verify
         });
 

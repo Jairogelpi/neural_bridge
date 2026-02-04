@@ -5,7 +5,7 @@ import { Attestation } from './attestation';
 import { UsidEngine } from './usid_engine';
 import { SemanticHasher } from './semantic_hashing';
 import { Hypervector } from '../math/hypervector';
-import { ToonService } from '../../dashboard/src/lib/toon';
+import { ToonService } from '../lib/toon';
 
 export interface CrystallizationOptions {
     domain?: string;

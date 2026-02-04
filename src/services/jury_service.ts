@@ -11,7 +11,7 @@ interface JuryVote {
     };
 }
 import type { Crystal } from '../types/crystal_format';
-import { ToonService } from '../../dashboard/src/lib/toon';
+import { ToonService } from '../lib/toon';
 
 export interface JuryEscalation {
     case_id?: string;

@@ -167,7 +167,7 @@ async function captureContextReal(): Promise<any> {
         crystal.metadata = {
             tokens_used: cost.input_tokens + cost.output_tokens,
             generation_cost: cost.cost_usd_est,
-            compression_ratio: text.length / JSON.stringify(crystal).length,
+            compression_ratio: text.length / (crystal.raw_toon || JSON.stringify(crystal)).length,
             quality_score: crystal.quality_score || 0.95
         };
 
@@ -183,7 +183,7 @@ async function captureContextReal(): Promise<any> {
 
 async function injectCrystalReal(crystal: Crystal): Promise<any> {
     showOverlay('running', 'Injecting Context Mesh...');
-    const sent = await sendMessage(`CONTEXT TRANSFER: ${JSON.stringify(crystal)}`);
+    const sent = await sendMessage(`CONTEXT TRANSFER: ${crystal.raw_toon || JSON.stringify(crystal)}`);
     await waitForResponse();
     updateOverlay('success', 'Injected!');
     setTimeout(hideOverlay, 1500);

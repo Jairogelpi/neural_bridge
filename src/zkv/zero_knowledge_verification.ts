@@ -17,7 +17,7 @@
  */
 
 import { cryptoUtils } from '../utils/crypto_utils';
-import { ToonService } from '../../dashboard/src/lib/toon';
+import { ToonService } from '../lib/toon';
 
 async function sha256(message: string): Promise<string> {
     return await cryptoUtils.sha256(message);

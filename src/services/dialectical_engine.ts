@@ -1,6 +1,6 @@
 import { SCPService } from './llm';
 import { FalsificationEngine } from './falsification';
-import { ToonService } from '../../dashboard/src/lib/toon';
+import { ToonService } from '../lib/toon';
 
 export interface DialecticalResult {
     final_thesis: string;

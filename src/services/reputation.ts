@@ -1,5 +1,5 @@
-import type { Crystal } from '../types/crystal_format';
 import { supabase } from '../db/supabase';
+import { ToonService } from '../lib/toon';
 
 export interface ReputationChange {
     author_id: string;
@@ -14,12 +14,12 @@ export interface ReputationChange {
  */
 export class ReputationSystem {
 
-    /**
-     * Calculate and apply reputation changes based on crystal quality and usage.
-     */
-    static async rewardQuality(crystal: Crystal): Promise<number> {
+    static async rewardQuality(crystal: any): Promise<number> {
+        const toon = ToonService.parse(crystal.raw_toon || '');
+        const predicateCount = toon.graph?.length || 0;
+
         const baseReward = 0.01;
-        const qualityBonus = (crystal.verification?.semantic_invariants?.length || 0) * 0.01;
+        const qualityBonus = predicateCount * 0.005; // 0.5% boost per verified predicate
         const totalDelta = baseReward + qualityBonus;
 
         const { data: author, error: fetchError } = await supabase

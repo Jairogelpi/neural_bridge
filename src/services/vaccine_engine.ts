@@ -2,7 +2,7 @@ import { SCPService } from './llm';
 import type { Crystal } from '../types/crystal_format';
 import { Attestation } from './attestation';
 import { supabase } from '../db/supabase';
-import { ToonService } from '../../dashboard/src/lib/toon';
+import { ToonService } from '../lib/toon';
 
 
 export interface SemanticVaccine {

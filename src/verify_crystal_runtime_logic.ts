@@ -51,7 +51,7 @@ export async function runGrandRealityDemo() {
         // ═══════════════════════════════════════════════════════════════════
         // PHASE 1: PARALLEL CRYSTAL COMPILATION (2x faster)
         // ═══════════════════════════════════════════════════════════════════
-        
+
         logWithTime('⚡ PHASE 1: Parallel Crystal Compilation (Tech + Medical)');
 
         const protocolTech = `
@@ -85,9 +85,9 @@ export async function runGrandRealityDemo() {
         metrics.totalTokens += llmTech.tokens.total + llmMed.tokens.total;
         metrics.totalCost += llmTech.cost + llmMed.cost;
 
-        // Generate cryptographic proofs
-        const hashTech = await Attestation.realSHA256(JSON.stringify(crystalTech));
-        const hashMed = await Attestation.realSHA256(JSON.stringify(crystalMed));
+        // Generate cryptographic proofs (TOON-native)
+        const hashTech = await Attestation.realSHA256(crystalTech.raw_toon || JSON.stringify(crystalTech));
+        const hashMed = await Attestation.realSHA256(crystalMed.raw_toon || JSON.stringify(crystalMed));
         metrics.hashes.push(hashTech, hashMed);
 
         await Promise.all([saveCrystal(crystalTech as any), saveCrystal(crystalMed as any)]);
@@ -95,11 +95,11 @@ export async function runGrandRealityDemo() {
         logWithTime(`   ✓ Tech Crystal: ${crystalTech.context_id}`);
         logWithTime(`     └─ Hash: ${hashTech.substring(0, 16)}...`);
         logWithTime(`     └─ Model: ${llmTech.model} | Tokens: ${llmTech.tokens.total} | Latency: ${llmTech.latency}ms`);
-        
+
         logWithTime(`   ✓ Med Crystal: ${crystalMed.context_id}`);
         logWithTime(`     └─ Hash: ${hashMed.substring(0, 16)}...`);
         logWithTime(`     └─ Model: ${llmMed.model} | Tokens: ${llmMed.tokens.total} | Latency: ${llmMed.latency}ms`);
-        
+
         logWithTime(`   ⚡ PARALLEL COMPILE TIME: ${compileTime}ms (vs ~${compileTime * 2}ms sequential)`);
 
         // ═══════════════════════════════════════════════════════════════════
@@ -140,10 +140,10 @@ export async function runGrandRealityDemo() {
 
         logWithTime(`   🔬 TECH: ${resTech.passed ? 'PASSED' : 'BLOCKED'} | SRI: ${resTech.sri.toFixed(3)} | Cost: $${resTech.total_cost.toFixed(5)}`);
         logWithTime(`      └─ Violation: "${resTech.issues[0] || 'None'}"`);
-        
+
         logWithTime(`   🏥 MED:  ${resMed.passed ? 'PASSED' : 'BLOCKED'} | SRI: ${resMed.sri.toFixed(3)} | Cost: $${resMed.total_cost.toFixed(5)}`);
         logWithTime(`      └─ Violation: "${resMed.issues[0] || 'None'}"`);
-        
+
         logWithTime(`   ⚡ PARALLEL VERIFY TIME: ${verifyTime}ms`);
 
         // ═══════════════════════════════════════════════════════════════════
@@ -240,8 +240,8 @@ export async function runGrandRealityDemo() {
 
         console.log('\n🎯 REALITY PROOF COMPLETE - Zero Mock, Zero Bias, 100% Verifiable');
 
-        return { 
-            tech: resTech, 
+        return {
+            tech: resTech,
             medical: resMed,
             proof: sessionProof,
             sessionHash

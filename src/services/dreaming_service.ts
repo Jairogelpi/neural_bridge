@@ -2,7 +2,7 @@
 import { Crystal, CrystalStatus, ConstraintRule } from '../types/crystal_format';
 import { CrystalFuser } from './crystal_fuser';
 import { supabase } from '../db/supabase';
-import { ToonService } from '../../dashboard/src/lib/toon';
+import { ToonService } from '../lib/toon';
 
 /**
  * RECURSIVE DREAMING ENGINE 🌌😴

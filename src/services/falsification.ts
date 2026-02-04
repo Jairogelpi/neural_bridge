@@ -1,5 +1,5 @@
 import { SCPService } from './llm';
-import { ToonService } from '../../dashboard/src/lib/toon';
+import { ToonService } from '../lib/toon';
 
 export interface FalsificationResult {
     survived: boolean; // Did the claim survive the attack?

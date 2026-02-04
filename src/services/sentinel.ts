@@ -1,7 +1,7 @@
 import { supabase } from '../db/supabase';
 import { SMTRuntime } from '../smt';
 import type { Crystal } from '../types/crystal_format';
-import { ToonService } from '../../dashboard/src/lib/toon';
+import { ToonService } from '../lib/toon';
 
 export interface SentinelEvent {
     type: 'VACCINE_SYNTHESIS' | 'ORACLE_DREAM' | 'JURY_ESCALATION' | 'FRACTAL_COMPRESSION' | 'ECONOMIC_ROUTING' | 'CRYSTAL_FUSION' | 'ENTROPY_PURIFICATION' | 'CHAOS_EVOLUTION' | 'SEMANTIC_HANDSHAKE' | 'SOVEREIGN_CONSENSUS' | 'HIVE_DREAM' | 'NEUROGENESIS' | 'COGNITIVE_EVOLUTION';

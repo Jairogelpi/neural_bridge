@@ -2,7 +2,7 @@ import { SCPService } from './llm';
 import { TalamicIndex } from './talamic_index';
 import { CONFIG } from '../config';
 import type { Crystal } from '../types/crystal_format';
-import { ToonService } from '../../dashboard/src/lib/toon';
+import { ToonService } from '../lib/toon';
 
 export interface ChatSession {
     id: string;

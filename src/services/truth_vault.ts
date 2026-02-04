@@ -2,7 +2,7 @@ import { supabase } from '../db/supabase';
 import { SCPService } from './llm';
 import { Attestation } from './attestation';
 import { CrystallizationService } from './crystallization';
-import { ToonService } from '../../dashboard/src/lib/toon';
+import { ToonService } from '../lib/toon';
 import { SemanticHasher } from './semantic_hashing';
 import { RLMEngine } from './rlm_engine';
 import { Hypervector } from '../math/hypervector';
@@ -264,7 +264,7 @@ Do these conflict?`;
             You are a Neural Bridge Truth Arbiter. Verify if the NEW TEXT contradicts the established FOUNDATION TRUTH.
             
             FOUNDATION TRUTH (Crystal):
-            "${JSON.stringify(crystal.constraints)}"
+            "${crystal.raw_toon || JSON.stringify(crystal.constraints)}"
             
             NEW TEXT:
             "${text}"

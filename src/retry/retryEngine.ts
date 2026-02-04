@@ -60,7 +60,7 @@ export async function runVerifiedBridge(
     let level: LadderLevel = "compact";
     let attemptIndexAtLevel = 0;
 
-    const crystalJSON = JSON.stringify(crystal, null, 2);
+    const crystalJSON = crystal.raw_toon || JSON.stringify(crystal, null, 2);
 
     for (let n = 0; n < maxTotalAttempts; n++) {
         // Build the challenge prompt

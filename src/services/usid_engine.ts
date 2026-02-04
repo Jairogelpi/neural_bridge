@@ -9,7 +9,7 @@ import type {
 import {
     DEFAULT_CAPABILITIES
 } from '../types/usid';
-import { ToonService } from '../../dashboard/src/lib/toon';
+import { ToonService } from '../lib/toon';
 
 export class UsidEngine {
 

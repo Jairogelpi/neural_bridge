@@ -129,7 +129,7 @@ async function realSHA256Geometric(crystal: Crystal): Promise<string> {
         vectors.push(Hypervector.fromString(await realSHA256(inv.prompt + JSON.stringify(inv.expected))));
     }
 
-    if (vectors.length === 0) return await realSHA256(JSON.stringify(crystal));
+    if (vectors.length === 0) return await realSHA256(crystal.raw_toon || JSON.stringify(crystal));
 
     // 2. Bundle all semantic invariants into one Geometric Fingerprint
     const fingerprint = Hypervector.bundle(vectors);

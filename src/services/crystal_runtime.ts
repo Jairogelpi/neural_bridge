@@ -10,6 +10,7 @@ import type { Invariant, VerifyResult } from '../content/verifier/verifier';
 import { verifyAnswers } from '../content/verifier/verifier';
 import type { Crystal } from '../types/crystal_format';
 import { SemanticInvariant } from '../types/crystal_format';
+import { ToonService } from '../lib/toon';
 
 export interface CrystalRuntimeConfig {
     domain: string;
@@ -366,7 +367,7 @@ export async function executeCrystal(params: {
         crystal_refs: [{
             crystal_id: crystal.context_id || 'unknown',
             version: '1.0.0',
-            hash: await Attestation.realSHA256(JSON.stringify(crystal))
+            hash: await Attestation.realSHA256(crystal.raw_toon || JSON.stringify(crystal))
         }],
         question,
         answer,

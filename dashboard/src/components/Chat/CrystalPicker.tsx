@@ -18,6 +18,7 @@ interface Crystal {
     embedding_model?: string;
     confidence_score?: number;
     vector_dims?: number;
+    raw_toon?: string; // TOON manifold for logic-native display
 }
 
 interface CrystalPickerProps {
@@ -47,7 +48,7 @@ export function CrystalPicker({ isOpen, onClose, onSelect, alreadySelected }: Cr
 
     const filtered = crystals.filter(c =>
         c.domain.toLowerCase().includes(search.toLowerCase()) ||
-        JSON.stringify(c.intent).toLowerCase().includes(search.toLowerCase())
+        (c.raw_toon || JSON.stringify(c.intent)).toLowerCase().includes(search.toLowerCase())
     );
 
     if (!isOpen) return null;
@@ -138,7 +139,7 @@ export function CrystalPicker({ isOpen, onClose, onSelect, alreadySelected }: Cr
                                             <p className="text-sm font-medium text-gray-500 mb-6 bg-gray-50 p-3 rounded-lg border border-gray-100 line-clamp-2">
                                                 {typeof crystal.intent === 'string'
                                                     ? crystal.intent
-                                                    : (crystal.intent?.primary || JSON.stringify(crystal.intent))}
+                                                    : (crystal.intent?.primary || crystal.raw_toon || JSON.stringify(crystal.intent))}
                                             </p>
 
                                             {/* Detailed Stats Grid */}
