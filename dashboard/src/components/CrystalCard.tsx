@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Brain, Database, ChevronRight } from 'lucide-react';
+import { Shield, Brain, Database, ChevronRight, Infinity as InfinityIcon, Code, Image as ImageIcon, FileText } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -12,9 +12,13 @@ interface CrystalCardProps {
     domain: string;
     intent: string;
     reputation: number;
-    raw_toon?: string; // For saturation metrics
+    raw_toon?: string;
     className?: string;
     onClick?: () => void;
+    // Phase Infinity / Omega
+    scp_version?: string;
+    mime_type?: string;
+    axiomatic?: boolean;
 }
 
 export const CrystalCard: React.FC<CrystalCardProps> = ({
@@ -23,37 +27,61 @@ export const CrystalCard: React.FC<CrystalCardProps> = ({
     intent,
     reputation,
     className,
-    onClick
+    onClick,
+    scp_version,
+    mime_type,
+    axiomatic
 }) => {
+    const getIcon = () => {
+        if (!mime_type) return <Brain size={20} />;
+        if (mime_type.startsWith('image/')) return <ImageIcon size={20} />;
+        if (mime_type.startsWith('text/x-typescript') || mime_type.startsWith('application/javascript')) return <Code size={20} />;
+        if (mime_type.startsWith('text/')) return <FileText size={20} />;
+        return <InfinityIcon size={20} />;
+    };
+
     return (
         <motion.div
             whileHover={{ scale: 1.02, translateY: -5 }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className={twMerge(
-                "relative overflow-hidden rounded-2xl border border-white/10 bg-black/40 p-6 backdrop-blur-xl transition-shadow hover:shadow-[0_0_20px_rgba(0,242,255,0.15)]",
+                "relative overflow-hidden rounded-2xl border border-white/10 bg-black/40 p-6 backdrop-blur-xl transition-shadow hover:shadow-[0_0_20px_rgba(79,70,229,0.2)]",
                 className
             )}
         >
             {/* Decorative Gradient Glow */}
-            <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-cyan-500/10 blur-3xl" />
+            <div className={`absolute -right-10 -top-10 h-32 w-32 rounded-full blur-3xl ${axiomatic ? 'bg-indigo-500/20' : 'bg-cyan-500/10'}`} />
 
             <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
-                        <Brain size={20} />
+                    <div className={twMerge(
+                        "flex h-10 w-10 items-center justify-center rounded-lg border",
+                        axiomatic ? "bg-indigo-500/10 border-indigo-500/30 text-indigo-400" : "bg-cyan-500/10 border-cyan-500/20 text-cyan-400"
+                    )}>
+                        {getIcon()}
                     </div>
                     <div>
                         <h3 className="text-sm font-bold text-white uppercase tracking-wider">{domain}</h3>
-                        <p className="text-[10px] text-white/40 font-mono">{id.substring(0, 8)}...</p>
+                        <div className="flex items-center gap-2">
+                            <p className="text-[10px] text-white/40 font-mono">{id.substring(0, 8)}...</p>
+                            {scp_version === '0.2' && (
+                                <span className="text-[8px] bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 px-1 rounded font-black italic">SIGMA</span>
+                            )}
+                        </div>
                     </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
+                    {axiomatic && (
+                        <div className="flex items-center gap-1 text-[8px] font-black text-white bg-indigo-600 px-2 py-0.5 rounded-full shadow-lg shadow-indigo-500/20">
+                            <Shield size={8} />
+                            <span>AXIOMATIC</span>
+                        </div>
+                    )}
                     <div className="flex items-center gap-1 text-[10px] font-bold text-cyan-400 bg-cyan-400/5 px-2 py-1 rounded-full border border-cyan-400/20">
                         <Shield size={10} />
                         <span>VERIFIED</span>
                     </div>
-                    <span className="px-1 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[8px] font-black uppercase tracking-tighter border border-emerald-500/30">TOON</span>
                 </div>
             </div>
 

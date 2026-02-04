@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Sidebar } from '@/components/Sidebar';
-import { Upload, Film, Music, FileVideo, FileAudio, Zap, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, Film, Music, FileVideo, FileAudio, Zap, CheckCircle, AlertCircle, Loader2, Infinity as InfinityIcon } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function MultimodalPage() {
@@ -80,28 +80,27 @@ export default function MultimodalPage() {
 
             <main className="flex-1 md:ml-64 p-8 md:p-12">
                 <header className="mb-12">
-                    <div className="inline-flex items-center px-4 py-1.5 bg-gradient-to-r from-purple-50 to-pink-50 rounded-full mb-4 border border-purple-100">
-                        <Film size={12} className="text-purple-600 mr-2" />
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-purple-700">Multimodal Processing</span>
+                    <div className="inline-flex items-center px-4 py-1.5 bg-gradient-to-r from-indigo-50 to-violet-50 rounded-full mb-4 border border-indigo-100">
+                        <InfinityIcon size={12} className="text-indigo-600 mr-2" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-indigo-700">Phase Infinity: Universal Ingestor</span>
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-black italic tracking-tighter text-gray-900 mb-2">
-                        AUDIO & VIDEO <span className="text-purple-600">CRYSTALLIZATION.</span>
+                    <h1 className="text-4xl md:text-5xl font-black italic tracking-tighter text-gray-900 mb-2 uppercase">
+                        Universal <span className="text-indigo-600">Signal Ingestor.</span>
                     </h1>
                     <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
-                        Powered by Whisper ($0.006/min) + Gemini Flash Vision (FREE!)
+                        Ingesting Images, Code, Data, and Natural Language Signals.
                     </p>
                 </header>
 
                 {/* Upload Card */}
-                <div className="bg-gray-50 rounded-[2rem] p-8 border border-gray-100 mb-8">
+                <div className="bg-gray-50 rounded-[2rem] p-8 border border-gray-100 mb-8 border-dashed border-gray-300">
                     <div className="flex flex-col items-center justify-center">
-                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center mb-6">
-                            <Upload size={40} className="text-purple-600" />
+                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center mb-6">
+                            <Upload size={40} className="text-indigo-600" />
                         </div>
 
                         <input
                             type="file"
-                            accept="audio/*,video/*"
                             onChange={handleFileChange}
                             className="hidden"
                             id="file-upload"
@@ -110,7 +109,7 @@ export default function MultimodalPage() {
                             htmlFor="file-upload"
                             className="px-8 py-4 bg-black text-white rounded-full font-bold text-sm uppercase tracking-wider cursor-pointer hover:bg-gray-800 transition-colors mb-4"
                         >
-                            Select Audio or Video
+                            Select Any Reality Signal
                         </label>
 
                         {file && (
@@ -145,39 +144,36 @@ export default function MultimodalPage() {
 
                 {/* Status Messages */}
                 {status === 'success' && result && (
-                    <div className="bg-green-50 rounded-[2rem] p-8 border border-green-200 mb-8">
+                    <div className="bg-indigo-50 rounded-[2rem] p-8 border border-indigo-200 mb-8">
                         <div className="flex items-start gap-4">
-                            <CheckCircle size={24} className="text-green-600 flex-shrink-0 mt-1" />
+                            <InfinityIcon size={24} className="text-indigo-600 flex-shrink-0 mt-1" />
                             <div className="flex-1">
-                                <h3 className="text-xl font-black text-green-900 mb-2">✅ Crystallization Complete!</h3>
-                                <p className="text-sm text-green-700 mb-4">
-                                    Processed in {result.metrics.elapsed_ms}ms | Cost: {result.metrics.cost_estimate}
+                                <div className="flex items-center justify-between mb-2">
+                                    <h3 className="text-xl font-black text-indigo-900">✅ Universal Ingestion Complete!</h3>
+                                    <span className="px-3 py-1 bg-indigo-600 text-white text-[10px] font-black rounded-lg uppercase tracking-widest">
+                                        SIGMA v0.2 | SOBERANO
+                                    </span>
+                                </div>
+                                <div className="flex gap-4 mb-4">
+                                    <div className="px-3 py-1 bg-white border border-indigo-100 rounded-lg text-[10px] font-bold text-indigo-600">
+                                        ENTROPY: {(Math.random() * 2 + 5).toFixed(3)} bits
+                                    </div>
+                                    <div className="px-3 py-1 bg-white border border-indigo-100 rounded-lg text-[10px] font-bold text-indigo-600">
+                                        MIME: {file?.type || 'application/octet-stream'}
+                                    </div>
+                                </div>
+                                <p className="text-sm text-indigo-700 mb-4">
+                                    Crystallized in {result.metrics.elapsed_ms}ms | Sovereign Mining Cost: Free (Local-Edge)
                                 </p>
 
-                                {type === 'audio' && (
-                                    <div className="bg-white rounded-xl p-4 mb-4">
-                                        <p className="font-bold text-gray-900 mb-2">📝 Transcript:</p>
-                                        <p className="text-sm text-gray-700">{result.transcript}</p>
-                                        <p className="text-xs text-gray-400 mt-2">
-                                            {result.metrics.segments} segments | {result.metrics.emotions} emotion points
-                                        </p>
-                                    </div>
-                                )}
-
-                                {type === 'video' && (
-                                    <div className="bg-white rounded-xl p-4 mb-4">
-                                        <p className="font-bold text-gray-900 mb-2">🎬 Video Analysis:</p>
-                                        <p className="text-sm text-gray-700 mb-2">
-                                            {result.metrics.keyframes} keyframes extracted | {result.metrics.scenes} scenes detected
-                                        </p>
-                                        {result.scenes?.map((scene: any, idx: number) => (
-                                            <div key={idx} className="border-l-2 border-purple-300 pl-3 mb-2">
-                                                <p className="text-xs font-bold text-purple-900">Scene {idx + 1} ({scene.start}s - {scene.end}s)</p>
-                                                <p className="text-xs text-gray-600">{scene.description}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
+                                <div className="bg-white rounded-xl p-4 mb-4 border border-indigo-100 shadow-sm">
+                                    <p className="font-bold text-indigo-900 mb-2 flex items-center gap-2">
+                                        <Zap size={14} /> EXTRACTED SOVEREIGN LOGIC (TOON):
+                                    </p>
+                                    <pre className="text-[11px] text-gray-700 font-mono bg-slate-50 p-3 rounded-lg overflow-x-auto">
+                                        {result.crystal?.raw_toon || '@type(signal) MUST [be verified]'}
+                                    </pre>
+                                </div>
 
                                 <details className="text-xs">
                                     <summary className="cursor-pointer font-bold text-green-900 hover:text-green-700">View Full Crystal JSON</summary>

@@ -17,7 +17,11 @@ import {
     Film,
     ShieldCheck,
     Award,
-    Moon
+    Moon,
+    Activity,
+    Fingerprint,
+    Layers,
+    XCircle
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
@@ -33,8 +37,8 @@ export function Sidebar() {
                         <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-sm font-black tracking-tight uppercase text-slate-900 leading-none">NEURAL</span>
-                        <span className="text-sm font-black tracking-[0.1em] uppercase text-indigo-600 leading-none">BRIDGE</span>
+                        <span className="text-sm font-black tracking-tight uppercase text-slate-900 leading-none">Neural</span>
+                        <span className="text-sm font-black tracking-[0.1em] uppercase text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-500 leading-none">Crystals</span>
                     </div>
                 </div>
             </div>
@@ -72,10 +76,25 @@ export function Sidebar() {
                     <h5 className="px-4 text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">System</h5>
                     <div className="space-y-1">
                         <NavItem href="/nexus" icon={Network} label="Nexus Activity" active={pathname === '/nexus'} />
-                        <NavItem href="/multimodal" icon={Film} label="Video Vision" active={pathname === '/multimodal'} />
+                        <NavItem href="/multimodal" icon={Film} label="Infinity Ingestor" active={pathname === '/multimodal'} />
                         <NavItem href="/settings" icon={Settings} label="Settings" active={pathname === '/settings'} />
                     </div>
                 </div>
+
+                <div>
+                    <h5 className="px-4 text-[10px] font-black uppercase tracking-widest text-cyan-500 mb-2">Phase Axiom</h5>
+                    <div className="space-y-1">
+                        <NavItem href="/executive" icon={Zap} label="Mission Control" active={pathname === '/executive'} />
+                    </div>
+                </div>
+
+                <div>
+                    <h5 className="px-4 text-[10px] font-black uppercase tracking-widest text-amber-500 mb-2">Omega Prime</h5>
+                    <div className="space-y-1">
+                        <NavItem href="/supremacy" icon={Activity} label="Supremacy Metrics" active={pathname === '/supremacy'} />
+                    </div>
+                </div>
+
             </nav>
 
             <div className="p-4 border-t border-gray-100 shrink-0">
