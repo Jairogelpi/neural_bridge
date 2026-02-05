@@ -55,6 +55,7 @@ interface AnalysisResult {
         cost_usd?: number;
     };
     revolutionary_explanation?: string[];
+    realTimeCost?: number;
 }
 
 interface Node {
@@ -307,13 +308,13 @@ export default function SCPDemoModal({ isOpen, onClose }: SCPDemoModalProps) {
                             mode: 'CLOUD',
                             tier: tier.toUpperCase() as any,
                             confidence: crystal.verification?.policy?.accept_threshold || 0.9,
-                            realTimeCost: crystal.telemetry?.real_time_cost || 0, // Added realTimeCost
                             narrative: crystal.metadata?.narrative,
                             telemetry: {
                                 entropy: crystal.neuromorphic_stats?.entropy || 0.1,
                                 fisher_info: crystal.neuromorphic_stats?.fisher_info || 0.8,
-                                consensus_score: crystal.verification?.statistical_fidelity || 0.92,
-                                geometric_density: crystal.neuromorphic_stats?.geometric_density || 0.95
+                                consensus_score: crystal.rlm_stats?.q_score || 0.85,
+                                geometric_density: crystal.neuromorphic_stats?.geometric_density || 0.7,
+                                cost_usd: crystal.cost || 0
                             },
                             revolutionary_explanation: [
                                 `Axiomatic Invariant: ${crystal.intent?.primary || "Universal Node"} is locked as a semantic constant.`,

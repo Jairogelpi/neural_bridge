@@ -61,7 +61,7 @@ const app = express();
 const PORT = process.env.PORT || 10000;
 
 // Health Check - Absolute Priority
-app.get('/health', (req, res) => {
+app.get('/health', (req: Request, res: Response) => {
     console.log(`[HEALTH] ${req.method} probe from ${req.ip} - Responding OK`);
     res.status(200).send('OK');
 });
@@ -93,7 +93,7 @@ const apiLimiter = rateLimit({
     windowMs: 60 * 1000, // 1 minute
     max: 20, // 20 requests per minute for API
     message: 'API rate limit exceeded',
-    skip: (req) => req.path.startsWith('/health')
+    skip: (req: Request) => req.path.startsWith('/health')
 });
 
 app.use('/v1/', apiLimiter);
@@ -558,7 +558,7 @@ app.post('/v1/multimodal/video', async (req: Request, res: Response) => {
 });
 
 app.get('/v1/turbo/stats', (req: Request, res: Response) => {
-    const stats = TurboCrystallizer.getQueueStats();
+    const stats = CrystallizationService.getQueueStats();
     res.json({ success: true, stats });
 });
 
@@ -989,7 +989,7 @@ app.get('/metrics', async (req: Request, res: Response) => {
     res.json({
         cache: stats,
         database: dbStats,
-        turbo: TurboCrystallizer.getQueueStats()
+        turbo: CrystallizationService.getQueueStats()
     });
 });
 
