@@ -42,7 +42,7 @@ import { AudioCrystallizer } from './services/multimodal/audio_crystallizer';
 import { VideoCrystallizer } from './services/multimodal/video_crystallizer';
 import { CacheManager } from './services/cache';
 import { DatabasePool } from './services/database';
-import rateLimit from 'express-rate-limit';
+import { rateLimit } from 'express-rate-limit';
 import { JobQueueManager } from './services/job_queue';
 import { WebSocketServer } from './services/websocket';
 import { supabase } from './db/supabase';
