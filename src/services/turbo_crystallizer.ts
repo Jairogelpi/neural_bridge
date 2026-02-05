@@ -270,6 +270,54 @@ Be FAST. Return ONLY TOON.`;
     }
 
     /**
+     * COMPARATIVE QUERY 🦾
+     * Performs dual LLM calls:
+     * 1. Standard AI (No context)
+     * 2. Sovereign SCP (Grounded in the Crystal)
+     */
+    static async compareQuery(query: string, crystal: Crystal): Promise<{ normal: string, scp: string }> {
+        const fastModel = 'qwen/qwen-2.5-7b-instruct';
+
+        // 1. STANDARD AI CALL
+        const normalPromise = SCPService.resilientCallLLM(
+            query,
+            fastModel,
+            "You are a helpful AI assistant. Answer the user question based on general knowledge."
+        );
+
+        // 2. SOVEREIGN SCP CALL (Grounded)
+        const scpPrompt = `You are a Sovereign SCP Assistant. You MUST answer strictly using the provided Sovereign Crystal context.
+        
+CRYSTAL CONTEXT:
+${ToonService.stringify({
+            intent: crystal.intent,
+            constraints: crystal.constraints,
+            entities: crystal.entities,
+            narrative: crystal.metadata?.narrative
+        })}
+
+QUESTION: ${query}
+
+Rules:
+- If the crystal contains the answer, cite it.
+- If the answer is not in the crystal, state that it is not verified in the current knowledge lattice.
+- Be precise and deterministic.`;
+
+        const scpPromise = SCPService.resilientCallLLM(
+            `Answer this question based on the provided context: ${query}`,
+            fastModel,
+            scpPrompt
+        );
+
+        const [normalRes, scpRes] = await Promise.all([normalPromise, scpPromise]);
+
+        return {
+            normal: normalRes.content,
+            scp: scpRes.content
+        };
+    }
+
+    /**
      * Get queue statistics.
      */
     static getQueueStats() {

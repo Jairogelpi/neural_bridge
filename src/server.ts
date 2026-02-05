@@ -441,7 +441,31 @@ app.post('/v1/turbo/crystallize', async (req: Request, res: Response) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// MULTIMODAL (AUDIO & VIDEO) - Optimized for Cost/Performance ����🎬
+// COMPARATIVE QUERY (Real Dual-LLM Comparison) 🦾
+// ═══════════════════════════════════════════════════════════════════════════════
+app.post('/v1/turbo/query/compare', async (req: Request, res: Response) => {
+    try {
+        const { query, crystal } = req.body;
+        if (!query || !crystal) {
+            res.status(400).json({ error: 'Missing query or crystal' });
+            return;
+        }
+
+        console.log(`[API] 🦾 Executing REAL Comparative Query...`);
+        const result = await TurboCrystallizer.compareQuery(query, crystal);
+
+        res.json({
+            success: true,
+            ...result
+        });
+    } catch (error) {
+        console.error("[API] ❌ Comparative Query Error:", error);
+        res.status(500).json({ error: (error as Error).message });
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MULTIMODAL (AUDIO & VIDEO) - Optimized for Cost/Performance 🎧🎬
 // ═══════════════════════════════════════════════════════════════════════════════
 
 app.post('/v1/multimodal/audio', async (req: Request, res: Response) => {
