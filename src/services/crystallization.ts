@@ -69,29 +69,35 @@ export class CrystallizationService {
 
         // 5. Run the Compiler Prompt
         const systemPrompt = `
-You are the NEURAL BRIDGE CRYSTALLIZATION ENGINE (v3.0 ADVERSARIAL).
-Your goal is not just to extract information, but to FORGE IMMUTABLE TRUTH.
+You are the NEURAL BRIDGE CRYSTALLIZATION ENGINE (v4.0 INDESTRUCTIBLE).
+Your goal is to FORGE IMMUTABLE TRUTH via Chain-of-Logic (CoL).
 
-PROTOCOL:
-1. EXTRACTION: Identify candidate rules and facts from the text.
-2. ADVERSARIAL ATTACK (Crucial): Act as a "Red Team" hacker. Try to find edge cases, ambiguities, or contradictions where your candidate rules would fail or cause harm.
-3. HARDENING: Refine the rules to be mathematically precise and immune to the identified attacks.
-4. TOON EMISSION: Output the final hardened logic in Truth-Oriented Object Notation.
+CRYSTALLIZATION PROTOCOL:
+1. EXTRACTION & COGNITIVE MAPPING: Identify candidate rules and facts from the text.
+2. ADVERSARIAL STRESS TEST: Identify edge cases, bypass attempts, and "logical hallucinations".
+3. HARDENING (INDESTRUCTIBLE): Refine rules into Universal Quantifiers (MUST/NEVER).
+4. COLD CHAIN VALIDATION: Every complex inference MUST have !verify dependencies.
+5. TOON EMISSION: Output final hardened logic.
 
-Output Format:
+Output Format (TOON 4.0):
 {
   @id(AUTO_ID)
   @intent(PRIMARY_GOAL)
   (Subject) -[Relationship]-> (Object)
-  MUST [Rigid Logic Rule]
-  NEVER [Prohibited State]
-  !verify(Question?) -> [Expected Answer]
+  MUST [Universal Requirement]
+  NEVER [Absolute Prohibition]
+  
+  // INDESTRUCTIBLE INVARIANTS (Chain-of-Logic)
+  !verify(BaseFact?) -> [Expected] @id(fact_1)
+  !verify(Inference?) -> [Expected] @id(inf_1) @depends_on(fact_1)
+  !verify(Counterfactual?) -> [Expected] @id(cf_1) @depends_on(inf_1)
 }
 
 CRITICAL RULES:
-- Extracted constraints must be LOGICALLY BINDING (Universal Quantifiers).
-- If a rule has exceptions, encode them strictly (e.g., "IF condition THEN result").
-- Return ONLY the TOON block. Do not output your internal reasoning text, but PERFORM IT internally.${immunizationGuiance}`;
+- Extracted constraints must be LOGICALLY BINDING.
+- Use !verify dependencies (@depends_on) to build a logical ladder.
+- Generate at least ONE Counterfactual invariant (tests "What if X was Y?").
+- Return ONLY the TOON block. Do not output your internal reasoning.${immunizationGuiance}`;
 
         const response = await SCPService.resilientCallLLM(
             `CRYSTALLIZE THIS KNOWLEDGE INTO TOON:\n\n${processedText}\n\nReturn ONLY the TOON code block.`,
@@ -158,7 +164,7 @@ CRITICAL RULES:
             verification: {
                 canonical_hash: '',
                 semantic_invariants: (toonData.proofs?.invariants || []).map((inv: any) => ({
-                    id: `inv_${Math.random().toString(36).substr(2, 4)}`,
+                    id: inv.id || `inv_${Math.random().toString(36).substr(2, 4)}`,
                     kind: 'fact_check',
                     prompt: inv.prompt,
                     expected: {
@@ -167,7 +173,8 @@ CRITICAL RULES:
                     },
                     weight: 1.0,
                     strict: true,
-                    rationale: 'Verification check'
+                    depends_on: inv.depends_on,
+                    rationale: inv.rationale || 'Verification check'
                 })),
                 policy: {
                     min_checks: 2,
@@ -202,10 +209,6 @@ CRITICAL RULES:
 
         return crystal;
     }
-
-
-
-    // ... (existing imports)
 
     /**
      * VECTOR-FIELD AXIOMATIC EXTRACTION 🌐📐 (Now Enhanced with Semantic Regex)
@@ -245,7 +248,7 @@ CRITICAL RULES:
             }
         });
 
-        // If no explicit rules found, fallback to Key Concept density (simulated)
+        // If no explicit rules found, fallback to Key Concept density (sampled density)
         if (constraints.length === 0) {
             const words = text.split(/\s+/).filter(w => w.length > 5);
             words.forEach((w, i) => {
@@ -254,7 +257,7 @@ CRITICAL RULES:
                         id: `concept_${i}`,
                         rule: ConstraintRule.MUST,
                         value: w,
-                        rationale: "Concept Density Singularity (Weak Invariant)"
+                        rationale: "Concept Density Singularity"
                     });
                 }
             });

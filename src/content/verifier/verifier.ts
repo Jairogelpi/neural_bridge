@@ -16,6 +16,7 @@ export interface Invariant {
     expected: Expected;
     weight: number;   // sum weights ~ 1.0
     strict: boolean;
+    depends_on?: string[]; // IDs of invariants that MUST pass for this one to be valid
     tags?: string[];
     rationale?: string;
 }
@@ -139,9 +140,24 @@ export function verifyAnswers(params: {
     const strictFailures: string[] = [];
     const perInvariant: Array<{ id: string; score: number; reason: string }> = [];
 
+    const invariantScores = new Map<string, number>();
+
     for (const inv of invs) {
         const w = typeof inv.weight === "number" && inv.weight > 0 ? inv.weight : 0.01;
         sumW += w;
+
+        // 🔗 DEPENDENCY CHECK: If dependency exists and failed (score < 1), skip and penalize
+        if (inv.depends_on && inv.depends_on.length > 0) {
+            const depFailed = inv.depends_on.some(depId => (invariantScores.get(depId) ?? 0) < 0.9);
+            if (depFailed) {
+                const s = 0;
+                weighted += s * w;
+                perInvariant.push({ id: inv.id, score: s, reason: "dependency_failure" });
+                invariantScores.set(inv.id, s);
+                if (inv.strict) strictFailures.push(inv.id);
+                continue;
+            }
+        }
 
         const got = answers?.[inv.id];
 
@@ -176,6 +192,7 @@ export function verifyAnswers(params: {
 
         weighted += out.s * w;
         perInvariant.push({ id: inv.id, score: out.s, reason: out.reason });
+        invariantScores.set(inv.id, out.s);
 
         if (inv.strict && out.s < 1) strictFailures.push(inv.id);
     }
