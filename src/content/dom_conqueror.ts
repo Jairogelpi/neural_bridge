@@ -32,7 +32,12 @@ const PLATFORMS: Record<string, PlatformConfig> = {
         textSelector: '.font-claude-message',
         containerSelector: '.font-claude-message'
     },
-    // Add Gemini later
+    'openwebui': {
+        name: 'OpenWebUI',
+        messageSelector: '.message-content, .prose', // Common OpenWebUI selectors
+        textSelector: '.prose',
+        containerSelector: '.message-content'
+    }
 };
 
 export class DomConqueror {
@@ -57,7 +62,9 @@ export class DomConqueror {
         const host = window.location.hostname;
         if (host.includes('openai') || host.includes('chatgpt')) this.config = PLATFORMS['chatgpt'] || null;
         else if (host.includes('claude')) this.config = PLATFORMS['claude'] || null;
-        else {
+        else if (host.includes('localhost') || host.includes('127.0.0.1') || host.includes('openwebui')) {
+            this.config = PLATFORMS['openwebui'] || null;
+        } else {
             // UNIVERSAL MODE (RAG Portable)
             this.config = {
                 name: 'Universal Web',

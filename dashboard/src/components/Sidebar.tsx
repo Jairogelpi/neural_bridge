@@ -66,6 +66,7 @@ export function Sidebar() {
                 <div>
                     <h5 className="px-4 text-[10px] font-black uppercase tracking-widest text-purple-400 mb-2">Sovereignty</h5>
                     <div className="space-y-1">
+                        <NavItem href="/playground" icon={XCircle} label="Reality Shield" active={pathname === '/playground'} />
                         <NavItem href="/expert" icon={Award} label="Reputation" active={pathname === '/expert'} />
                         <NavItem href="/jury" icon={Gavel} label="Truth Jury" active={pathname === '/jury'} />
                         <NavItem href="/vaccines" icon={ShieldCheck} label="Semantic Immunity" active={pathname === '/vaccines'} />

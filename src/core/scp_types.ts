@@ -1,69 +1,25 @@
-export interface Constraint {
-    id: string;
-    strength: "hard" | "soft";
-    text: string;
-    priority: number;
-    tags: string[];
-}
+import { type Crystal } from '../types/crystal_format';
 
-export interface Entity {
-    name: string;
-    type: string;
-    notes?: string;
-}
+/** 
+ * LEGACY ARCHITECTURE BRIDGE
+ * @deprecated Use imports from '../types/crystal_format' directly.
+ * We're keeping these exports as aliases to avoid breaking the entire system during the v0.2 migration.
+ */
+export type {
+    Crystal as ContextCrystal,
+    CrystalConstraint as Constraint,
+    CrystalEntity as Entity,
+    CrystalEvidence as Evidence
+} from '../types/crystal_format';
 
-export interface Evidence {
-    id: string;
-    type: "text" | "code" | "file" | "url";
-    title: string;
-    ref?: string;
-    content?: string;
-    fingerprints: {
-        sha256: string;
-        rolling64_dec: string;
-    };
-}
-
+/** 
+ * @deprecated Use Crystal.decisions if available, or extensions.
+ */
 export interface Decision {
     id: string;
     statement: string;
     rationale?: string;
     timestamp_hint?: string;
-}
-
-export interface ContextCrystal {
-    scp_version: string;
-    context_id: string;
-    created_at: string;
-    source: {
-        platform: string;
-        url: string;
-        timestamp: string;
-    };
-    intent: {
-        primary: string;
-        status: "active" | "blocked" | "done";
-    };
-    constraints: Constraint[];
-    state: {
-        summary: string;
-        open_items: string[];
-        next_actions: string[];
-    };
-    entities: Entity[];
-    evidence: Evidence[];
-    decisions: Decision[];
-    domain?: string; // Knowledge Domain (medicine, law, tech, finance)
-    verification: {
-        canonical_hash: string;
-        semantic_invariants: string[];
-        policy: {
-            min_checks: number;
-            accept_threshold: number;
-            max_retries: number;
-            strategy: string;
-        };
-    };
 }
 
 export type BridgeMessage =

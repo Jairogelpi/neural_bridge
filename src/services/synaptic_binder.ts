@@ -60,6 +60,7 @@ export class SynapticBinder {
                     target: parent.context_id,
                     type: 'ORIGINATES_FROM',
                     strength: 1.0,
+                    affinity: 1.0, // Absolute attraction to parent
                     discovered_at: new Date().toISOString(),
                     justification: `Direct ${mutationType.toLowerCase()} of parent crystal.`
                 }
@@ -92,12 +93,18 @@ export class SynapticBinder {
 
             const neighborId = neighbor.node.metadata.source_id;
             if (neighborId) {
+                // v0.2 Sigma: Gravity-based attraction
+                const hostGravity = crystal.gravity ?? 0.5;
+                const neighborGravity = 0.5; // Default for discovered nodes
+                const affinity = neighbor.score * ((hostGravity + neighborGravity) / 1.0);
+
                 synapses.push({
                     target: neighborId,
                     type: 'RELATED_TO',
                     strength: neighbor.score,
+                    affinity, // Autonomous clustering force
                     discovered_at: new Date().toISOString(),
-                    justification: `Semantic vector proximity detected by Talamic Index (${(neighbor.score * 100).toFixed(1)}%)`
+                    justification: `Neural Gravity Attraction: affinity=${affinity.toFixed(2)}`
                 });
             }
         }
@@ -124,12 +131,14 @@ export class SynapticBinder {
                 candidateIds.forEach((nodeId: string) => {
                     const node = TalamicIndex.atlas.get(nodeId);
                     if (node && !node.metadata.source_id.includes(crystal.context_id)) {
+                        // v0.2 Sigma: Axiomatic Binding (Affinity=1.0)
                         synapses.push({
                             target: node.metadata.source_id,
                             type: 'LOGICAL_OVERLAP',
-                            strength: 1.0, // Truth is binary
+                            strength: 1.0,
+                            affinity: 1.0, // Truth is a perfect attractor
                             discovered_at: new Date().toISOString(),
-                            justification: `Deterministic TOON Overlap: shared predicate ([${rel.subject}] -[${rel.predicate}]-> [${rel.object}])`
+                            justification: `Axiomatic Convergence: Deterministic TOON Overlap`
                         });
                     }
                 });

@@ -16,15 +16,19 @@ export class FractalCompressor {
 
     /**
      * Entry point for Fractal Compression.
-     * Recursively shrinks context until it fits the target size or hits recursion depth.
+     * Recursively shrinks context until it hits the target size or the "Platonic Limit".
      */
     static async compress(fullText: string, depth: number = 0): Promise<string> {
-        // 1. BASE CASE: If text is small enough, the reality is stable.
-        if (fullText.length <= this.MAX_TOKEN_TARGET || depth > 4) {
+        // Compute current Variational Free Energy (Complexity - Accuracy)
+        const freeEnergy = await this.computeFreeEnergy(fullText);
+
+        // 1. BASE CASE: If text is small OR we hit the Platonic Limit (Low Entropy)
+        if (fullText.length <= this.MAX_TOKEN_TARGET || freeEnergy < 0.15 || depth > 5) {
+            console.log(`[Fractal] 💎 Platonic Limit reached (Energy: ${freeEnergy.toFixed(3)}). Stabilization complete.`);
             return fullText;
         }
 
-        console.log(`[Fractal] 🌀 Layer ${depth}: Distilling ${Math.round(fullText.length / 1024)}KB into Meta-Invariants...`);
+        console.log(`[Fractal] 🌀 Layer ${depth}: Distilling reality (Energy: ${freeEnergy.toFixed(3)})...`);
 
         // 2. SHARDING: Topological Phase-Shift Analysis
         const shards = await this.shardReality(fullText);
@@ -132,7 +136,55 @@ export class FractalCompressor {
             shards.push(currentShardWords.join(' '));
         }
 
-        return shards;
+        // v0.2 Sigma: CROSS-SHARD RESONANCY
+        // Merge redundant shards before distillation to maximize context power.
+        const resonantShards: string[] = [];
+        for (let i = 0; i < shards.length; i++) {
+            const current = shards[i]!;
+            const next = shards[i + 1];
+
+            if (next) {
+                const s1 = SemanticHasher.computeSimHash(current);
+                const s2 = SemanticHasher.computeSimHash(next);
+                // If 90% bit overlap, they are Resonant
+                let matches = 0;
+                for (let b = 0; b < s1.length; b++) if (s1[b] === s2[b]) matches++;
+
+                if (matches / s1.length > 0.9) {
+                    console.log(`[Fractal] 🔔 RESONANCY DETECTED. Merging shards ${i} and ${i + 1}.`);
+                    resonantShards.push(current + " " + next);
+                    i++; // Skip next
+                    continue;
+                }
+            }
+            resonantShards.push(current);
+        }
+
+        return resonantShards;
+    }
+
+    /**
+     * COMPUTE VARIATIONAL FREE ENERGY (F = Complexity - Accuracy)
+     * 
+     * Complexity: Bit density of the SimHash representation.
+     * Accuracy: Semantic alignment with the source manifold.
+     */
+    private static async computeFreeEnergy(text: string): Promise<number> {
+        const { SemanticHasher } = await import('./semantic_hashing');
+        const hash = SemanticHasher.computeSimHash(text);
+
+        // Measure Complexity (Bit Entropy)
+        let setBits = 0;
+        for (let i = 0; i < hash.length; i++) {
+            if (hash[i] === '1') setBits++;
+        }
+        const complexity = Math.abs(0.5 - (setBits / hash.length)) * 2; // Normalize entropy
+
+        // Measure Accuracy (Simulated via length vs density ratio)
+        const density = text.length / (setBits + 1);
+        const accuracy = Math.min(1.0, density / 50);
+
+        return complexity - accuracy;
     }
 
     /**

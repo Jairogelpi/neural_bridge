@@ -18,8 +18,11 @@ export function validateDraft(d: CrystalDraft): DraftIssues {
     if (!d || typeof d !== "object") return { missing: ["root"], warnings: ["not_object"], quality: 0, tooLarge: false };
 
     if (!d.intent?.primary) missing.push("intent.primary");
-    if (!d.state?.summary) missing.push("state.summary");
-    if (!Array.isArray(d.state?.next_actions) || d.state.next_actions.length === 0) missing.push("state.next_actions");
+
+    // v0.2 Sigma: dynamic_state vs legacy: state
+    const stateObj = d.dynamic_state || d.state;
+    if (!stateObj?.summary) missing.push("state.summary");
+    if (!Array.isArray(stateObj?.next_actions) || stateObj.next_actions.length === 0) missing.push("state.next_actions");
 
     if (!Array.isArray(d.constraints)) warnings.push("constraints_not_array");
     if (Array.isArray(d.constraints) && d.constraints.length < 2) warnings.push("low_constraints");

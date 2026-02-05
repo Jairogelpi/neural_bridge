@@ -37,19 +37,28 @@ export interface CrystalMetadata {
 }
 
 export interface CrystalSource {
-    /** Platform where this was captured (chatgpt, claude, gemini, etc.) */
+    /** Platform where it was minted */
     platform: string;
 
-    /** URL or identifier of the source conversation */
+    /** URL to human-readable source */
     url: string;
 
-    /** Timestamp of capture */
+    /** 
+     * Raw Signal Reference (v0.2 Sigma - Phase Infinity)
+     * URI to the original binary signal (image, code, log-stream) 
+     */
+    raw_uri?: string;
+
+    /** Mime-type of the original signal */
+    mime_type?: string;
+
+    /** ISO Timestamp */
     timestamp: string;
 
-    /** Optional: Model used to create content */
+    /** Model used for extraction */
     model?: string;
 
-    /** Optional: User who created/captured this */
+    /** Individual who initiated the crystallization */
     creator?: string;
 }
 
@@ -267,25 +276,96 @@ export interface RealityProof {
 // CRYSTAL ROOT INTERFACE
 // ============================================
 
+// ============================================
+// HDC & MANIFOLD PHYSICS (v0.2 Sigma)
+// ============================================
+
+export type HDCVector = number[]; // Normally 10,000D Float32Array
+
+export enum ManifoldTopology {
+    EUCLIDEAN = 'euclidean',
+    SPHERICAL = 'spherical',
+    HYPERBOLIC = 'hyperbolic' // For scale-free semantic networks
+}
+
+export interface VaccinePayload {
+    /** Target error/hallucination fingerprint */
+    target_id: string;
+
+    /** The corrective truth (TOON) */
+    correction: string;
+
+    /** Propagation logic: broad | targeted */
+    propagation: 'broad' | 'targeted';
+
+    /** Expiry of the vaccine */
+    expires_at?: string;
+}
+
+// ============================================
+// PROVENANCE TRACKING (Phase Omega Prime)
+// ============================================
+
+export type ProvenanceOrigin =
+    | 'web_ingest'      // From browser extension
+    | 'file_ingest'     // From local file
+    | 'api_ingest'      // From API call
+    | 'manual_entry'    // User typed it
+    | 'llm_generated'   // AI generated
+    | 'derived'         // Computed from other crystals
+    | 'external_import' // Imported from external system
+    ;
+
+export interface ProvenanceRecord {
+    /** Unique provenance chain ID */
+    chain_id: string;
+
+    /** How this knowledge originated */
+    origin: ProvenanceOrigin;
+
+    /** Original source URL/path if applicable */
+    source_uri?: string;
+
+    /** Confidence in this source (0-1) */
+    source_confidence: number;
+
+    /** When was this sourced */
+    sourced_at: string;
+
+    /** Chain of custody - each transformation recorded */
+    custody_chain: Array<{
+        action: 'created' | 'modified' | 'verified' | 'derived' | 'merged';
+        actor: string; // user_id, system, llm_model, etc.
+        timestamp: string;
+        details?: string;
+    }>;
+
+    /** If derived, IDs of parent crystals */
+    derived_from?: string[];
+
+    /** Verification status of provenance */
+    verified: boolean;
+}
+
+// ============================================
+// CRYSTAL ROOT INTERFACE
+// ============================================
+
 /**
- * Crystal v0.1 - The Universal Knowledge Container
+ * Crystal v0.2 - The Neural Singularity Specification
  * 
- * This is the format that revolutionizes AI knowledge transfer.
- * Every Crystal is:
- * - Self-contained (all context in one object)
- * - Verifiable (invariants + hash)
- * - Traceable (source + metadata)
- * - Extensible (additional fields allowed)
+ * This version pushes the format into the realm of "Active Inference"
+ * and "Holographic Reduced Representations" (HDC).
  */
 export interface Crystal {
     // ========== REQUIRED FIELDS ==========
-    /** Raw TOON Knowledge Representation */
+    /** Truth-Oriented Object Notation (TOON) content */
     raw_toon: string;
 
-    /** SCP version identifier */
+    /** SCP version identifier (v0.2 Sigma) */
     scp_version: string;
 
-    /** Unique Crystal identifier */
+    /** Unique Crystal identifier (Context Fingerprint) */
     context_id: string;
 
     /** Creation timestamp */
@@ -297,8 +377,40 @@ export interface Crystal {
     /** Intent and purpose */
     intent: CrystalIntent;
 
+    /** 
+     * Dynamic State (v0.2 Sigma + Phase Axiom)
+     * Captures the current active context for conversational continuity and autonomous execution.
+     */
+    dynamic_state?: {
+        summary: string;
+        open_items: string[];
+        next_actions: string[];
+        next_executive_mission?: string; // Phase Axiom: Next autonomous goal
+        sovereignty_score?: number;
+    };
+
     /** Verification config (REQUIRED for runtime) */
     verification: CrystalVerification;
+
+    // ========== NEW: HDC & MANIFOLD PHYSICS ==========
+
+    /** 
+     * Vector Anchor (HDC)
+     * The crystal's coordinate in the 10,000D semantic manifold.
+     */
+    vector_anchor?: HDCVector;
+
+    /** 
+     * Topology of the local manifold 
+     * Defines how 'distance' is calculated between this and other crystals.
+     */
+    topology?: ManifoldTopology;
+
+    /** 
+     * Neural Gravity
+     * How strongly this crystal attracts other semantic units.
+     */
+    gravity?: number; // 0.0 - 1.0
 
     // ========== OPTIONAL BUT RECOMMENDED ==========
 
@@ -323,23 +435,31 @@ export interface Crystal {
     /** Dependencies on other Crystals */
     dependencies?: CrystalDependency[];
 
+    // ========== BIOLOGICAL RESILIENCE ==========
+
+    /** 
+     * Self-Correction Vaccine 
+     * Data used to 'infect' and fix incorrect downstream knowledge.
+     */
+    vaccine?: VaccinePayload;
+
+    /** Resilience Score (How hard it is to 'mutate' this truth) */
+    resilience?: number; // 0.0 - 1.0
+
     // ========== FRACTAL KNOWLEDGE (SMT/PCK) ==========
 
     /** Semantic Merkle Root (Hash of Meaning) */
     smt_root?: string;
 
     /** Embedded Proof-Carrying Knowledge Tree */
-    proof_tree?: Record<string, any>; // Serialized Map<string, ProofNode>
+    proof_tree?: Record<string, any>;
 
     /** Fractal depth (0 = atomic, >0 = meta-reality) */
     fractal_depth?: number;
 
     // ========== REALITY PROOF (RCI) ==========
 
-    /** 
-     * Proof of Reality (PoR) 
-     * The AI cannot produce this output unless it is valid within the domain.
-     */
+    /** Proof of Reality (PoR) */
     reality_proof?: RealityProof;
 
     // ========== GOVERNANCE & ECONOMY ==========
@@ -347,14 +467,14 @@ export interface Crystal {
     /** Version of THIS Crystal (semver) */
     version: string;
 
-    /** Trust Tier: COMMUNITY | VERIFIED | CERTIFIED | TRUSTED | SOVEREIGN */
-    tier: 'community' | 'verified' | 'certified' | 'trusted' | 'sovereign';
+    /** Trust Tier: COMMUNITY | VERIFIED | CERTIFIED | TRUSTED | SOVEREIGN | SINGULARITY */
+    tier: 'community' | 'verified' | 'certified' | 'trusted' | 'sovereign' | 'singularity';
 
     /** Author Metadata */
     author: {
         id: string;
         name: string;
-        reputation: number; // 0.0 - 1.0
+        reputation: number;
         verified_credentials?: string[];
     };
 
@@ -367,86 +487,90 @@ export interface Crystal {
     /** Tags for categorization */
     tags?: string[];
 
-    // ========== RLM - ACTIVE INFERENCE ==========
+    /** Metadata for extension data and caching */
+    metadata?: Record<string, any>;
+
+    // ========== RLM - ACTIVE INFERENCE (Phase Omega) ==========
 
     /** Reinforcement Logic Modeling (Active Stats) */
     rlm_stats?: {
-        /** Q-Learning Score (Utility Probability 0.0-1.0) */
-        q_score: number;
-
-        /** Number of times this crystal was retrieved */
-        usage_count: number;
-
-        /** ISO timestamp of last reinforcement (reward/penalty) */
-        last_reward_at: string;
-
-        /** Stability of the truth (lower is better) */
-        volatility: number;
+        q_score: number; // Quality/Confidence
+        use_count: number;
+        last_inferred: string;
+        /** 
+         * Quantized Logic Bits (v0.2 Sigma)
+         * Compact bitmask for binary axiomatic checks.
+         */
+        logic_bits?: string; // Hex-encoded bitmask
     };
 
-    // ========== EXTENSIBILITY ==========
+    // ========== AXIOM - SOVEREIGN EXECUTION (Phase Axiom) ==========
 
-    /** Domain-specific extensions (medicine, law, etc.) */
-    extensions?: Record<string, any>;
+    /** Executable logic embedded within the Knowledge unit */
+    exec_logic?: ExecutablePayload;
 
-    /** Custom metadata */
-    metadata?: Record<string, any>;
-
-    // ========== PHASE OMEGA - ZK PROOFS ==========
-
-    /** 
-     * Zero-Knowledge Receipts 
-     * Verifiable proofs of private data validity without exposing the data itself.
-     */
-    zkp_receipts?: Array<{
-        commitment: string;
-        proof: string;
-        nullifier: string;
-        target_constraint_id: string;
-    }>;
+    /** Interfaces/Capabilities this knowledge can command (e.g., 'browser', 'database', 'rest_api') */
+    capabilities?: string[];
 
     // ========== NEUROMORPHIC SINGULARITY ==========
 
-    /** Neuromorphic / Active Inference metrics */
+    /** Metrics for Active Inference engine */
     neuromorphic_stats?: {
-        /** Variational Free Energy score (F = Complexity - Accuracy) */
         free_energy: number;
-
-        /** Predictive Surprise (Prediction Error) */
         surprise: number;
-
-        /** Geometric Concept Density (HDC Logic Gravity) */
         geometric_density: number;
-
-        /** True if this is a Geometric Singularity (Converged Axiom) */
         is_singularity: boolean;
+
+        /** 
+         * Temporal Drift Tensor (v0.2 Sigma)
+         * Differential time tensor for validity decay.
+         */
+        dt_tensor?: number[];
     };
 
     // ========== FRACTAL GENEALOGY (Lineage) ==========
 
-    /** 
-     * Fractal Lineage 
-     * Tracks how this crystal evolved from others.
-     */
     genealogy?: {
-        generation: number; // 0 = Genesis, 1, 2, 3...
-        parents: string[]; // IDs of crystals used to create this one
-        evolved_from?: string; // ID of the specific crystal this refines (if direct mutation)
+        generation: number;
+        parents: string[];
+        evolved_from?: string;
     };
 
-    // ========== SYNAPTIC CONNECTOME (Horizontal Links) ==========
+    // ========== SYNAPTIC CONNECTOME ==========
 
-    /** 
-     * Synaptic Connections
-     * Autonomous semantic links between crystals.
-     */
+    /** Autonomous semantic links between crystals */
     synapses?: Array<{
-        target: string; // Target Crystal ID
+        target: string;
         type: 'SUPPORTS' | 'CONTRADICTS' | 'REFINES' | 'ORIGINATES_FROM' | 'RELATED_TO' | 'MERGED_INTO' | 'LOGICAL_OVERLAP';
-        strength: number; // 0.0 - 1.0 (Semantic affinity)
-        discovered_at: string; // ISO timestamp
-        justification?: string; // Why this link exists
+        strength: number;
+        affinity: number; // For v0.2: Autonomous clustering force
+        discovered_at: string;
+        justification?: string;
     }>;
+}
+
+/** 
+ * Sovereign Execution Payload.
+ * Encapsulates what the AI can ACTUALLY DO with this Knowledge.
+ */
+export interface ExecutablePayload {
+    /** Type of execution: SANDBOX_JS | SHELL_CMD | API_CALL | TOON_STEP */
+    type: 'SANDBOX_JS' | 'SHELL_CMD' | 'API_CALL' | 'TOON_STEP';
+
+    /** The raw instruction or code to execute */
+    payload: string;
+
+    /** Expected result signature (for deterministic verification) */
+    expected_fingerprint?: string;
+
+    /** Maximum resources allowed (time in ms, memory, etc.) */
+    resource_limits?: {
+        timeout_ms: number;
+        memory_mb?: number;
+    };
+
+    /** Does this action require explicit Sovereign confirmation? */
+    privileged: boolean;
 }
 
 // ============================================

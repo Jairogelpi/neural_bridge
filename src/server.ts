@@ -240,8 +240,53 @@ app.post('/v1/compile', async (req: Request, res: Response) => {
                 latency_ms: elapsed
             }
         });
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CRYSTAL VERIFICATION ENDPOINT (Real-Time Blocking)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+app.post('/v1/crystal/verify', async (req: Request, res: Response) => {
+    try {
+        const { crystal, question, answer, config, requester } = req.body;
+
+        if (!crystal || !question || !answer) {
+            res.status(400).json({ error: 'Missing required fields: crystal, question, answer' });
+            return;
+        }
+
+        console.log(`[VERIFY] Executing Crystal Runtime for: ${question.substring(0, 50)}...`);
+
+        // Import Crystal Runtime
+        const { CrystalRuntime } = await import('./services/crystal_runtime');
+
+        const startTime = Date.now();
+
+        // EXECUTE THE CRYSTAL RUNTIME (Real verification with all adversarial/invariant tests)
+        const result = await CrystalRuntime.executeCrystal({
+            crystal,
+            question,
+            answer,
+            config: config || {
+                domain: crystal.domain || 'general',
+                enable_adversarials: true,
+                enable_counterfactuals: true
+            },
+            requester: requester || 'api_user'
+        });
+
+        const elapsed = Date.now() - startTime;
+
+        console.log(`[VERIFY] Verdict: ${result.passed ? 'PASS' : 'BLOCK'} | SRI: ${result.sri.toFixed(3)} | Time: ${elapsed}ms`);
+
+        res.json({
+            success: true,
+            ...result,
+            execution_time_ms: elapsed
+        });
     } catch (error) {
-        console.error('Compile Error:', error);
+        console.error('[VERIFY] Runtime Error:', error);
         res.status(500).json({ error: (error as Error).message });
     }
 });

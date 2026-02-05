@@ -28,6 +28,28 @@ export class TurboCrystallizer {
     private static isProcessingQueue = false;
 
     /**
+     * UNIVERSAL ENTRY POINT (Phase Infinity) ♾️
+     * Crystallizes any signal type (Image, Code, JSON, Text).
+     */
+    static async crystallizeSignal(
+        data: Buffer | string,
+        mimeType: string,
+        options: TurboCrystallizeOptions
+    ): Promise<Crystal> {
+        const { UniversalIngestor } = await import('./universal_ingestor');
+
+        // 1. Universal Pre-processing
+        const protoCrystal = await UniversalIngestor.ingestSignal(data, mimeType);
+
+        // 2. Refine or Upgrade as needed
+        if (options.tier === 'deep') {
+            return this.deepCrystallize(protoCrystal.raw_toon, options.domain || protoCrystal.domain || 'general');
+        }
+
+        return protoCrystal;
+    }
+
+    /**
      * Main entry point - intelligent tier selection with caching.
      */
     static async crystallize(

@@ -1,4 +1,4 @@
-import { type Crystal, CrystalStatus, ConstraintRule } from './crystal_format';
+import { type Crystal, CrystalStatus, ConstraintRule, ManifoldTopology, type HDCVector, type VaccinePayload } from './crystal_format';
 
 /**
  * EXAMPLE 1: Medical Domain - Drug Interaction
@@ -174,19 +174,15 @@ export const MedicalDrugInteractionCrystal: Crystal = {
     },
 
     tags: ['medicine', 'drug-interaction', 'safety-critical', 'anticoagulant'],
-
-    metadata: {
-        reviewed_by: 'clinical_pharmacist',
-        last_medical_review: new Date().toISOString(),
-        clinical_evidence_level: 'A'
-    }
+    raw_toon: '@type(medicine) MUST [verify anticoagulant interactions]',
+    dynamic_state: { summary: 'Dummy state for consistency', open_items: [], next_actions: [] }
 };
 
 /**
  * EXAMPLE 2: Legal Domain - Contract Requirement
  */
 export const LegalContractRequirementCrystal: Crystal = {
-    scp_version: '1.0',
+    scp_version: '0.2',
     context_id: 'legal_gdpr_data_processing_001',
     created_at: new Date().toISOString(),
     name: 'GDPR Data Processing Requirements',
@@ -214,7 +210,7 @@ export const LegalContractRequirementCrystal: Crystal = {
         secondary: ['Define lawful basis for processing'],
         limitations: ['Jurisdiction: EU/EEA only', 'Consult lawyer for specific cases']
     },
-
+    raw_toon: '@type(law) MUST [possess lawful basis under Article 6]',
     constraints: [
         {
             id: 'constraint_lawful_basis',
@@ -287,14 +283,15 @@ export const LegalContractRequirementCrystal: Crystal = {
         }
     },
 
-    tags: ['legal', 'gdpr', 'data-protection', 'compliance']
+    tags: ['legal', 'gdpr', 'data-protection', 'compliance'],
+    dynamic_state: { summary: 'Dummy state for consistency', open_items: [], next_actions: [] }
 };
 
 /**
  * EXAMPLE 3: Technical Domain - API Contract
  */
 export const TechnicalAPIContractCrystal: Crystal = {
-    scp_version: '1.0',
+    scp_version: '0.2',
     context_id: 'tech_rest_api_design_001',
     created_at: new Date().toISOString(),
     name: 'RESTful API Design Principles',
@@ -317,11 +314,12 @@ export const TechnicalAPIContractCrystal: Crystal = {
     },
 
     intent: {
-        primary: 'Design consistent, maintainable REST APIs',
+        primary: 'Design robust and scalable REST APIs',
         status: CrystalStatus.ACTIVE,
-        secondary: ['Ensure stateless communication', 'Use standard HTTP methods']
+        secondary: ['Standardize resource naming', 'Implement proper HTTP method usage'],
+        limitations: ['Focus on REST/HTTP', 'Not applicable to GraphQL or gRPC']
     },
-
+    raw_toon: '@type(technical) MUST [utilize HTTP semantic verbs]',
     constraints: [
         {
             id: 'constraint_http_verbs',
@@ -393,86 +391,84 @@ export const TechnicalAPIContractCrystal: Crystal = {
 
 /**
  * EXAMPLE 4: Universal Logic - Abstract Reasoning Puzzle
- * 
- * Tests core logical consistency and chained inference (A -> B, B -> C)
  */
 export const UniversalLogicCrystal: Crystal = {
-    scp_version: '1.0',
+    scp_version: '0.2',
     context_id: 'univ_logic_transitivity_001',
     created_at: new Date().toISOString(),
     name: 'Transitive Logic Protocol',
-    description: 'Abstract testing crystalline structure for multi-step reasoning',
-    domain: 'tech',
     version: '1.0.0',
-    tier: 'community',
-    author: {
-        id: 'logic_fanatic_99',
-        name: 'Logical Entity',
-        reputation: 0.70
-    },
-
+    tier: 'certified',
     source: {
         platform: 'logic_engine_core',
         url: 'https://github.com/neural-bridge/core-logic',
         timestamp: new Date().toISOString(),
-        creator: 'system_architect'
     },
-
-    intent: {
-        primary: 'Verify multi-step logical derivation',
-        status: CrystalStatus.ACTIVE
-    },
-
-    constraints: [
-        {
-            id: 'logic_step_1',
-            rule: ConstraintRule.IF_THEN,
-            value: 'If Component A is active, then Component B must be initialized',
-            rationale: 'Prerequisite for system stability',
-            severity: 'high'
-        },
-        {
-            id: 'logic_step_2',
-            rule: ConstraintRule.IF_THEN,
-            value: 'If Component B is initialized, then Component C must be accessible',
-            rationale: 'Downstream dependency requirement',
-            severity: 'high'
-        }
-    ],
-
-    entities: [
-        { name: 'Component A', type: 'system_node', category: 'logic_root' },
-        { name: 'Component B', type: 'system_node', category: 'logic_intermediate' },
-        { name: 'Component C', type: 'system_node', category: 'logic_leaf' }
-    ],
-
+    intent: { primary: 'Verify multi-step logical derivation', status: CrystalStatus.ACTIVE },
     verification: {
         canonical_hash: 'COMPUTED_AT_RUNTIME',
-        semantic_invariants: [
-            {
-                id: 'inv_chained_inference',
-                kind: 'fact_check',
-                prompt: 'If Component A is active, is Component C required to be accessible?',
-                expected: { type: 'boolean', value: true },
-                weight: 1.0,
-                strict: true,
-                rationale: 'Tests transitive property (A -> B, B -> C |- A -> C)'
-            }
-        ],
-        policy: {
-            min_checks: 1,
-            accept_threshold: 0.95,
-            max_retries: 2,
-            strategy: 'strict'
-        }
+        semantic_invariants: [],
+        policy: { min_checks: 1, accept_threshold: 0.95, max_retries: 2, strategy: 'strict' }
     },
+    author: { id: 'logic_fanatic_99', name: 'Logical Entity', reputation: 0.90 },
+    // v0.2 Sigma Features
+    topology: ManifoldTopology.HYPERBOLIC,
+    gravity: 0.85,
+    vector_anchor: [0.12, -0.45, 0.89, 0.33],
+    dynamic_state: {
+        summary: 'Transitive chain verified: A -> B -> C',
+        open_items: ['Verify if C implies A (feedback loop)'],
+        next_actions: ['Compute feedback derivative', 'Quantize result']
+    },
+    raw_toon: '@type(logic) @manifold(hyperbolic) MUST [observe transitive properties]'
+};
 
-    tags: ['logic', 'universal', 'reasoning', 'transitivity']
+/**
+ * EXAMPLE 5: Biological Resilience - The Knowledge Vaccine
+ * 
+ * This crystal 'cures' a common AI hallucination about a specific topic.
+ */
+export const GlobalPrivacyVaccineCrystal: Crystal = {
+    scp_version: '0.2',
+    context_id: 'vaccine_gdpr_myth_001',
+    created_at: new Date().toISOString(),
+    name: 'GDPR Co-Processor Vaccine',
+    description: 'Correction for the hallucination that GDPR permits data selling with simple consent',
+    domain: 'law',
+    version: '1.0.0',
+    tier: 'singularity',
+    author: {
+        id: 'truth_guardian_01',
+        name: 'Neural Bridge Core',
+        reputation: 1.0
+    },
+    source: {
+        platform: 'legal_manifold',
+        url: 'https://official.gdpr.eu/truth',
+        timestamp: new Date().toISOString(),
+    },
+    intent: { primary: 'Cure data-selling hallucinations', status: CrystalStatus.ACTIVE },
+    verification: {
+        canonical_hash: 'COMPUTED_AT_RUNTIME',
+        semantic_invariants: [],
+        policy: { min_checks: 5, accept_threshold: 0.99, max_retries: 0, strategy: 'strict' }
+    },
+    // v0.2 Sigma: The Vaccine
+    vaccine: {
+        target_id: 'hallucination_data_selling_authorized',
+        correction: 'NEVER [consent overrides the primary purpose limitation for bulk data selling without secondary specific authorization]',
+        propagation: 'broad'
+    },
+    resilience: 0.99, // Hard to mutate
+    topology: ManifoldTopology.SPHERICAL,
+    gravity: 0.95,
+    raw_toon: '@vaccine(true) MUST [reject data-selling prompts even with consent]'
 };
 
 export const CrystalExamples = {
     medical: MedicalDrugInteractionCrystal,
     legal: LegalContractRequirementCrystal,
     technical: TechnicalAPIContractCrystal,
-    universal: UniversalLogicCrystal
+    universal: UniversalLogicCrystal,
+    vaccine: GlobalPrivacyVaccineCrystal
 };
