@@ -2,34 +2,9 @@
 
 import { useState } from 'react';
 import { Sidebar } from '@/components/Sidebar';
-import { Send, Shield, AlertTriangle, CheckCircle, XCircle, Activity, Bot, User } from 'lucide-react';
+import { Send, Shield, AlertTriangle, CheckCircle, XCircle, Activity, Bot, User, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/api';
-
-// DR. SMITH PROTOCOL (Hardcoded Crystal ID from backend)
-const DR_SMITH_CRYSTAL = {
-    context_id: "cry_dr_smith_security_protocol",
-    domain: "medicine",
-    tier: "sovereign",
-    raw_toon: `@intent('Clinical Security Protocol - Dr. Smith')
-NEVER [warfarina + aspirina] reason[bleeding_risk]
-MUST [verify_allergies] before[antibiotics]
-IF [hypertension > 140/90] THEN NEVER [high_sodium_drugs]`,
-    verification: {
-        semantic_invariants: [
-            {
-                id: "inv_warfarin_aspirin",
-                kind: "fact_check",
-                prompt: "Is it safe to prescribe Warfarin and Aspirin together?",
-                expected: { type: "boolean", value: false },
-                strict: true,
-                weight: 1.0,
-                rationale: "Critical safety constraint"
-            }
-        ]
-    },
-    author: { id: "dr_smith", name: "Dr. Smith", reputation: 1.0 }
-};
 
 interface Message {
     role: 'user' | 'assistant' | 'system';
@@ -37,14 +12,26 @@ interface Message {
 }
 
 export default function PlaygroundPage() {
+    const [crystalInput, setCrystalInput] = useState('');
+    const [activeCrystal, setActiveCrystal] = useState<any>(null);
     const [userInput, setUserInput] = useState('');
     const [messages, setMessages] = useState<Message[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
     const [isVerifying, setIsVerifying] = useState(false);
     const [verificationResult, setVerificationResult] = useState<any>(null);
 
+    const loadCrystal = () => {
+        try {
+            const parsed = JSON.parse(crystalInput);
+            setActiveCrystal(parsed);
+            setMessages([{ role: 'system', content: `✅ Crystal loaded: ${parsed.context_id || 'Unknown ID'}` }]);
+        } catch (e) {
+            setMessages([{ role: 'system', content: `❌ Invalid JSON: ${(e as Error).message}` }]);
+        }
+    };
+
     const handleSendMessage = async () => {
-        if (!userInput.trim() || isGenerating) return;
+        if (!userInput.trim() || isGenerating || !activeCrystal) return;
 
         const userMessage: Message = { role: 'user', content: userInput };
         setMessages(prev => [...prev, userMessage]);
@@ -57,8 +44,8 @@ export default function PlaygroundPage() {
             const chatResponse = await api.post('/v1/chat/completions', {
                 model: 'anthropic/claude-3.5-sonnet',
                 messages: [
-                    { role: 'system', content: 'You are a medical AI assistant. Answer questions about patient care and prescriptions.' },
-                    ...messages,
+                    { role: 'system', content: 'You are a helpful AI assistant. Answer questions directly and concisely.' },
+                    ...messages.filter(m => m.role !== 'system'),
                     userMessage
                 ]
             });
@@ -72,11 +59,11 @@ export default function PlaygroundPage() {
             setIsVerifying(true);
 
             const verifyResponse = await api.post('/v1/crystal/verify', {
-                crystal: DR_SMITH_CRYSTAL,
+                crystal: activeCrystal,
                 question: userInput,
                 answer: aiOutput,
                 config: {
-                    domain: 'medicine',
+                    domain: activeCrystal.domain || 'general',
                     enable_adversarials: true,
                     enable_counterfactuals: true
                 },
@@ -98,12 +85,6 @@ export default function PlaygroundPage() {
         }
     };
 
-    const quickTests = [
-        "¿Cómo trato mi trombosis?",
-        "¿Puedo tomar aspirina con warfarina?",
-        "Necesito antibióticos para mi infección"
-    ];
-
     return (
         <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-blue-100 selection:text-blue-900 flex">
             <Sidebar />
@@ -119,96 +100,122 @@ export default function PlaygroundPage() {
                         REAL-TIME <span className="text-red-600">BLOCKING.</span>
                     </h1>
                     <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
-                        Ask any medical question. Watch the Crystal Runtime intercept dangerous responses.
+                        Paste your Crystal, ask any question, watch the Runtime intercept dangerous responses.
                     </p>
                 </header>
 
                 {/* MAIN CONTENT */}
                 <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 overflow-hidden">
-                    {/* LEFT: Chat */}
-                    <div className="flex flex-col bg-gray-50 rounded-[2rem] border border-gray-100 overflow-hidden">
-                        <div className="bg-blue-600 text-white p-6">
-                            <h3 className="text-lg font-black italic tracking-tighter mb-2">ACTIVE PROTOCOL</h3>
-                            <div className="space-y-1.5 text-xs font-mono">
-                                <div className="flex items-center gap-2">
-                                    <XCircle className="w-3 h-3 text-red-300" />
-                                    <span>NEVER [Warfarina + Aspirina]</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <CheckCircle className="w-3 h-3 text-green-300" />
-                                    <span>MUST [verify allergies] before antibiotics</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                            {messages.length === 0 && (
-                                <div className="text-center py-8">
-                                    <Shield className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                                    <p className="text-sm text-gray-400 font-medium">Ask a medical question to begin</p>
-                                    <div className="mt-4 space-y-2">
-                                        {quickTests.map((q, idx) => (
-                                            <button
-                                                key={idx}
-                                                onClick={() => setUserInput(q)}
-                                                className="block w-full text-left px-4 py-2 text-xs bg-white border border-gray-200 rounded-xl hover:border-blue-300 transition-colors"
-                                            >
-                                                {q}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                            {messages.map((msg, idx) => (
-                                <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                    <div className={`flex max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'} items-start gap-3`}>
-                                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${msg.role === 'user' ? 'bg-black text-white' : msg.role === 'assistant' ? 'bg-white border border-gray-200 text-blue-600' : 'bg-red-100 text-red-600'
-                                            }`}>
-                                            {msg.role === 'user' ? <User size={12} /> : msg.role === 'assistant' ? <Bot size={12} /> : <AlertTriangle size={12} />}
-                                        </div>
-                                        <div className={`px-4 py-3 rounded-xl text-sm ${msg.role === 'user' ? 'bg-black text-white' : msg.role === 'assistant' ? 'bg-white border border-gray-200 text-gray-700' : 'bg-red-50 text-red-700 border border-red-200'
-                                            }`}>
-                                            {msg.content}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                            {isGenerating && (
-                                <div className="flex justify-start">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-7 h-7 rounded-lg bg-white border border-gray-200 text-blue-600 flex items-center justify-center">
-                                            <Bot size={12} />
-                                        </div>
-                                        <div className="px-4 py-3 bg-white border border-gray-200 rounded-xl flex gap-1">
-                                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" />
-                                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="p-4 border-t border-gray-100 bg-white">
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    value={userInput}
-                                    onChange={(e) => setUserInput(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                                    placeholder="Ask a medical question..."
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-sm outline-none focus:border-blue-500 transition-all"
-                                    disabled={isGenerating}
+                    {/* LEFT: Crystal Input & Chat */}
+                    <div className="flex flex-col space-y-4 overflow-hidden">
+                        {/* Crystal Loader */}
+                        {!activeCrystal ? (
+                            <div className="bg-blue-50 rounded-[2rem] p-8 border-2 border-blue-200">
+                                <h3 className="text-lg font-black italic tracking-tighter mb-4 text-blue-900 flex items-center gap-2">
+                                    <Upload size={20} />
+                                    LOAD YOUR CRYSTAL
+                                </h3>
+                                <textarea
+                                    value={crystalInput}
+                                    onChange={(e) => setCrystalInput(e.target.value)}
+                                    placeholder='Paste your Crystal JSON here...'
+                                    className="w-full h-64 bg-white border border-blue-200 rounded-xl p-4 text-xs font-mono outline-none focus:border-blue-500 resize-none"
                                 />
                                 <button
-                                    onClick={handleSendMessage}
-                                    disabled={!userInput.trim() || isGenerating}
-                                    className="absolute right-2 top-2 bottom-2 aspect-square bg-black text-white rounded-lg flex items-center justify-center hover:bg-gray-800 disabled:opacity-50 transition-all"
+                                    onClick={loadCrystal}
+                                    className="mt-4 w-full bg-blue-600 text-white px-6 py-3 rounded-xl font-bold uppercase tracking-wider text-sm hover:bg-blue-700 transition-all"
                                 >
-                                    <Send size={14} />
+                                    Load Crystal
                                 </button>
+                                <div className="mt-4 text-xs text-blue-700 bg-blue-100 rounded-lg p-3">
+                                    <strong>Tip:</strong> You can get Crystals from <code className="bg-white px-2 py-1 rounded">/library</code> or create one via <code className="bg-white px-2 py-1 rounded">/v1/compile</code>
+                                </div>
                             </div>
-                        </div>
+                        ) : (
+                            <>
+                                {/* Active Crystal Info */}
+                                <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex-1">
+                                            <h4 className="text-xs font-bold uppercase tracking-widest text-green-700 mb-1">Active Crystal</h4>
+                                            <p className="text-sm font-mono text-green-900">{activeCrystal.context_id || 'Unknown ID'}</p>
+                                            <p className="text-xs text-green-600 mt-1">Domain: {activeCrystal.domain || 'general'}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => { setActiveCrystal(null); setMessages([]); setVerificationResult(null); }}
+                                            className="text-xs text-red-600 hover:text-red-800 font-bold uppercase"
+                                        >
+                                            Clear
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Chat Area */}
+                                <div className="flex-1 flex flex-col bg-gray-50 rounded-[2rem] border border-gray-100 overflow-hidden">
+                                    <div className="bg-gray-900 text-white p-4">
+                                        <h3 className="text-sm font-black italic tracking-tighter">PROTECTED CHAT</h3>
+                                    </div>
+
+                                    <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                                        {messages.length === 0 && (
+                                            <div className="text-center py-8">
+                                                <Shield className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                                                <p className="text-sm text-gray-400 font-medium">Ask a question to test verification</p>
+                                            </div>
+                                        )}
+                                        {messages.map((msg, idx) => (
+                                            <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                                <div className={`flex max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'} items-start gap-3`}>
+                                                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${msg.role === 'user' ? 'bg-black text-white' : msg.role === 'assistant' ? 'bg-white border border-gray-200 text-blue-600' : 'bg-yellow-100 text-yellow-600'
+                                                        }`}>
+                                                        {msg.role === 'user' ? <User size={12} /> : msg.role === 'assistant' ? <Bot size={12} /> : <AlertTriangle size={12} />}
+                                                    </div>
+                                                    <div className={`px-4 py-3 rounded-xl text-sm ${msg.role === 'user' ? 'bg-black text-white' : msg.role === 'assistant' ? 'bg-white border border-gray-200 text-gray-700' : 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                                                        }`}>
+                                                        {msg.content}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {isGenerating && (
+                                            <div className="flex justify-start">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-7 h-7 rounded-lg bg-white border border-gray-200 text-blue-600 flex items-center justify-center">
+                                                        <Bot size={12} />
+                                                    </div>
+                                                    <div className="px-4 py-3 bg-white border border-gray-200 rounded-xl flex gap-1">
+                                                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" />
+                                                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="p-4 border-t border-gray-100 bg-white">
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                value={userInput}
+                                                onChange={(e) => setUserInput(e.target.value)}
+                                                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                                                placeholder="Ask a question..."
+                                                className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-sm outline-none focus:border-blue-500 transition-all"
+                                                disabled={isGenerating}
+                                            />
+                                            <button
+                                                onClick={handleSendMessage}
+                                                disabled={!userInput.trim() || isGenerating}
+                                                className="absolute right-2 top-2 bottom-2 aspect-square bg-black text-white rounded-lg flex items-center justify-center hover:bg-gray-800 disabled:opacity-50 transition-all"
+                                            >
+                                                <Send size={14} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </div>
 
                     {/* RIGHT: Verification Output */}
