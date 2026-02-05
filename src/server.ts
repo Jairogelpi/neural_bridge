@@ -240,6 +240,9 @@ app.post('/v1/compile', async (req: Request, res: Response) => {
                 latency_ms: elapsed
             }
         });
+    } catch (error) {
+        console.error('Compile Error:', error);
+        res.status(500).json({ error: (error as Error).message });
     }
 });
 
