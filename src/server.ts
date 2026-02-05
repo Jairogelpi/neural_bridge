@@ -37,7 +37,6 @@ import { NeuralBridge } from './index';
 import { AuthService } from './services/auth';
 import { JuryService } from './services/jury_service';
 import { FractalIngestService } from './services/fractal_ingest';
-import { TurboCrystallizer } from './services/turbo_crystallizer'; // Deprecated - migrating to CrystallizationService
 import { CrystallizationService } from './services/crystallization';
 import { AudioCrystallizer } from './services/multimodal/audio_crystallizer';
 import { VideoCrystallizer } from './services/multimodal/video_crystallizer';

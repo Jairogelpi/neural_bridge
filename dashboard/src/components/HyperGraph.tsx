@@ -23,9 +23,15 @@ interface HyperGraphProps {
     nodes: any[];
     links: any[];
     isProcessing: boolean;
+    highlightedId?: string | null;
 }
 
-export default function HyperGraph({ nodes: initialNodes, links: initialLinks, isProcessing }: HyperGraphProps) {
+export default function HyperGraph({
+    nodes: initialNodes,
+    links: initialLinks,
+    isProcessing,
+    highlightedId
+}: HyperGraphProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [nodes, setNodes] = useState<Node[]>([]);
     const [links, setLinks] = useState<Link[]>([]);
@@ -133,27 +139,29 @@ export default function HyperGraph({ nodes: initialNodes, links: initialLinks, i
             // 5. Draw Nodes
             nextNodes.forEach(node => {
                 const isError = node.type === 'error';
+                const isHighlighted = highlightedId === node.id;
 
                 // Shadow/Glow
-                ctx.shadowBlur = isProcessing ? 15 : 5;
-                ctx.shadowColor = isError ? '#f43f5e' : '#6366f1';
+                ctx.shadowBlur = isHighlighted ? 25 : (isProcessing ? 15 : 5);
+                ctx.shadowColor = isHighlighted ? '#10b981' : (isError ? '#f43f5e' : '#6366f1');
 
                 // Node Body
+                const pulse = isHighlighted ? Math.sin(time / 150) * 4 : 0;
                 ctx.beginPath();
-                ctx.arc(node.x, node.y, node.r + (isProcessing ? Math.sin(time / 100) * 1 : 0), 0, Math.PI * 2);
-                ctx.fillStyle = isError ? '#e11d48' : '#4f46e5';
+                ctx.arc(node.x, node.y, node.r + pulse + (isProcessing ? Math.sin(time / 100) * 1 : 0), 0, Math.PI * 2);
+                ctx.fillStyle = isHighlighted ? '#10b981' : (isError ? '#e11d48' : '#4f46e5');
                 ctx.fill();
-                ctx.strokeStyle = 'white';
-                ctx.lineWidth = 2;
+                ctx.strokeStyle = isHighlighted ? '#ecfdf5' : 'white';
+                ctx.lineWidth = isHighlighted ? 4 : 2;
                 ctx.stroke();
 
                 ctx.shadowBlur = 0; // Reset shadow
 
                 // Label
-                ctx.fillStyle = '#1e293b';
-                ctx.font = `bold ${isProcessing ? '10px' : '12px'} Inter, sans-serif`;
+                ctx.fillStyle = isHighlighted ? '#047857' : '#1e293b';
+                ctx.font = `bold ${isHighlighted ? '14px' : (isProcessing ? '10px' : '12px')} Inter, sans-serif`;
                 ctx.textAlign = 'center';
-                ctx.fillText(node.label, node.x, node.y - node.r - 8);
+                ctx.fillText(node.label, node.x, node.y - node.r - (isHighlighted ? 15 : 8));
             });
 
             return nextNodes;

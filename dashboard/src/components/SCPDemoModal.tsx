@@ -99,8 +99,9 @@ export default function SCPDemoModal({ isOpen, onClose }: SCPDemoModalProps) {
     const [rawResponse, setRawResponse] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'terminal' | 'raw' | 'analysis' | 'chat'>('terminal');
     const [chatQuery, setChatQuery] = useState('');
-    const [chatHistory, setChatHistory] = useState<{ query: string, normal: string, scp: string }[]>([]);
+    const [chatHistory, setChatHistory] = useState<{ query: string, normal: string, scp: string, verifiedEntities?: string[] }[]>([]);
     const [isChatLoading, setIsChatLoading] = useState(false);
+    const [highlightedNode, setHighlightedNode] = useState<string | null>(null);
     const terminalRef = useRef<HTMLDivElement>(null);
     const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -225,7 +226,18 @@ export default function SCPDemoModal({ isOpen, onClose }: SCPDemoModalProps) {
 
             if (res.ok) {
                 const data = await res.json();
-                setChatHistory(prev => [...prev, { query, normal: data.normal, scp: data.scp }]);
+
+                // Extract entities for grounding
+                const verifiedEntities = result.entities
+                    ?.filter(e => data.scp.toLowerCase().includes(e.name.toLowerCase()))
+                    .map(e => e.name) || [];
+
+                setChatHistory(prev => [...prev, {
+                    query,
+                    normal: data.normal,
+                    scp: data.scp,
+                    verifiedEntities
+                }]);
             } else {
                 throw new Error("Sovereign Link Terminated");
             }
@@ -416,7 +428,12 @@ export default function SCPDemoModal({ isOpen, onClose }: SCPDemoModalProps) {
                         ) : (
                             <>
                                 <div className="absolute inset-0">
-                                    <HyperGraph nodes={nodes} links={links} isProcessing={step === 'processing'} />
+                                    <HyperGraph
+                                        nodes={nodes}
+                                        links={links}
+                                        isProcessing={step === 'processing'}
+                                        highlightedId={highlightedNode}
+                                    />
                                 </div>
 
                                 {step === 'ready' && (
@@ -570,18 +587,53 @@ export default function SCPDemoModal({ isOpen, onClose }: SCPDemoModalProps) {
                                                     </div>
 
                                                     <div className="grid grid-cols-2 gap-3">
-                                                        <div className="bg-slate-100 p-3 rounded-2xl text-[10px] space-y-2">
-                                                            <div className="flex items-center gap-1 font-bold text-slate-500 uppercase text-[8px]">
-                                                                <Bot size={12} /> Standard AI
+                                                        {/* STANDARD AI: GHOST STYLE */}
+                                                        <div className="bg-slate-50 border border-slate-200 p-4 rounded-3xl rounded-tl-none text-[10px] space-y-3 shadow-sm opacity-80">
+                                                            <div className="flex items-center gap-2 font-bold text-slate-400 uppercase text-[8px] tracking-widest">
+                                                                <Bot size={14} className="opacity-50" /> Standard AI
                                                             </div>
-                                                            <p className="leading-relaxed italic text-slate-600">{chat.normal}</p>
+                                                            <p className="leading-relaxed italic text-slate-500">{chat.normal}</p>
                                                         </div>
-                                                        <div className="bg-indigo-50 p-3 rounded-2xl border border-indigo-100 text-[10px] space-y-2 relative overflow-hidden">
-                                                            <div className="absolute top-0 right-0 w-12 h-12 bg-indigo-600/5 rotate-45 translate-x-6 translate-y--6" />
-                                                            <div className="flex items-center gap-1 font-bold text-indigo-600 uppercase text-[8px]">
-                                                                <Shield size={12} /> Sovereign SCP
+
+                                                        {/* SOVEREIGN AI: NEBULA STYLE */}
+                                                        <div className="bg-gradient-to-br from-indigo-50 via-white to-emerald-50 border border-indigo-100 p-4 rounded-3xl rounded-tr-none text-[10px] space-y-3 shadow-md relative overflow-hidden group">
+                                                            <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl -translate-y-12 translate-x-12" />
+                                                            <div className="absolute bottom-0 left-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl translate-y-12 -translate-x-12" />
+
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="flex items-center gap-2 font-black text-indigo-600 uppercase text-[8px] tracking-[0.15em]">
+                                                                    <Shield size={14} className="text-indigo-500 drop-shadow-[0_0_8px_rgba(79,70,229,0.3)]" /> Sovereign SCP
+                                                                </div>
+                                                                <div className="flex gap-1">
+                                                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                                                    <span className="text-[7px] font-bold text-emerald-600 uppercase tracking-tighter">Verified</span>
+                                                                </div>
                                                             </div>
-                                                            <p className="leading-relaxed font-medium text-slate-800">{chat.scp}</p>
+
+                                                            <p className="leading-relaxed font-semibold text-slate-800 relative z-10">{chat.scp}</p>
+
+                                                            {chat.verifiedEntities && chat.verifiedEntities.length > 0 && (
+                                                                <div className="flex flex-wrap gap-1 mt-2">
+                                                                    {chat.verifiedEntities.slice(0, 3).map(ent => (
+                                                                        <button
+                                                                            key={ent}
+                                                                            onClick={() => {
+                                                                                const node = nodes.find(n => n.label.toLowerCase() === ent.toLowerCase());
+                                                                                if (node) {
+                                                                                    setHighlightedNode(node.id);
+                                                                                    setTimeout(() => setHighlightedNode(null), 3000);
+                                                                                    setActiveTab('terminal'); // Switch to see graph better if on mobile/small screen
+                                                                                }
+                                                                            }}
+                                                                            className="flex items-center gap-1 px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full text-[7px] font-bold hover:bg-indigo-600 hover:text-white transition-all group/btn"
+                                                                        >
+                                                                            <Link2 size={8} />
+                                                                            {ent}
+                                                                            <span className="w-0 overflow-hidden group-hover/btn:w-auto transition-all duration-300"> (View Graph)</span>
+                                                                        </button>
+                                                                    ))}
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
