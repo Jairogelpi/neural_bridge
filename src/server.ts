@@ -432,6 +432,7 @@ app.post('/v1/turbo/crystallize', async (req: Request, res: Response) => {
             metrics: {
                 tier: tier || 'flash',
                 elapsed_ms: elapsed,
+                cost_estimate: crystal.verification?.cost || 0,
                 queue_stats: CrystallizationService.getQueueStats()
             }
         });

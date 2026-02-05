@@ -52,6 +52,7 @@ interface AnalysisResult {
         fisher_info: number;
         consensus_score: number;
         geometric_density: number;
+        cost_usd?: number;
     };
     revolutionary_explanation?: string[];
 }
@@ -306,6 +307,7 @@ export default function SCPDemoModal({ isOpen, onClose }: SCPDemoModalProps) {
                             mode: 'CLOUD',
                             tier: tier.toUpperCase() as any,
                             confidence: crystal.verification?.policy?.accept_threshold || 0.9,
+                            realTimeCost: crystal.telemetry?.real_time_cost || 0, // Added realTimeCost
                             narrative: crystal.metadata?.narrative,
                             telemetry: {
                                 entropy: crystal.neuromorphic_stats?.entropy || 0.1,
@@ -513,6 +515,13 @@ export default function SCPDemoModal({ isOpen, onClose }: SCPDemoModalProps) {
                                                 <div className="bg-white p-3 rounded-2xl border border-slate-200">
                                                     <div className="text-[8px] font-bold text-slate-400 uppercase">Confidence</div>
                                                     <div className="text-lg font-black text-slate-900">{((result.confidence || 0) * 100).toFixed(1)}%</div>
+                                                </div>
+                                                <div className="bg-indigo-600 p-3 rounded-2xl border border-indigo-500 shadow-md col-span-2">
+                                                    <div className="text-[8px] font-bold text-indigo-300 uppercase">Real-Time Cost (USD)</div>
+                                                    <div className="text-xl font-black text-white flex items-center gap-2">
+                                                        ${result.telemetry?.cost_usd?.toFixed(6) || "0.000000"}
+                                                        <span className="text-[10px] bg-indigo-500 px-2 py-0.5 rounded text-indigo-100 font-bold uppercase tracking-widest animate-pulse">Live</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

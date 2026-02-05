@@ -171,6 +171,7 @@ CRITICAL RULES:
             created_at: new Date().toISOString(),
             raw_toon: toonContent,
             version: '1.0.0',
+            cost: response.cost, // Real-time cost from LLM response
             tier: (options.tier === 'flash' ? 'community' :
                 options.tier === 'smart' ? 'verified' :
                     options.tier === 'deep' ? 'sovereign' :
@@ -235,7 +236,8 @@ CRITICAL RULES:
                     accept_threshold: 0.8,
                     max_retries: 1,
                     strategy: 'strict'
-                }
+                },
+                cost: response.cost // Grounding cost for verification reporting
             }
         };
 

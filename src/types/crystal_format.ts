@@ -211,6 +211,9 @@ export interface CrystalVerification {
     /** Verification policy */
     policy: VerificationPolicy;
 
+    /** Optional: Cost of verification/generation */
+    cost?: number;
+
     /** Optional: External verifier requirements */
     external_verifiers?: string[];
 
@@ -370,6 +373,9 @@ export interface Crystal {
 
     /** Creation timestamp */
     created_at: string;
+
+    /** Optional: Cost of crystallization */
+    cost?: number;
 
     /** Source of this Crystal */
     source: CrystalSource;
