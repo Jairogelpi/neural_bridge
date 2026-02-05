@@ -90,6 +90,7 @@ export default function SCPDemoModal({ isOpen, onClose }: SCPDemoModalProps) {
     const [customInput, setCustomInput] = useState('');
     const [activeInput, setActiveInput] = useState(DEFAULT_INPUT);
     const [tier, setTier] = useState<'flash' | 'smart'>('smart');
+    const [forceRecrystallize, setForceRecrystallize] = useState(false);
 
     // VISUALIZATION STATE
     const [nodes, setNodes] = useState<Node[]>([]);
@@ -124,6 +125,7 @@ export default function SCPDemoModal({ isOpen, onClose }: SCPDemoModalProps) {
             setChatQuery('');
             setChatHistory([]);
             setIsChatLoading(false);
+            setForceRecrystallize(false);
         }
     }, [isOpen]);
 
@@ -297,7 +299,12 @@ export default function SCPDemoModal({ isOpen, onClose }: SCPDemoModalProps) {
             const res = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: textToProcess, tier: tier, domain: 'general' })
+                body: JSON.stringify({
+                    text: textToProcess,
+                    tier: tier,
+                    domain: 'general',
+                    force: forceRecrystallize
+                })
             });
 
             if (res.ok) {
@@ -431,6 +438,32 @@ export default function SCPDemoModal({ isOpen, onClose }: SCPDemoModalProps) {
                                 {inputType === 'custom' && (
                                     <textarea value={customInput} onChange={(e) => setCustomInput(e.target.value)} placeholder="Paste data here..." className="w-full h-24 bg-white border border-slate-200 rounded-xl p-3 text-xs font-mono mb-4" />
                                 )}
+
+                                <div className="flex flex-col gap-4 mb-8 w-full max-w-[300px]">
+                                    <div className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-2xl shadow-sm">
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-bold text-slate-900 uppercase">Processing Tier</span>
+                                            <span className="text-[8px] text-slate-500 uppercase tracking-tighter">{tier === 'smart' ? 'Deep Extraction (Gemini 2.0)' : 'Turbo Flash'}</span>
+                                        </div>
+                                        <div className="flex p-1 bg-slate-100 rounded-lg border border-slate-200">
+                                            <button onClick={() => setTier('flash')} className={`px-2 py-1 text-[9px] font-black rounded-md transition-all ${tier === 'flash' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>FLASH</button>
+                                            <button onClick={() => setTier('smart')} className={`px-2 py-1 text-[9px] font-black rounded-md transition-all ${tier === 'smart' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>SMART</button>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        onClick={() => setForceRecrystallize(!forceRecrystallize)}
+                                        className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${forceRecrystallize ? 'bg-amber-50 border-amber-200 text-amber-700 shadow-sm' : 'bg-white border-slate-200 text-slate-500'}`}
+                                    >
+                                        <div className="flex flex-col items-start">
+                                            <span className="text-[10px] font-bold uppercase">Force Real-Time Mining</span>
+                                            <span className="text-[8px] uppercase tracking-tighter">Bypass semantic cache engine</span>
+                                        </div>
+                                        <div className={`w-8 h-4 rounded-full relative transition-colors ${forceRecrystallize ? 'bg-amber-500' : 'bg-slate-200'}`}>
+                                            <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${forceRecrystallize ? 'left-4.5' : 'left-0.5'}`} />
+                                        </div>
+                                    </button>
+                                </div>
 
                                 <button onClick={() => setStep('ready')} disabled={inputType === 'custom' && customInput.length < 5} className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold text-sm">Initialize Kernel</button>
                             </div>

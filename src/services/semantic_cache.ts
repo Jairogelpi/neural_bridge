@@ -9,21 +9,35 @@ import { SemanticHasher } from './semantic_hashing';
  * Returns cached crystals for >95% similarity matches.
  */
 export class SemanticCache {
-    private static cache = new Map<string, { lsh: string, crystal: Crystal, timestamp: number }>();
-    private static readonly SIMILARITY_THRESHOLD = 0.95;
+    private static cache = new Map<string, { lsh: string, crystal: Crystal, timestamp: number, logic_version: string }>();
+    private static readonly SIMILARITY_THRESHOLD = 0.98; // Increased threshold for higher sensitivity to subtle changes
     private static readonly MAX_CACHE_SIZE = 1000;
     private static readonly TTL_MS = 1000 * 60 * 60 * 24; // 24 hours
+    private static readonly LOGIC_VERSION = 'v2.1.0-sovereign'; // Logic versioning for automatic invalidation
 
     /**
      * Check if similar content exists in cache.
-     * Returns cached crystal if semantic similarity > 95%.
+     * Returns cached crystal if semantic similarity > 98% and version matches.
      */
-    static check(text: string): Crystal | null {
+    static check(text: string, force: boolean = false): Crystal | null {
+        if (force) {
+            console.log(`[SemanticCache] ⚡ Force bypass requested. Skipping cache.`);
+            return null;
+        }
+
         const lsh = SemanticHasher.computeSimHash(text);
 
         // Exact match (fastest path)
         if (this.cache.has(lsh)) {
             const entry = this.cache.get(lsh)!;
+
+            // Invalidate if version mismatch
+            if (entry.logic_version !== this.LOGIC_VERSION) {
+                console.log(`[SemanticCache] 🧹 Invalidation: Logic version mismatch (${entry.logic_version} vs ${this.LOGIC_VERSION})`);
+                this.cache.delete(lsh);
+                return null;
+            }
+
             if (Date.now() - entry.timestamp < this.TTL_MS) {
                 console.log(`[SemanticCache] ✅ EXACT HIT for LSH ${lsh.substring(0, 8)}...`);
                 return entry.crystal;
@@ -34,6 +48,9 @@ export class SemanticCache {
 
         // Similarity scan (if no exact match)
         for (const [cachedLsh, entry] of this.cache.entries()) {
+            // Version check for similarity scan too
+            if (entry.logic_version !== this.LOGIC_VERSION) continue;
+
             const similarity = SemanticHasher.holographicSimilarity(
                 SemanticHasher.computeHolographicHash(text),
                 SemanticHasher.computeHolographicHash(entry.crystal.intent.primary || '')
@@ -70,7 +87,8 @@ export class SemanticCache {
         this.cache.set(lsh, {
             lsh,
             crystal,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            logic_version: this.LOGIC_VERSION
         });
 
         console.log(`[SemanticCache] 💾 Stored crystal ${crystal.context_id} (cache size: ${this.cache.size})`);

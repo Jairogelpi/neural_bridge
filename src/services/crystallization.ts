@@ -14,6 +14,7 @@ export interface CrystallizationOptions {
     compress?: boolean;
     tier?: 'community' | 'trusted' | 'sovereign' | 'flash' | 'smart' | 'deep';
     autoUpgrade?: boolean;
+    force?: boolean; // Bypass semantic cache
 
     // Phase Infinity: Multimodal Support
     binary_payload?: Buffer;
@@ -45,7 +46,7 @@ export class CrystallizationService {
         const domain = options.domain || 'general';
 
         // 1. CHECK SEMANTIC CACHE (Instant ROI)
-        const cached = SemanticCache.check(text);
+        const cached = SemanticCache.check(text, options.force);
         if (cached) {
             console.log(`[Crystallization] ⚡ Cache hit - returning in ${Date.now() - startTime}ms`);
             return cached;

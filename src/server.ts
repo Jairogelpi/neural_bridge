@@ -412,7 +412,7 @@ app.post('/v1/genesis/dream', async (req: Request, res: Response) => {
 
 app.post('/v1/turbo/crystallize', async (req: Request, res: Response) => {
     try {
-        const { text, tier, domain } = req.body;
+        const { text, tier, domain, force } = req.body;
         if (!text) {
             res.status(400).json({ error: 'Missing text' });
             return;
@@ -422,7 +422,8 @@ app.post('/v1/turbo/crystallize', async (req: Request, res: Response) => {
         const crystal = await CrystallizationService.crystallize(text, {
             tier: tier || 'flash',
             domain: domain || 'general',
-            autoUpgrade: true
+            autoUpgrade: true,
+            force: force === true || force === 'true'
         });
         const elapsed = Date.now() - startTime;
 
@@ -444,12 +445,13 @@ app.post('/v1/turbo/crystallize', async (req: Request, res: Response) => {
 // Legacy/Universal Alias for SCP Demo 🌉
 app.post('/v1/crystallize', async (req: Request, res: Response) => {
     // Redirect internal logic to turbo-optimized unified path
-    const { text, tier, domain } = req.body;
+    const { text, tier, domain, force } = req.body;
     try {
         const crystal = await CrystallizationService.crystallize(text || '', {
             tier: tier || 'flash',
             domain: domain || 'general',
-            autoUpgrade: true
+            autoUpgrade: true,
+            force: force === true || force === 'true'
         });
         res.json(crystal);
     } catch (error) {
