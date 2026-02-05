@@ -69,12 +69,12 @@ export class JobQueueManager {
             'crystallization',
             async (job: Job<CrystallizationJobData>) => {
                 console.log(`[Worker:Crystallization] Processing job ${job.id}`);
-                const { TurboCrystallizer } = await import('./turbo_crystallizer');
+                const { CrystallizationService } = await import('./crystallization');
 
-                const crystal = await TurboCrystallizer.crystallize(
+                const crystal = await CrystallizationService.crystallize(
                     job.data.text,
                     {
-                        tier: job.data.options.tier || 'flash',
+                        tier: job.data.options.tier as any || 'flash',
                         domain: job.data.options.domain,
                         autoUpgrade: job.data.options.autoUpgrade
                     }
@@ -120,10 +120,10 @@ export class JobQueueManager {
             'background-upgrade',
             async (job: Job<UpgradeJobData>) => {
                 console.log(`[Worker:Upgrade] Upgrading crystal ${job.data.crystalId}`);
-                const { TurboCrystallizer } = await import('./turbo_crystallizer');
+                const { CrystallizationService } = await import('./crystallization');
 
                 // Perform deep crystallization
-                const deepCrystal = await TurboCrystallizer.crystallize(
+                const deepCrystal = await CrystallizationService.crystallize(
                     job.data.text,
                     { tier: 'deep', domain: job.data.domain }
                 );

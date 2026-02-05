@@ -6,12 +6,14 @@ import { UsidEngine } from './usid_engine';
 import { SemanticHasher } from './semantic_hashing';
 import { Hypervector } from '../math/hypervector';
 import { ToonService } from '../lib/toon';
+import { SemanticCache } from './semantic_cache';
 
 export interface CrystallizationOptions {
     domain?: string;
     author?: { id: string; name: string; reputation: number };
     compress?: boolean;
-    tier?: 'community' | 'trusted' | 'sovereign';
+    tier?: 'community' | 'trusted' | 'sovereign' | 'flash' | 'smart' | 'deep';
+    autoUpgrade?: boolean;
 
     // Phase Infinity: Multimodal Support
     binary_payload?: Buffer;
@@ -26,10 +28,58 @@ export interface CrystallizationOptions {
  * This is the Deterministic replacement for "Embeddings".
  */
 export class CrystallizationService {
+    private static backgroundQueue: Array<{ text: string, domain: string, protoId: string }> = [];
+    private static isProcessingQueue = false;
+
+    /**
+     * UNIFIED CRYSTALLIZATION ⚡💎
+     * The single entry point for all high-fidelity extraction.
+     * Uses model arbitrage to stay fast and cheap.
+     */
+    static async crystallize(
+        text: string,
+        options: CrystallizationOptions = {}
+    ): Promise<Crystal> {
+        const startTime = Date.now();
+        const tier = options.tier || 'sovereign';
+        const domain = options.domain || 'general';
+
+        // 1. CHECK SEMANTIC CACHE (Instant ROI)
+        const cached = SemanticCache.check(text);
+        if (cached) {
+            console.log(`[Crystallization] ⚡ Cache hit - returning in ${Date.now() - startTime}ms`);
+            return cached;
+        }
+
+        // 2. ROUTE BY TIER
+        let crystal: Crystal;
+
+        if (tier === 'flash') {
+            crystal = this.mineProtoCrystal(text, domain);
+        } else if (tier === 'smart') {
+            // Optimized Smart Path (Gemini 2.0 Flash)
+            crystal = await this.mineCrystal(text, { ...options, tier: 'sovereign', compress: false });
+            crystal.tags = (crystal.tags || []).concat(['tier:smart', 'speed:turbo']);
+        } else {
+            // Full Sovereign Path
+            crystal = await this.mineCrystal(text, { ...options, tier: 'sovereign' });
+        }
+
+        // 3. STORE IN CACHE
+        SemanticCache.store(text, crystal);
+
+        // 4. AUTO-UPGRADE (Background)
+        if (options.autoUpgrade && tier === 'flash') {
+            this.queueForUpgrade(text, domain, crystal.context_id);
+        }
+
+        console.log(`[Crystallization] ✅ Unified ${tier} done in ${Date.now() - startTime}ms`);
+        return crystal;
+    }
 
     /**
      * Mine a Crystal from raw text.
-     * This process is strict, expensive, and deterministic.
+     * Optimized for GEMINI 2.0 FLASH - High Fidelity / Low Cost.
      */
     static async mineCrystal(
         text: string,
@@ -54,8 +104,9 @@ export class CrystallizationService {
         // 3. Independent Domain Analysis
         const domain = options.domain || await detectDomainAutonomously(processedText);
 
-        // 4. Select the "Refining Model" (High Intelligence)
-        const model = SCPService.getOptimalModel({ domain, task: 'compile', isCritical: true });
+        // 4. Select the "Refining Model" (OPTIMIZED: Gemini 2.0 Flash)
+        // This model provides Sovereign-tier logic at 1/10th the cost of Pro.
+        const model = 'google/gemini-2.0-flash-001';
 
         // 4.5 ACTIVE IMMUNIZATION (v0.2 Sigma)
         // Search for vaccines that "cure" hallucinations in this text context
@@ -120,7 +171,10 @@ CRITICAL RULES:
             created_at: new Date().toISOString(),
             raw_toon: toonContent,
             version: '1.0.0',
-            tier: options.tier || 'community',
+            tier: (options.tier === 'flash' ? 'community' :
+                options.tier === 'smart' ? 'verified' :
+                    options.tier === 'deep' ? 'sovereign' :
+                        options.tier || 'community') as any,
             domain: domain,
             source: {
                 platform: 'neural-bridge-refinery',
@@ -366,5 +420,92 @@ CRITICAL RULES:
         refined.supersedes = proto.context_id;
 
         return refined;
+    }
+
+    /**
+     * COMPARATIVE QUERY 🦾
+     * Unified dual LLM logic for the Chat Arena.
+     */
+    static async compareQuery(query: string, crystal: Crystal): Promise<{ normal: string, scp: string }> {
+        const fastModel = 'google/gemini-2.0-flash-001';
+
+        // 1. STANDARD AI CALL
+        const normalPromise = SCPService.resilientCallLLM(
+            query,
+            fastModel,
+            "You are a helpful AI assistant. Answer the user question based on general knowledge."
+        );
+
+        // 2. SOVEREIGN SCP CALL (Grounded)
+        const scpPrompt = `You are a Sovereign SCP Assistant. You MUST answer strictly using the provided Sovereign Crystal context.
+        
+CRYSTAL CONTEXT:
+${ToonService.stringify({
+            intent: crystal.intent,
+            constraints: crystal.constraints,
+            entities: crystal.entities,
+            narrative: crystal.metadata?.narrative
+        })}
+
+QUESTION: ${query}
+
+Rules:
+- If the crystal contains the answer, cite it.
+- If the answer is not in the crystal, state that it is not verified in the current knowledge lattice.
+- Be precise and deterministic.`;
+
+        const scpPromise = SCPService.resilientCallLLM(
+            `Answer this question based on the provided context: ${query}`,
+            fastModel,
+            scpPrompt
+        );
+
+        const [normalRes, scpRes] = await Promise.all([normalPromise, scpPromise]);
+
+        return {
+            normal: normalRes.content,
+            scp: scpRes.content
+        };
+    }
+
+    /**
+     * BACKGROUND UPGRADE SYSTEM 🔄
+     */
+    private static queueForUpgrade(text: string, domain: string, protoId: string): void {
+        this.backgroundQueue.push({ text, domain, protoId });
+        if (!this.isProcessingQueue) {
+            this.processUpgradeQueue();
+        }
+    }
+
+    private static async processUpgradeQueue(): Promise<void> {
+        if (this.isProcessingQueue || this.backgroundQueue.length === 0) return;
+        this.isProcessingQueue = true;
+
+        while (this.backgroundQueue.length > 0) {
+            const job = this.backgroundQueue.shift();
+            if (!job) break;
+
+            try {
+                const deepCrystal = await this.mineCrystal(job.text, { domain: job.domain, tier: 'sovereign' });
+                deepCrystal.supersedes = job.protoId;
+                SemanticCache.store(job.text, deepCrystal);
+            } catch (error) {
+                console.error(`[Crystallization] ❌ Background upgrade failed: `, error);
+            }
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        this.isProcessingQueue = false;
+    }
+
+    /**
+     * Get queue statistics.
+     */
+    static getQueueStats() {
+        return {
+            queued: this.backgroundQueue.length,
+            processing: this.isProcessingQueue,
+            cache: SemanticCache.stats()
+        };
     }
 }

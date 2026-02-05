@@ -40,7 +40,7 @@ export class FractalIngestService {
         const atomicCrystals: Crystal[] = [];
         const BATCH_SIZE = 10; // Process 10 chunks in parallel
 
-        const { TurboCrystallizer } = await import('./turbo_crystallizer');
+        const { CrystallizationService } = await import('./crystallization');
 
         for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
             const batch = chunks.slice(i, i + BATCH_SIZE);
@@ -48,7 +48,7 @@ export class FractalIngestService {
             // Parallel crystallization using Flash tier (instant)
             const batchCrystals = await Promise.all(
                 batch.map(async (chunk, idx) => {
-                    const crystal = await TurboCrystallizer.crystallize(chunk, {
+                    const crystal = await CrystallizationService.crystallize(chunk, {
                         tier: 'flash', // Instant math-based crystallization
                         domain,
                         autoUpgrade: true // Upgrade to Deep in background
@@ -90,10 +90,10 @@ export class FractalIngestService {
                 const group = currentLayer.slice(i, i + groupSize);
                 const parentText = group.map(c => c.intent.primary + ": " + (c.constraints?.map(con => con.value).join(', ') || '')).join('\n\n');
 
-                const { TurboCrystallizer } = await import('./turbo_crystallizer');
+                const { CrystallizationService } = await import('./crystallization');
 
                 // Use Smart Crystallization for parent nodes (fast but good quality)
-                const parentCrystal = await TurboCrystallizer.crystallize(parentText, {
+                const parentCrystal = await CrystallizationService.crystallize(parentText, {
                     tier: 'smart', // Fast AI-based synthesis
                     domain: domain,
                     autoUpgrade: true // Will upgrade to Deep in background

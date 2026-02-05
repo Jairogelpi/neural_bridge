@@ -1,5 +1,5 @@
 import { Crystal } from '../types/crystal_format';
-import { TurboCrystallizer } from './turbo_crystallizer';
+import { CrystallizationService } from './crystallization';
 import { SCPService } from './llm';
 
 /**
@@ -28,7 +28,7 @@ export class UniversalIngestor {
             if (this.isCodeEntropy(entropy, data.toString())) {
                 return this.codeToCrystal(data.toString(), mimeType);
             }
-            return TurboCrystallizer.crystallize(data.toString(), { tier: 'smart' });
+            return CrystallizationService.crystallize(data.toString(), { tier: 'smart' });
         } else if (mimeType === 'application/json') {
             return this.dataToCrystal(data.toString(), mimeType);
         }
@@ -54,7 +54,7 @@ export class UniversalIngestor {
 
         // Mocking the multimodal response for the demonstration architecture
         const mockDescription = "A high-tech control center with a holographic dashboard and biometric security gates.";
-        return TurboCrystallizer.crystallize(mockDescription, {
+        return CrystallizationService.crystallize(mockDescription, {
             tier: 'deep',
             domain: 'vision_manifold'
         });
@@ -77,7 +77,7 @@ export class UniversalIngestor {
             systemPrompt
         );
 
-        return TurboCrystallizer.crystallize(response.content, {
+        return CrystallizationService.crystallize(response.content, {
             tier: 'smart',
             domain: 'engineering'
         });
@@ -88,7 +88,7 @@ export class UniversalIngestor {
      * Transforms structured JSON/CSV into high-level truth statements.
      */
     private static async dataToCrystal(json: string, mime: string): Promise<Crystal> {
-        return TurboCrystallizer.crystallize(`Structured Data Invariant: ${json.substring(0, 500)}`, {
+        return CrystallizationService.crystallize(`Structured Data Invariant: ${json.substring(0, 500)}`, {
             tier: 'smart',
             domain: 'data_analytics'
         });

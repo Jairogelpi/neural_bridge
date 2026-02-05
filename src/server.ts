@@ -37,7 +37,8 @@ import { NeuralBridge } from './index';
 import { AuthService } from './services/auth';
 import { JuryService } from './services/jury_service';
 import { FractalIngestService } from './services/fractal_ingest';
-import { TurboCrystallizer } from './services/turbo_crystallizer';
+import { TurboCrystallizer } from './services/turbo_crystallizer'; // Deprecated - migrating to CrystallizationService
+import { CrystallizationService } from './services/crystallization';
 import { AudioCrystallizer } from './services/multimodal/audio_crystallizer';
 import { VideoCrystallizer } from './services/multimodal/video_crystallizer';
 import { CacheManager } from './services/cache';
@@ -419,7 +420,7 @@ app.post('/v1/turbo/crystallize', async (req: Request, res: Response) => {
         }
 
         const startTime = Date.now();
-        const crystal = await TurboCrystallizer.crystallize(text, {
+        const crystal = await CrystallizationService.crystallize(text, {
             tier: tier || 'flash',
             domain: domain || 'general',
             autoUpgrade: true
@@ -432,7 +433,7 @@ app.post('/v1/turbo/crystallize', async (req: Request, res: Response) => {
             metrics: {
                 tier: tier || 'flash',
                 elapsed_ms: elapsed,
-                queue_stats: TurboCrystallizer.getQueueStats()
+                queue_stats: CrystallizationService.getQueueStats()
             }
         });
     } catch (error) {
@@ -442,10 +443,10 @@ app.post('/v1/turbo/crystallize', async (req: Request, res: Response) => {
 
 // Legacy/Universal Alias for SCP Demo 🌉
 app.post('/v1/crystallize', async (req: Request, res: Response) => {
-    // Redirect internal logic to turbo
+    // Redirect internal logic to turbo-optimized unified path
     const { text, tier, domain } = req.body;
     try {
-        const crystal = await TurboCrystallizer.crystallize(text || '', {
+        const crystal = await CrystallizationService.crystallize(text || '', {
             tier: tier || 'flash',
             domain: domain || 'general',
             autoUpgrade: true
@@ -468,7 +469,7 @@ app.post('/v1/turbo/query/compare', async (req: Request, res: Response) => {
         }
 
         console.log(`[API] 🦾 Executing REAL Comparative Query...`);
-        const result = await TurboCrystallizer.compareQuery(query, crystal);
+        const result = await CrystallizationService.compareQuery(query, crystal);
 
         res.json({
             success: true,
