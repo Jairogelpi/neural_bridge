@@ -89,7 +89,7 @@ export default function SCPDemoModal({ isOpen, onClose }: SCPDemoModalProps) {
     const [inputType, setInputType] = useState<'demo' | 'custom'>('demo');
     const [customInput, setCustomInput] = useState('');
     const [activeInput, setActiveInput] = useState(DEFAULT_INPUT);
-    const [tier, setTier] = useState<'flash' | 'smart'>('flash');
+    const [tier, setTier] = useState<'flash' | 'smart'>('smart');
 
     // VISUALIZATION STATE
     const [nodes, setNodes] = useState<Node[]>([]);
@@ -290,7 +290,14 @@ export default function SCPDemoModal({ isOpen, onClose }: SCPDemoModalProps) {
             if (i === 9) {
                 addLog(tier === 'smart' ? "INVOKING DEEP CRYSTALLIZATION..." : "CRYSTALLIZING TRUTH...", 'warn');
                 try {
-                    const res = await fetch('https://neural-bridge-backend.onrender.com/v1/turbo/crystallize', {
+                    const isLocal = typeof window !== 'undefined' &&
+                        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+                    const apiUrl = isLocal
+                        ? '/v1/turbo/crystallize' // Relative for local proxy/dev-server
+                        : 'https://neural-bridge-backend.onrender.com/v1/turbo/crystallize';
+
+                    const res = await fetch(apiUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ text: textToProcess, tier: tier, domain: 'general' })

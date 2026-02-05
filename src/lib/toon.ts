@@ -86,33 +86,42 @@ export class ToonService {
      * Serialize a structured object back into TOON syntax
      */
     static stringify(obj: any): string {
+        if (!obj) return '';
         let toon = '';
 
         // 1. Metadata
-        if (obj.metadata) {
+        if (obj.metadata && typeof obj.metadata === 'object') {
             for (const [key, val] of Object.entries(obj.metadata)) {
-                toon += `@${key}(${val})\n`;
+                if (val !== undefined && val !== null) {
+                    toon += `@${key}(${val})\n`;
+                }
             }
         }
 
         // 2. Graph
-        if (obj.graph) {
+        if (Array.isArray(obj.graph)) {
             for (const rel of obj.graph) {
-                toon += `(${rel.subject}) -[${rel.predicate}]-> (${rel.object})\n`;
+                if (rel && rel.subject && rel.predicate && rel.object) {
+                    toon += `(${rel.subject}) -[${rel.predicate}]-> (${rel.object})\n`;
+                }
             }
         }
 
         // 3. Constraints
-        if (obj.constraints) {
+        if (Array.isArray(obj.constraints)) {
             for (const c of obj.constraints) {
-                toon += `${c.type} [${c.value}]\n`;
+                if (c && c.type && c.value) {
+                    toon += `${c.type} [${c.value}]\n`;
+                }
             }
         }
 
         // 4. Proofs
-        if (obj.proofs) {
+        if (obj.proofs && typeof obj.proofs === 'object') {
             for (const [key, val] of Object.entries(obj.proofs)) {
-                toon += `#${key}(${val})\n`;
+                if (val !== undefined && val !== null) {
+                    toon += `#${key}(${val})\n`;
+                }
             }
         }
 

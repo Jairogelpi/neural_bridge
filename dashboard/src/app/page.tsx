@@ -1028,7 +1028,7 @@ export default function LandingPage() {
                     transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
                   >
                     <img
-                      src="/scp_protocol_v2.png"
+                      src="/scp_sketch_diagram.png"
                       alt="Sovereign Crystallization Protocol (SCP) Diagram - Minimalist V2"
                       className="w-full h-full object-contain drop-shadow-[0_20px_50px_rgba(79,70,229,0.15)] scale-[1.7] transition-transform duration-1000"
                     />
@@ -1377,7 +1377,7 @@ export default function LandingPage() {
                     Run Live Verification
                     <span className="px-2 py-0.5 bg-indigo-800 rounded text-[10px] text-indigo-200 uppercase tracking-wider font-mono">v2.1</span>
                   </button>
-                  <Link href="/docs" className="px-8 py-4 bg-white border border-slate-200 text-slate-600 font-bold rounded-2xl hover:bg-slate-50 transition-all flex items-center justify-center">
+                  <Link href="/nexus" className="px-8 py-4 bg-white border border-slate-200 text-slate-600 font-bold rounded-2xl hover:bg-slate-50 transition-all flex items-center justify-center">
                     Read the Whitepaper
                   </Link>
                 </div>
@@ -1436,7 +1436,7 @@ export default function LandingPage() {
                 <div className="relative aspect-[4/3] flex items-center justify-center p-8 bg-white/60 backdrop-blur-xl rounded-[2.5rem] border border-slate-900/10 shadow-[0_24px_48px_-8px_rgba(0,0,0,0.1)] transition-all duration-1000 group-hover:shadow-[0_32px_64px_-12px_rgba(0,0,0,0.15)] group-hover:-translate-y-2 overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
                   <div className="relative z-10 w-full h-full p-2 scale-[1.7] group-hover:scale-[1.8] transition-transform duration-1000">
-                    <img src="/scp_protocol_v2.png" alt="Sovereign Crystallization Protocol (SCP)" className="w-full h-full object-contain drop-shadow-xl" />
+                    <img src="/scp_sketch_diagram.png" alt="Sovereign Crystallization Protocol (SCP)" className="w-full h-full object-contain drop-shadow-xl" />
                   </div>
                   <div className="absolute top-6 right-6 flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50/50 border border-indigo-100/50 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-700 translate-x-4 group-hover:translate-x-0">
                     <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></div>

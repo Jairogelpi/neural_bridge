@@ -457,23 +457,26 @@ CRITICAL RULES:
     static async compareQuery(query: string, crystal: Crystal): Promise<{ normal: string, scp: string }> {
         const fastModel = 'google/gemini-2.0-flash-001';
 
-        // 1. STANDARD AI CALL
-        const normalPromise = SCPService.resilientCallLLM(
-            query,
-            fastModel,
-            "You are a helpful AI assistant. Answer the user question based on general knowledge."
-        );
+        try {
+            // 1. STANDARD AI CALL
+            const normalPromise = SCPService.resilientCallLLM(
+                query,
+                fastModel,
+                "You are a helpful AI assistant. Answer the user question based on general knowledge."
+            ).catch(e => ({ content: `Normal Error: ${e.message}` }));
 
-        // 2. SOVEREIGN SCP CALL (Grounded)
-        const scpPrompt = `You are a Sovereign SCP Assistant. You MUST answer strictly using the provided Sovereign Crystal context.
+            // 2. SOVEREIGN SCP CALL (Grounded)
+            const contextStr = crystal ? ToonService.stringify({
+                intent: crystal.intent,
+                constraints: crystal.constraints,
+                entities: (crystal as any).entities,
+                narrative: crystal.metadata?.narrative
+            }) : 'No crystal context available.';
+
+            const scpPrompt = `You are a Sovereign SCP Assistant. You MUST answer strictly using the provided Sovereign Crystal context.
         
-CRYSTAL CONTEXT:
-${ToonService.stringify({
-            intent: crystal.intent,
-            constraints: crystal.constraints,
-            entities: crystal.entities,
-            narrative: crystal.metadata?.narrative
-        })}
+CRYAL CONTEXT:
+${contextStr}
 
 QUESTION: ${query}
 
@@ -482,18 +485,22 @@ Rules:
 - If the answer is not in the crystal, state that it is not verified in the current knowledge lattice.
 - Be precise and deterministic.`;
 
-        const scpPromise = SCPService.resilientCallLLM(
-            `Answer this question based on the provided context: ${query}`,
-            fastModel,
-            scpPrompt
-        );
+            const scpPromise = SCPService.resilientCallLLM(
+                `Answer this question based on the provided context: ${query}`,
+                fastModel,
+                scpPrompt
+            ).catch(e => ({ content: `SCP Error: ${e.message}` }));
 
-        const [normalRes, scpRes] = await Promise.all([normalPromise, scpPromise]);
+            const [normalRes, scpRes] = await Promise.all([normalPromise, scpPromise]);
 
-        return {
-            normal: normalRes.content,
-            scp: scpRes.content
-        };
+            return {
+                normal: (normalRes as any).content || 'No response from Normal AI',
+                scp: (scpRes as any).content || 'No response from Sovereign AI'
+            };
+        } catch (error) {
+            console.error('[Crystallization] compareQuery deep failure:', error);
+            throw error;
+        }
     }
 
     /**
