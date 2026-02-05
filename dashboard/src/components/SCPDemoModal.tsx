@@ -298,26 +298,27 @@ export default function SCPDemoModal({ isOpen, onClose }: SCPDemoModalProps) {
                     if (res.ok) {
                         const data = await res.json();
                         const crystal = data.crystal || data; // Handle both wrapped and unwrapped (legacy)
+                        const narrative = crystal.metadata?.narrative;
 
                         setResult({
                             byteSize: textToProcess.length,
                             hash: crystal.verification?.canonical_hash || 'hash_pending',
                             entities: crystal.entities || [],
                             constraints: crystal.constraints || [],
-                            sentiment: crystal.neuromorphic_stats?.entropy > 0.8 ? "High Entropy (Chaos)" : "Structured",
-                            keyInsight: crystal.intent?.primary || "Universal Truth",
+                            sentiment: crystal.neuromorphic_stats?.surprise > 0.8 ? "High Entropy (Chaos)" : "Structured",
+                            keyInsight: narrative?.summary || crystal.intent?.primary || "Universal Truth",
                             mode: 'CLOUD',
                             tier: tier.toUpperCase() as any,
-                            confidence: crystal.verification?.policy?.accept_threshold || 0.9,
-                            narrative: crystal.metadata?.narrative,
+                            confidence: crystal.rlm_stats?.q_score || 0.85,
+                            narrative: narrative?.solved_case || crystal.metadata?.narrative || (crystal.dynamic_state?.summary),
                             telemetry: {
-                                entropy: crystal.neuromorphic_stats?.entropy || 0.1,
-                                fisher_info: crystal.neuromorphic_stats?.fisher_info || 0.8,
+                                entropy: crystal.neuromorphic_stats?.surprise || 0.1,
+                                fisher_info: (1 - (crystal.neuromorphic_stats?.free_energy || 0.2)) || 0.8,
                                 consensus_score: crystal.rlm_stats?.q_score || 0.85,
                                 geometric_density: crystal.neuromorphic_stats?.geometric_density || 0.7,
                                 cost_usd: crystal.cost || 0
                             },
-                            revolutionary_explanation: [
+                            revolutionary_explanation: narrative?.revolutionary_explanation || [
                                 `Axiomatic Invariant: ${crystal.intent?.primary || "Universal Node"} is locked as a semantic constant.`,
                                 "Eliminated Probabilistic Noise: Standard LLMs would treat this relationship as a statistical likelihood; Neural Bridge verifies it as a logical requirement.",
                                 "HDC Manifold Stability: The resulting crystal maintains 95%+ Fisher Information, proving zero data hallucinations."
