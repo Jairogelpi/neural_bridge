@@ -296,11 +296,12 @@ export default function SCPDemoModal({ isOpen, onClose }: SCPDemoModalProps) {
                         body: JSON.stringify({ text: textToProcess, tier: tier, domain: 'general' })
                     });
                     if (res.ok) {
-                        const crystal = await res.json();
+                        const data = await res.json();
+                        const crystal = data.crystal || data; // Handle both wrapped and unwrapped (legacy)
 
                         setResult({
                             byteSize: textToProcess.length,
-                            hash: crystal.verification.canonical_hash,
+                            hash: crystal.verification?.canonical_hash || 'hash_pending',
                             entities: crystal.entities || [],
                             constraints: crystal.constraints || [],
                             sentiment: crystal.neuromorphic_stats?.entropy > 0.8 ? "High Entropy (Chaos)" : "Structured",
