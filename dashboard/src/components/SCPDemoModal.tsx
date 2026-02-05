@@ -121,8 +121,6 @@ export default function SCPDemoModal({ isOpen, onClose }: SCPDemoModalProps) {
             setActiveInput(DEFAULT_INPUT);
             setNodes([]);
             setLinks([]);
-            setParticles([]);
-            setTier('flash');
             setChatQuery('');
             setChatHistory([]);
             setIsChatLoading(false);
@@ -268,116 +266,115 @@ export default function SCPDemoModal({ isOpen, onClose }: SCPDemoModalProps) {
         addLog(`INITIALIZING SCP KERNEL v2.1...`, 'info');
         addLog(`EXTRACTED ${initialNodes.length} CONCEPTS [TIER: ${tier.toUpperCase()}]...`, 'info');
 
-        const totalSteps = 12;
+        // Step 1: Simulated topological construction (fast)
+        setProgress(30);
+        await new Promise(r => setTimeout(r, 200));
+        setNodes(prev => prev.map(n => ({
+            ...n,
+            x: n.x + (50 - n.x) * 0.05 + (Math.random() - 0.5) * 5,
+            y: n.y + (50 - n.y) * 0.05 + (Math.random() - 0.5) * 5
+        })));
+        addLog("Constructing Causal Graph...", 'info');
+        setLinks(computedLinks);
 
-        for (let i = 0; i < totalSteps; i++) {
-            await new Promise(r => setTimeout(r, tier === 'smart' ? 600 : 300));
-            const progressPct = ((i + 1) / totalSteps) * 100;
-            setProgress(progressPct);
+        // Step 2: Invariant Verification (fast)
+        setProgress(50);
+        await new Promise(r => setTimeout(r, 200));
+        addLog("Verifying Semantic Invariants...", 'info');
 
-            setNodes(prev => prev.map(n => ({
-                ...n,
-                x: n.x + (50 - n.x) * 0.05 + (Math.random() - 0.5) * 2,
-                y: n.y + (50 - n.y) * 0.05 + (Math.random() - 0.5) * 2
-            })));
+        // Step 3: REAL-TIME DEEP CRYSTALLIZATION (Actual Fetch)
+        setProgress(70);
+        addLog(tier === 'smart' ? "INVOKING DEEP CRYSTALLIZATION..." : "CRYSTALLIZING TRUTH...", 'warn');
 
-            if (i === 3) {
-                addLog("Constructing Causal Graph...", 'info');
-                setLinks(computedLinks);
-            }
-            if (i === 6) addLog("Verifying Semantic Invariants...", 'info');
+        try {
+            const isLocal = typeof window !== 'undefined' &&
+                (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-            if (i === 9) {
-                addLog(tier === 'smart' ? "INVOKING DEEP CRYSTALLIZATION..." : "CRYSTALLIZING TRUTH...", 'warn');
-                try {
-                    const isLocal = typeof window !== 'undefined' &&
-                        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+            const apiUrl = isLocal
+                ? '/v1/turbo/crystallize'
+                : 'https://neural-bridge-backend.onrender.com/v1/turbo/crystallize';
 
-                    const apiUrl = isLocal
-                        ? '/v1/turbo/crystallize' // Relative for local proxy/dev-server
-                        : 'https://neural-bridge-backend.onrender.com/v1/turbo/crystallize';
+            const res = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: textToProcess, tier: tier, domain: 'general' })
+            });
 
-                    const res = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ text: textToProcess, tier: tier, domain: 'general' })
-                    });
-                    if (res.ok) {
-                        const data = await res.json();
-                        const crystal = data.crystal || data; // Handle both wrapped and unwrapped (legacy)
-                        const narrative = crystal.metadata?.narrative;
+            if (res.ok) {
+                const data = await res.json();
+                const crystal = data.crystal || data;
+                const narrative = crystal.metadata?.narrative;
 
-                        setResult({
-                            byteSize: textToProcess.length,
-                            hash: crystal.verification?.canonical_hash || 'hash_pending',
-                            entities: crystal.entities || [],
-                            constraints: crystal.constraints || [],
-                            sentiment: crystal.neuromorphic_stats?.surprise > 0.8 ? "High Entropy (Chaos)" : "Structured",
-                            keyInsight: narrative?.summary || crystal.intent?.primary || "Universal Truth",
-                            mode: 'CLOUD',
-                            tier: tier.toUpperCase() as any,
-                            confidence: crystal.rlm_stats?.q_score || 0.85,
-                            narrative: narrative?.solved_case || crystal.metadata?.narrative || (crystal.dynamic_state?.summary),
-                            telemetry: {
-                                entropy: crystal.neuromorphic_stats?.surprise || 0.1,
-                                fisher_info: (1 - (crystal.neuromorphic_stats?.free_energy || 0.2)) || 0.8,
-                                consensus_score: crystal.rlm_stats?.q_score || 0.85,
-                                geometric_density: crystal.neuromorphic_stats?.geometric_density || 0.7,
-                                cost_usd: crystal.cost || 0
-                            },
-                            revolutionary_explanation: narrative?.revolutionary_explanation || [
-                                `Axiomatic Invariant: ${crystal.intent?.primary || "Universal Node"} is locked as a semantic constant.`,
-                                "Eliminated Probabilistic Noise: Standard LLMs would treat this relationship as a statistical likelihood; Neural Bridge verifies it as a logical requirement.",
-                                "HDC Manifold Stability: The resulting crystal maintains 95%+ Fisher Information, proving zero data hallucinations."
-                            ]
-                        });
+                setResult({
+                    byteSize: textToProcess.length,
+                    hash: crystal.verification?.canonical_hash || 'hash_pending',
+                    entities: crystal.entities || [],
+                    constraints: crystal.constraints || [],
+                    sentiment: crystal.neuromorphic_stats?.surprise > 0.8 ? "High Entropy (Chaos)" : "Structured",
+                    keyInsight: narrative?.summary || crystal.intent?.primary || "Universal Truth",
+                    mode: 'CLOUD',
+                    tier: tier.toUpperCase() as any,
+                    confidence: crystal.rlm_stats?.q_score || 0.85,
+                    narrative: narrative?.solved_case || crystal.metadata?.narrative || (crystal.dynamic_state?.summary),
+                    telemetry: {
+                        entropy: crystal.neuromorphic_stats?.surprise || 0.1,
+                        fisher_info: (1 - (crystal.neuromorphic_stats?.free_energy || 0.2)) || 0.8,
+                        consensus_score: crystal.rlm_stats?.q_score || 0.85,
+                        geometric_density: crystal.neuromorphic_stats?.geometric_density || 0.7,
+                        cost_usd: crystal.cost || 0
+                    },
+                    revolutionary_explanation: narrative?.revolutionary_explanation || [
+                        `Axiomatic Invariant: ${crystal.intent?.primary || "Universal Node"} is locked as a semantic constant.`,
+                        "Eliminated Probabilistic Noise: Standard LLMs would treat this relationship as a statistical likelihood; Neural Bridge verifies it as a logical requirement.",
+                        "HDC Manifold Stability: The resulting crystal maintains 95%+ Fisher Information, proving zero data hallucinations."
+                    ]
+                });
 
-                        if (crystal.entities && crystal.entities.length > 0) {
-                            const realNodes: Node[] = crystal.entities.map((e: any, idx: number) => ({
-                                id: `real_${idx}`,
-                                label: e.name || e,
-                                x: 20 + Math.random() * 60,
-                                y: 20 + Math.random() * 60,
-                                r: 6 + Math.random() * 2,
-                                type: e.type === 'error' ? 'error' : 'concept'
-                            }));
-                            setNodes(realNodes);
+                if (crystal.entities && crystal.entities.length > 0) {
+                    const realNodes: Node[] = crystal.entities.map((e: any, idx: number) => ({
+                        id: `real_${idx}`,
+                        label: e.name || e,
+                        x: 20 + Math.random() * 60,
+                        y: 20 + Math.random() * 60,
+                        r: 6 + Math.random() * 2,
+                        type: e.type === 'error' ? 'error' : 'concept'
+                    }));
+                    setNodes(realNodes);
 
-                            const realLinks: Link[] = (crystal.constraints || []).map((c: any) => {
-                                const mention = realNodes.find(n => c.value.toLowerCase().includes(n.label.toLowerCase()));
-                                if (mention && mention.id !== realNodes[0].id) {
-                                    return {
-                                        source: realNodes[0].id,
-                                        target: mention.id,
-                                        strength: 1.0,
-                                        reason: `Sovereign: ${c.rule}`
-                                    };
-                                }
-                                return null;
-                            }).filter(Boolean);
-
-                            setLinks(realLinks);
+                    const realLinks: Link[] = (crystal.constraints || []).map((c: any) => {
+                        const mention = realNodes.find(n => c.value.toLowerCase().includes(n.label.toLowerCase()));
+                        if (mention && mention.id !== realNodes[0].id) {
+                            return {
+                                source: realNodes[0].id,
+                                target: mention.id,
+                                strength: 1.0,
+                                reason: `Sovereign: ${c.rule}`
+                            };
                         }
+                        return null;
+                    }).filter(Boolean);
 
-                        addLog("✅ CLOUD VERIFIED. SYNCING REAL-TIME RELATIONSHIPS.", 'success');
-                        setRawResponse(JSON.stringify(crystal, null, 2));
-                    } else {
-                        const contentType = res.headers.get("content-type");
-                        if (contentType && contentType.includes("application/json")) {
-                            const err = await res.json();
-                            throw new Error(err.error || `Server Error (${res.status})`);
-                        } else {
-                            const text = await res.text();
-                            throw new Error(`Sovereign Link 500: ${text.slice(0, 100)}... (Status: ${res.status})`);
-                        }
-                    }
-                } catch (e: any) {
-                    addLog(`❌ PROTOCOL ERROR: ${e.message}`, 'error');
-                    addLog("OFFLINE: Sovereign Kernel requires high-fidelity backend connection.", 'error');
-                    addLog("PURE PROTOCOL: Fallbacks are deactivated for production honesty.", 'warn');
-                    setResult(null); // Ensure result is explicitly cleared on failure
+                    setLinks(realLinks);
+                }
+
+                addLog("✅ CLOUD VERIFIED. SYNCING REAL-TIME RELATIONSHIPS.", 'success');
+                setRawResponse(JSON.stringify(crystal, null, 2));
+                setProgress(100);
+            } else {
+                const contentType = res.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    const err = await res.json();
+                    throw new Error(err.error || `Server Error (${res.status})`);
+                } else {
+                    const text = await res.text();
+                    throw new Error(`Sovereign Link 500: ${text.slice(0, 100)}... (Status: ${res.status})`);
                 }
             }
+        } catch (e: any) {
+            addLog(`❌ PROTOCOL ERROR: ${e.message}`, 'error');
+            addLog("OFFLINE: Sovereign Kernel requires high-fidelity backend connection.", 'error');
+            addLog("PURE PROTOCOL: Fallbacks are deactivated for production honesty.", 'warn');
+            setResult(null);
         }
 
         setNodes(prev => prev.map((n, idx) => {

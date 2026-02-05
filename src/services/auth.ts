@@ -59,7 +59,7 @@ export class AuthService {
     }
 
     /**
-     * Middleware to verify JWT
+     * Middleware to verify JWT (Strict)
      */
     static authenticate(req: any, res: any, next: any) {
         const authHeader = req.headers.authorization;
@@ -72,6 +72,30 @@ export class AuthService {
             next();
         } catch (e) {
             return res.status(401).json({ error: 'Invalid or expired token' });
+        }
+    }
+
+    /**
+     * Middleware to verify JWT (Optional)
+     */
+    static authenticateOptional(req: any, res: any, next: any) {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || authHeader === 'null' || authHeader === 'Bearer null') {
+            return next();
+        }
+
+        const token = authHeader.split(' ')[1];
+        if (!token || token === 'null') {
+            return next();
+        }
+
+        try {
+            const decoded = jwt.verify(token, JWT_SECRET);
+            req.user = decoded;
+            next();
+        } catch (e) {
+            // Invalid token but optional, so just proceed without req.user
+            next();
         }
     }
 }
