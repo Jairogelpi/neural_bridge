@@ -440,6 +440,22 @@ app.post('/v1/turbo/crystallize', async (req: Request, res: Response) => {
     }
 });
 
+// Legacy/Universal Alias for SCP Demo 🌉
+app.post('/v1/crystallize', async (req: Request, res: Response) => {
+    // Redirect internal logic to turbo
+    const { text, tier, domain } = req.body;
+    try {
+        const crystal = await TurboCrystallizer.crystallize(text || '', {
+            tier: tier || 'flash',
+            domain: domain || 'general',
+            autoUpgrade: true
+        });
+        res.json(crystal);
+    } catch (error) {
+        res.status(500).json({ error: (error as Error).message });
+    }
+});
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // COMPARATIVE QUERY (Real Dual-LLM Comparison) 🦾
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1278,21 +1294,16 @@ app.get('/', (_req: Request, res: Response) => {
             universal_llm_support: true
         },
         endpoints: {
-            pck: {
-                compile: 'POST /api/pck/compile',
-                verify: 'POST /api/pck/verify'
+            crystallize: {
+                turbo: 'POST /v1/turbo/crystallize',
+                standard: 'POST /v1/crystallize'
             },
-            zkv: {
-                createProof: 'POST /api/zkv/proof',
-                verifyProof: 'POST /api/zkv/verify'
+            query: {
+                compare: 'POST /v1/turbo/query/compare'
             },
-            smt: {
-                build: 'POST /api/smt/build',
-                compare: 'POST /api/smt/compare'
-            },
-            clpv: {
-                createReceipt: 'POST /api/clpv/receipt',
-                crossVerify: 'POST /api/clpv/cross-verify'
+            auth: {
+                login: 'POST /v1/auth/login',
+                register: 'POST /v1/auth/register'
             }
         }
     });

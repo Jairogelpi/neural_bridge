@@ -276,7 +276,7 @@ export default function SCPDemoModal({ isOpen, onClose }: SCPDemoModalProps) {
             if (i === 9) {
                 addLog(tier === 'smart' ? "INVOKING DEEP CRYSTALLIZATION..." : "CRYSTALLIZING TRUTH...", 'warn');
                 try {
-                    const res = await fetch('https://neural-bridge-backend.onrender.com/v1/crystallize', {
+                    const res = await fetch('https://neural-bridge-backend.onrender.com/v1/turbo/crystallize', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ text: textToProcess, tier: tier, domain: 'general' })
@@ -338,8 +338,14 @@ export default function SCPDemoModal({ isOpen, onClose }: SCPDemoModalProps) {
                         addLog("✅ CLOUD VERIFIED. SYNCING REAL-TIME RELATIONSHIPS.", 'success');
                         setRawResponse(JSON.stringify(crystal, null, 2));
                     } else {
-                        const err = await res.json();
-                        throw new Error(err.error || "Cloud Fail");
+                        const contentType = res.headers.get("content-type");
+                        if (contentType && contentType.includes("application/json")) {
+                            const err = await res.json();
+                            throw new Error(err.error || `Server Error (${res.status})`);
+                        } else {
+                            const text = await res.text();
+                            throw new Error(`Sovereign Link 500: ${text.slice(0, 100)}... (Status: ${res.status})`);
+                        }
                     }
                 } catch (e: any) {
                     addLog(`❌ PROTOCOL ERROR: ${e.message}`, 'error');
